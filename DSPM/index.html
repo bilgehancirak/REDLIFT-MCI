@@ -1,1 +1,513 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+<title>Display Manager</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f1f5f9;color:#0f172a;min-height:100vh;padding:16px;max-width:480px;margin:0 auto;}
+h1{font-size:16px;font-weight:500;color:#94a3b8;text-align:center;margin-bottom:16px;letter-spacing:.1em;text-transform:uppercase}
+.card{background:#1e293b;border:.5px solid #334155;border-radius:16px;padding:16px;margin-bottom:12px}
+.card-title{font-size:11px;font-weight:500;color:#64748b;text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px}
+.toggle-row{display:flex;gap:8px}
+.toggle-group{flex:1;display:flex;border:.5px solid #334155;border-radius:10px;overflow:hidden}
+.toggle-group button{flex:1;border:none;background:transparent;padding:10px 8px;font-size:13px;color:#64748b;cursor:pointer;transition:all .15s}
+.toggle-group button.active{background:#3b82f6;color:#fff}
+.digit-row{display:flex;align-items:center;justify-content:center;gap:16px}
+.drum-col{display:flex;flex-direction:column;align-items:center;gap:6px}
+.drum-col-label{font-size:11px;color:#64748b}
+.drum{width:100px;height:200px;overflow:hidden;border-radius:14px;border:.5px solid #334155;background:#0f172a;position:relative;cursor:grab;user-select:none}
+.drum:active{cursor:grabbing}
+.drum-inner{position:absolute;width:100%}
+.drum-item{height:60px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:600;color:#334155;font-family:'Courier New',monospace;transition:color .1s, font-size .1s}
+.drum-item.active{color:#f1f5f9;font-size:52px}
+.drum-fade-top{position:absolute;top:0;left:0;right:0;height:70px;background:linear-gradient(to bottom,#0f172a,transparent);pointer-events:none;z-index:2}
+.drum-fade-bot{position:absolute;bottom:0;left:0;right:0;height:70px;background:linear-gradient(to top,#0f172a,transparent);pointer-events:none;z-index:2}
+.drum-line{position:absolute;left:10px;right:10px;height:.5px;background:#475569;z-index:3}
+.drum-line.top{top:70px}
+.drum-line.bot{bottom:70px}
+.dir-col{display:flex;flex-direction:column;gap:8px;align-items:center;margin-left:4px}
+.dir-col-label{font-size:11px;color:#64748b}
+.dir-btn{width:72px;height:72px;border:.5px solid #334155;border-radius:14px;background:#0f172a;color:#475569;font-size:34px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;line-height:1}
+.dir-btn:active{transform:scale(.93)}
+.dir-btn.on{background:#16a34a;border-color:#16a34a;color:#fff}
+.status-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.status-btn{padding:16px 10px;border:.5px solid #334155;border-radius:12px;background:#0f172a;color:#94a3b8;font-size:15px;font-weight:600;cursor:pointer;text-align:center;transition:all .15s;letter-spacing:.05em}
+.status-btn:active{transform:scale(.96)}
+.status-btn.on{background:#16a34a;border-color:#16a34a;color:#fff}
+.frame-row{display:flex;flex-wrap:wrap;gap:6px;font-family:'Courier New',monospace;font-size:12px}
+.byte-box{padding:4px 8px;border-radius:6px;border:.5px solid #334155;color:#64748b}
+.byte-box.status{background:#422006;color:#fb923c;border-color:#92400e}
+.byte-box.digit{background:#1e3a5f;color:#60a5fa;border-color:#1d4ed8}
+.toast{font-size:12px;text-align:center;margin-top:8px;min-height:18px;transition:opacity .4s}
 
+/* Bağlantı durum çubuğu (yeni) */
+.conn-bar{display:flex;align-items:center;justify-content:space-between;background:#1e293b;border:.5px solid #334155;border-radius:12px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#94a3b8}
+.conn-dot{width:8px;height:8px;border-radius:50%;background:#f87171;margin-right:6px;display:inline-block}
+.conn-dot.on{background:#4ade80}
+.conn-fallback-btn{background:#3b82f6;color:#fff;border:none;padding:6px 12px;border-radius:8px;font-size:11px;cursor:pointer;display:none}
+.conn-fallback-btn.show{display:block}
+
+/* Gelişmiş Ayarlar */
+.adv-title-row{display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+.adv-title-row .chevron{font-size:11px;color:#475569;transition:transform .2s;flex-shrink:0}
+.adv-title-row.open .chevron{transform:rotate(180deg)}
+.adv-content{display:none;margin-top:14px}
+.adv-content.open{display:block}
+.adv-byte-row{margin-bottom:12px}
+.adv-byte-label{font-size:11px;color:#64748b;margin-bottom:6px;font-weight:500;letter-spacing:.08em;text-transform:uppercase}
+.adv-bits{display:flex;gap:4px}
+.bit-btn{flex:1;height:40px;border:.5px solid #334155;border-radius:8px;background:#0f172a;color:#64748b;font-size:13px;font-family:'Courier New',monospace;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transition:all .15s;padding:0;line-height:1}
+.bit-btn.on{background:#16a34a;border-color:#16a34a;color:#fff}
+.bit-btn:active{transform:scale(.93)}
+.bit-idx{font-size:8px;opacity:.5}
+</style>
+</head>
+<body>
+
+<h1>Display Manager</h1>
+
+<!-- Bağlantı durum çubuğu -->
+<div class="conn-bar">
+  <div><span class="conn-dot" id="connDot"></span><span id="connText">Bağlanılıyor...</span></div>
+  <button class="conn-fallback-btn" id="connFallbackBtn">Bağlan</button>
+</div>
+
+<!-- Konfigürasyon -->
+<div class="card">
+  <div class="card-title">Konfigurasyon</div>
+  <div class="toggle-row">
+    <div style="flex:1">
+      <div style="font-size:11px;color:#64748b;margin-bottom:6px">Frame boyutu</div>
+      <div class="toggle-group" id="tg-size">
+        <button class="active" onclick="setOpt('size',6,this)">6 byte</button>
+        <button onclick="setOpt('size',9,this)">9 byte</button>
+      </div>
+    </div>
+    <div style="flex:1">
+      <div style="font-size:11px;color:#64748b;margin-bottom:6px">Format</div>
+      <div class="toggle-group" id="tg-fmt">
+        <button class="active" onclick="setOpt('fmt','A',this)">Format A</button>
+        <button onclick="setOpt('fmt','B',this)">Format B</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Digit seçimi -->
+<div class="card">
+  <div class="card-title">Digit secimi</div>
+  <div class="digit-row">
+    <div class="drum-col">
+      <div class="drum-col-label">Sol digit</div>
+      <div class="drum" id="drum0">
+        <div class="drum-fade-top"></div>
+        <div class="drum-line top"></div>
+        <div class="drum-inner" id="inner0"></div>
+        <div class="drum-line bot"></div>
+        <div class="drum-fade-bot"></div>
+      </div>
+    </div>
+    <div class="drum-col">
+      <div class="drum-col-label">Sag digit</div>
+      <div class="drum" id="drum1">
+        <div class="drum-fade-top"></div>
+        <div class="drum-line top"></div>
+        <div class="drum-inner" id="inner1"></div>
+        <div class="drum-line bot"></div>
+        <div class="drum-fade-bot"></div>
+      </div>
+    </div>
+    <div class="dir-col">
+      <div class="dir-col-label">Yon</div>
+      <button class="dir-btn" id="btn-up"   onclick="toggleDir('up')">&#8593;</button>
+      <button class="dir-btn" id="btn-down" onclick="toggleDir('down')">&#8595;</button>
+    </div>
+  </div>
+</div>
+
+<!-- Durum bitleri -->
+<div class="card">
+  <div class="card-title">Durum bitleri</div>
+  <div class="status-grid" id="status-grid"></div>
+</div>
+
+<!-- Gelişmiş Ayarlar -->
+<div class="card">
+  <div class="adv-title-row" id="adv-title-row" onclick="toggleAdv()">
+    <span class="card-title" style="margin-bottom:0">Gelişmiş Ayarlar</span>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="adv-content" id="adv-content">
+    <div class="adv-byte-row">
+      <div class="adv-byte-label">STATUS_0</div>
+      <div class="adv-bits" id="adv-s0"></div>
+    </div>
+    <div class="adv-byte-row" style="margin-bottom:0">
+      <div class="adv-byte-label">STATUS_1</div>
+      <div class="adv-bits" id="adv-s1"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Frame önizleme -->
+<div class="card">
+  <div class="card-title">Frame onizleme</div>
+  <div class="frame-row" id="frame-preview"></div>
+  <div class="toast" id="toast" style="opacity:0"></div>
+</div>
+
+<script>
+// =====================================================================
+// BLE — OTOMATİK YENİDEN BAĞLANMA
+// Ana index.html'de kaydedilen cihaz id'sini kullanarak,
+// picker açmadan otomatik bağlanmayı dener.
+// =====================================================================
+const SERVICE_UUID        = '12345678-1234-1234-1234-123456789abc';
+const CHARACTERISTIC_UUID = 'abcd1234-ab12-cd34-ef56-abcdef123456';
+
+let bleDevice         = null;
+let bleCharacteristic = null;
+let connected         = false;
+let sendTimer         = null;
+
+const connDot = document.getElementById('connDot');
+const connText = document.getElementById('connText');
+const connFallbackBtn = document.getElementById('connFallbackBtn');
+
+async function connectToDevice(device) {
+  try {
+    device.addEventListener('gattserverdisconnected', onDisconnected);
+    const server  = await device.gatt.connect();
+    const service = await server.getPrimaryService(SERVICE_UUID);
+    bleCharacteristic = await service.getCharacteristic(CHARACTERISTIC_UUID);
+    bleDevice = device;
+    connected = true;
+    updateConnUI();
+  } catch (err) {
+    showToast('Bağlantı hatası: ' + err.message, '#f87171');
+    connected = false;
+    updateConnUI();
+  }
+}
+
+async function tryAutoReconnect() {
+  const savedId = localStorage.getItem('redlift_last_device_id');
+  if (!savedId || !navigator.bluetooth.getDevices) {
+    updateConnUI();
+    return;
+  }
+  try {
+    const knownDevices = await navigator.bluetooth.getDevices();
+    const match = knownDevices.find(d => d.id === savedId);
+    if (match) {
+      await connectToDevice(match);
+    } else {
+      updateConnUI();
+    }
+  } catch (err) {
+    console.error('Otomatik bağlantı hatası:', err);
+    updateConnUI();
+  }
+}
+
+// Fallback: otomatik bağlantı başarısız olursa manuel picker
+connFallbackBtn.addEventListener('click', async () => {
+  try {
+    const device = await navigator.bluetooth.requestDevice({
+      filters: [{ name: 'BILAB-DSPM' }],
+      optionalServices: [SERVICE_UUID]
+    });
+    localStorage.setItem('redlift_last_device_id', device.id);
+    await connectToDevice(device);
+  } catch (err) {
+    showToast('HATA: ' + err.message, '#f87171');
+  }
+});
+
+function onDisconnected() {
+  connected = false;
+  bleCharacteristic = null;
+  updateConnUI();
+  showToast('BAĞLANTI KESİLDİ', '#f87171');
+}
+
+function updateConnUI() {
+  connDot.classList.toggle('on', connected);
+  connText.textContent = connected
+    ? (bleDevice && bleDevice.name ? bleDevice.name + ' — Bağlı' : 'Bağlı')
+    : 'Bağlı değil';
+  connFallbackBtn.classList.toggle('show', !connected);
+}
+
+// =====================================================================
+// AUTO SEND (debounce 150ms)
+// =====================================================================
+function scheduleAutoSend() {
+  if (!connected || !bleCharacteristic) return;
+  clearTimeout(sendTimer);
+  sendTimer = setTimeout(doSend, 150);
+}
+
+async function doSend() {
+  if (!connected || !bleCharacteristic) return;
+  try {
+    await bleCharacteristic.writeValue(new Uint8Array(buildFrame()));
+  } catch (err) {
+    showToast('HATA: ' + err.message, '#f87171');
+  }
+}
+
+// =====================================================================
+// STATE
+// =====================================================================
+let cfg    = { size: 6, fmt: 'A' };
+let digits = [0, 0];
+let s0 = 0, s1 = 0;
+
+const FORMAT_DEFS = {
+  A: {
+    s0_const: 0x00,
+    status: [
+      { key:'oss',        label:'OSS',        s0bits:[0], s1bits:[7] },
+      { key:'overload',   label:'OVERLOAD',   s0bits:[],  s1bits:[6] },
+      { key:'fire',       label:'FIRE',       s0bits:[],  s1bits:[0] },
+      { key:'emergency',  label:'EMERGENCY',  s0bits:[],  s1bits:[1] },
+      { key:'earthquake', label:'EARTHQUAKE', s0bits:[3], s1bits:[]  },
+      { key:'prc',        label:'PRC',        s0bits:[2], s1bits:[]  },
+    ],
+    dir: { up: { s1: 4 }, down: { s1: 5 } }
+  },
+  B: {
+    s0_const: 0x80,
+    status: [
+      { key:'oss',       label:'OSS',       s0bits:[0], s1bits:[] },
+      { key:'fire',      label:'FIRE',      s0bits:[6], s1bits:[] },
+      { key:'emergency', label:'EMERGENCY', s0bits:[5], s1bits:[] },
+      { key:'prc',       label:'PRC',       s0bits:[2], s1bits:[] },
+      { key:'ats',       label:'ATS',       s0bits:[1], s1bits:[] },
+    ],
+    dir: { up: { s1: 0 }, down: { s1: 1 } }
+  }
+};
+
+const CHARS = [
+  {c:'0',b:0x3F},{c:'1',b:0x06},{c:'2',b:0x5B},{c:'3',b:0x4F},
+  {c:'4',b:0x66},{c:'5',b:0x6D},{c:'6',b:0x7D},{c:'7',b:0x07},
+  {c:'8',b:0x7F},{c:'9',b:0x6F},{c:'A',b:0x77},{c:'B',b:0x91},
+  {c:'C',b:0x39},{c:'D',b:0x92},{c:'E',b:0x79},{c:'F',b:0x71},
+  {c:'G',b:0x93},{c:'H',b:0x76},{c:'I',b:0x94},{c:'J',b:0x1E},
+  {c:'K',b:0x95},{c:'L',b:0x38},{c:'M',b:0x96},{c:'N',b:0x97},
+  {c:'O',b:0x98},{c:'P',b:0x73},{c:'Q',b:0x99},{c:'R',b:0x9A},
+  {c:'S',b:0x9B},{c:'T',b:0x9C},{c:'U',b:0x3E},{c:'V',b:0x9D},
+  {c:'W',b:0x9E},{c:'X',b:0x9F},{c:'Y',b:0xA0},{c:'Z',b:0xA1},
+  {c:'-',b:0x40},{c:' ',b:0x00}
+];
+
+function buildFrame() {
+  const d1 = CHARS[digits[0]].b;
+  const d2 = CHARS[digits[1]].b;
+  if (cfg.size === 6) return [0x06, 0x06, s0, d1, d2, s1];
+    return [0xFF, 0xFF, 0xFF, 0x06, 0x06, s0, d1, d2, s1];
+}
+
+function h(n) { return '0x' + n.toString(16).toUpperCase().padStart(2,'0'); }
+
+function update() {
+  const frame   = buildFrame();
+  const labels6 = ['CTRL_0','CTRL_1','STATUS_0','DIGIT_1','DIGIT_2','STATUS_1'];
+  const labels9 = ['CTRL_0','CTRL_1','CTRL_2','CTRL_3','CTRL_4','STATUS_0','DIGIT_1','DIGIT_2','STATUS_1'];
+  const types6  = ['','','status','digit','digit','status'];
+  const types9  = ['','','','','','status','digit','digit','status'];
+  const labels  = cfg.size === 6 ? labels6 : labels9;
+  const types   = cfg.size === 6 ? types6  : types9;
+  document.getElementById('frame-preview').innerHTML =
+    frame.map((b,i) =>
+      `<span class="byte-box ${types[i]}" title="${labels[i]}">${h(b)}</span>`
+    ).join('');
+
+  syncStatusBtns();
+  syncDirBtns();
+  syncAdvBits();
+  scheduleAutoSend();
+}
+
+function buildStatusGrid() {
+  const grid = document.getElementById('status-grid');
+  grid.innerHTML = '';
+  FORMAT_DEFS[cfg.fmt].status.forEach(item => {
+    const btn = document.createElement('button');
+    btn.className    = 'status-btn';
+    btn.textContent  = item.label;
+    btn.dataset.key  = item.key;
+    btn.onclick = () => {
+      const isOn = item.s0bits.every(b => (s0 >> b) & 1) &&
+                   item.s1bits.every(b => (s1 >> b) & 1);
+      const val = isOn ? 0 : 1;
+      item.s0bits.forEach(b => { if(val) s0 |= (1<<b); else s0 &= ~(1<<b); });
+      item.s1bits.forEach(b => { if(val) s1 |= (1<<b); else s1 &= ~(1<<b); });
+      update();
+    };
+    grid.appendChild(btn);
+  });
+}
+
+function syncStatusBtns() {
+  FORMAT_DEFS[cfg.fmt].status.forEach(item => {
+    const btn = document.querySelector(`.status-btn[data-key="${item.key}"]`);
+    if (!btn) return;
+    const total = item.s0bits.length + item.s1bits.length;
+    const isOn  = total > 0 &&
+                  item.s0bits.every(b => (s0 >> b) & 1) &&
+                  item.s1bits.every(b => (s1 >> b) & 1);
+    btn.classList.toggle('on', isOn);
+  });
+}
+
+function toggleDir(dir) {
+  const def      = FORMAT_DEFS[cfg.fmt].dir;
+  const bit      = def[dir].s1;
+  const otherBit = def[dir === 'up' ? 'down' : 'up'].s1;
+  const isOn     = (s1 >> bit) & 1;
+  if (isOn) { s1 &= ~(1 << bit); }
+  else       { s1 |= (1 << bit); s1 &= ~(1 << otherBit); }
+  update();
+}
+
+function syncDirBtns() {
+  const def = FORMAT_DEFS[cfg.fmt].dir;
+  document.getElementById('btn-up').classList.toggle('on',   !!((s1 >> def.up.s1)   & 1));
+  document.getElementById('btn-down').classList.toggle('on', !!((s1 >> def.down.s1) & 1));
+}
+
+function setOpt(key, val, btn) {
+  cfg[key] = val;
+  const grp = key === 'size' ? 'tg-size' : 'tg-fmt';
+  document.querySelectorAll('#' + grp + ' button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (key === 'fmt') {
+    s0 = FORMAT_DEFS[val].s0_const;
+    s1 = 0;
+    buildStatusGrid();
+  }
+  update();
+}
+
+function toggleAdv() {
+  document.getElementById('adv-title-row').classList.toggle('open');
+  document.getElementById('adv-content').classList.toggle('open');
+}
+
+function buildAdvBits() {
+  ['s0', 's1'].forEach(which => {
+    const el = document.getElementById('adv-' + which);
+    el.innerHTML = '';
+    for (let bit = 7; bit >= 0; bit--) {
+      const btn = document.createElement('button');
+      btn.className       = 'bit-btn';
+      btn.dataset.which   = which;
+      btn.dataset.bit     = bit;
+      btn.innerHTML       = `<span class="bit-val">0</span><span class="bit-idx">${bit}</span>`;
+      btn.onclick = () => {
+        if (which === 's0') s0 ^= (1 << bit);
+        else                s1 ^= (1 << bit);
+        update();
+      };
+      el.appendChild(btn);
+    }
+  });
+}
+
+function syncAdvBits() {
+  ['s0', 's1'].forEach(which => {
+    const val = which === 's0' ? s0 : s1;
+    for (let bit = 7; bit >= 0; bit--) {
+      const btn = document.querySelector(`.bit-btn[data-which="${which}"][data-bit="${bit}"]`);
+      if (!btn) continue;
+      const v = (val >> bit) & 1;
+      btn.classList.toggle('on', v === 1);
+      btn.querySelector('.bit-val').textContent = v;
+    }
+  });
+}
+
+function showToast(msg, color) {
+  const t = document.getElementById('toast');
+  t.style.color = color; t.style.opacity = '1'; t.textContent = msg;
+  setTimeout(() => { t.style.opacity = '0'; }, 3000);
+}
+
+function setupDrum(idx) {
+  const drum  = document.getElementById('drum' + idx);
+  const inner = document.getElementById('inner' + idx);
+  const n     = CHARS.length;
+  const ITEM_H = 60;
+
+  inner.innerHTML = CHARS.map((ch, i) =>
+    `<div class="drum-item" data-i="${i}">${ch.c === ' ' ? '_' : ch.c}</div>`
+  ).join('');
+
+  function render(active) {
+    digits[idx] = ((active % n) + n) % n;
+    inner.style.transform = `translateY(${70 - digits[idx] * ITEM_H}px)`;
+    inner.querySelectorAll('.drum-item').forEach((el, i) => {
+      el.classList.toggle('active', i === digits[idx]);
+    });
+    update();
+  }
+
+  let startY = 0, startIdx = 0, dragging = false, curIdx = 0;
+
+  drum.addEventListener('mousedown', e => {
+    dragging = true; startY = e.clientY; startIdx = digits[idx];
+    inner.style.transition = 'none'; e.preventDefault();
+  });
+  window.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    curIdx = startIdx + Math.round((startY - e.clientY) / ITEM_H);
+    render(curIdx);
+  });
+  window.addEventListener('mouseup', () => {
+    if (!dragging) return;
+    dragging = false;
+    inner.style.transition = 'transform .15s ease';
+    render(curIdx);
+  });
+  drum.addEventListener('touchstart', e => {
+    dragging = true; startY = e.touches[0].clientY; startIdx = digits[idx];
+    inner.style.transition = 'none';
+  }, { passive: true });
+  drum.addEventListener('touchmove', e => {
+    if (!dragging) return;
+    curIdx = startIdx + Math.round((startY - e.touches[0].clientY) / ITEM_H);
+    render(curIdx); e.preventDefault();
+  }, { passive: false });
+  drum.addEventListener('touchend', () => {
+    dragging = false;
+    inner.style.transition = 'transform .15s ease';
+    render(curIdx);
+  });
+  drum.addEventListener('wheel', e => {
+    e.preventDefault();
+    curIdx = digits[idx] + (e.deltaY > 0 ? 1 : -1);
+    inner.style.transition = 'transform .15s ease';
+    render(curIdx);
+  }, { passive: false });
+
+  render(0);
+}
+
+// =====================================================================
+// INIT
+// =====================================================================
+s0 = FORMAT_DEFS[cfg.fmt].s0_const;
+buildStatusGrid();
+buildAdvBits();
+setupDrum(0);
+setupDrum(1);
+update();
+tryAutoReconnect();
+</script>
+</body>
+</html>
