@@ -18,283 +18,109 @@
     --font-display: 'Segoe UI', Roboto, sans-serif;
   }
   * { box-sizing: border-box; }
-
   html, body {
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    overscroll-behavior: none;
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--font-display);
+    margin: 0; padding: 0; width: 100%; height: 100%;
+    overflow: hidden; overscroll-behavior: none;
+    background: var(--bg); color: var(--text); font-family: var(--font-display);
   }
-
-  /* ===================================================
-     EKRAN YÖNETİMİ (SPA mantığı)
-     Her "screen" tam ekranı kaplar, sadece .active olan görünür
-     =================================================== */
-  .screen {
-    display: none;
-    height: 100dvh;
-    width: 100vw;
-  }
-  .screen.active {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  /* ---- Connect ekranı stilleri ---- */
-  .card {
-    width: 100%;
-    max-width: 400px;
-    text-align: center;
-    padding: 20px;
-  }
-
+  body { display: flex; align-items: center; justify-content: center; height: 100dvh; width: 100vw; padding: 20px; }
+  .card { width: 100%; max-width: 400px; text-align: center; }
   .logo-mark {
-    width: 64px; height: 64px;
-    border-radius: 16px;
-    background: var(--accent-dim);
-    border: 1px solid var(--accent);
+    width: 64px; height: 64px; border-radius: 16px;
+    background: var(--accent-dim); border: 1px solid var(--accent);
     display: flex; align-items: center; justify-content: center;
-    font-weight: 800;
-    font-size: 21px;
-    color: var(--accent);
-    margin: 0 auto 20px;
-    letter-spacing: 0.5px;
+    font-weight: 800; font-size: 21px; color: var(--accent);
+    margin: 0 auto 20px; letter-spacing: 0.5px;
   }
-
-  .eyebrow {
-    font-size: 11px;
-    letter-spacing: 1.5px;
-    color: var(--text-dim);
-    text-transform: uppercase;
-    margin-bottom: 6px;
-  }
-
-  h1 {
-    font-size: 18px;
-    margin: 0 0 10px;
-    letter-spacing: 0.2px;
-    line-height: 1.3;
-  }
-
-  p.desc {
-    font-size: 13px;
-    color: var(--text-dim);
-    margin: 0 0 26px;
-    line-height: 1.5;
-    padding: 0 8px;
-  }
-
+  .eyebrow { font-size: 11px; letter-spacing: 1.5px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 6px; }
+  h1 { font-size: 18px; margin: 0 0 10px; line-height: 1.3; }
+  p.desc { font-size: 13px; color: var(--text-dim); margin: 0 0 26px; line-height: 1.5; padding: 0 8px; }
   .connect-btn {
-    width: 100%;
-    background: var(--accent);
-    color: #1a0900;
-    border: none;
-    padding: 16px 20px;
-    border-radius: 10px;
-    font-size: 15px;
-    font-weight: 700;
-    cursor: pointer;
+    width: 100%; background: var(--accent); color: #1a0900; border: none;
+    padding: 16px 20px; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer;
   }
   .connect-btn:disabled { opacity: 0.5; cursor: not-allowed; }
   .connect-btn:hover:not(:disabled) { filter: brightness(1.08); }
-
-  .status {
-    margin-top: 16px;
-    font-size: 13px;
-    color: var(--text-dim);
-    min-height: 18px;
-  }
+  .status { margin-top: 16px; font-size: 13px; color: var(--text-dim); min-height: 18px; }
   .status.error { color: var(--danger); }
   .status.ok { color: var(--ok); }
-
   .spinner {
-    width: 14px; height: 14px;
-    border: 2px solid var(--panel-border);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    display: inline-block;
-    margin-right: 8px;
-    animation: spin 0.7s linear infinite;
-    vertical-align: middle;
+    width: 14px; height: 14px; border: 2px solid var(--panel-border); border-top-color: var(--accent);
+    border-radius: 50%; display: inline-block; margin-right: 8px;
+    animation: spin 0.7s linear infinite; vertical-align: middle;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
-
-  .device-detected {
-    margin-top: 20px;
-    padding: 12px 14px;
-    border: 1px solid var(--panel-border);
-    border-radius: 10px;
-    background: var(--panel);
-    font-size: 12px;
-    color: var(--text-dim);
-    display: none;
-    text-align: left;
-  }
-  .device-detected.show { display: block; }
-  .device-detected .name {
-    color: var(--text);
-    font-weight: 700;
-    font-size: 13px;
-  }
-
-  @media (max-height: 480px) {
-    .logo-mark { width: 48px; height: 48px; font-size: 16px; margin-bottom: 12px; }
-    p.desc { margin-bottom: 16px; }
-  }
-
-  /* ---- Placeholder ekranlar (B2'de gerçek içerikle değişecek) ---- */
-  .placeholder-screen {
-    flex-direction: column;
-    gap: 12px;
-    padding: 20px;
-    text-align: center;
-    color: var(--text-dim);
-  }
-  .placeholder-screen h2 { color: var(--text); font-size: 16px; margin: 0; }
-  .back-btn {
-    margin-top: 20px;
-    background: transparent;
-    border: 1px solid var(--panel-border);
-    color: var(--text-dim);
-    padding: 8px 16px;
-    border-radius: 8px;
-    font-size: 12px;
-    cursor: pointer;
-  }
 </style>
 </head>
 <body>
 
-  <!-- ============ EKRAN 1: BAĞLANTI ============ -->
-  <div class="screen active" id="screen-connect">
-    <div class="card">
-      <div class="logo-mark">RL</div>
-      <div class="eyebrow">CONNECT A REDLIFT DEVICE</div>
-      <h1>Bir Redlift cihazına bağlanın</h1>
-      <p class="desc">Devam etmek için yakındaki bir Redlift cihazını Bluetooth ile eşleştirin. Cihaz tipine göre ilgili kontrol paneli otomatik olarak açılacaktır.</p>
-
-      <button class="connect-btn" id="connectBtn">Cihaza Bağlan</button>
-      <div class="status" id="statusText"></div>
-
-      <div class="device-detected" id="deviceDetected">
-        <div class="name" id="detectedName">—</div>
-        <div id="detectedType">Cihaz tipi tespit ediliyor...</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ============ EKRAN 2: DISPLAY MANAGER (B2'de doldurulacak) ============ -->
-  <div class="screen" id="screen-displayManager">
-    <div class="placeholder-screen">
-      <h2>KONE Panel Kontrolcü</h2>
-      <p>displayManager içeriği buraya taşınacak (B2 aşaması).</p>
-      <button class="back-btn" id="backBtnDSPM">← Bağlantı ekranına dön</button>
-    </div>
-  </div>
-
-  <!-- ============ EKRAN 3: WELDMAC (ileride doldurulacak) ============ -->
-  <div class="screen" id="screen-weldmac">
-    <div class="placeholder-screen">
-      <h2>Kaynak Makinesi Kontrolcü</h2>
-      <p>WELDMAC arayüzü buraya taşınacak.</p>
-      <button class="back-btn" id="backBtnWeld">← Bağlantı ekranına dön</button>
-    </div>
+  <div class="card">
+    <div class="logo-mark">RL</div>
+    <div class="eyebrow">CONNECT A REDLIFT DEVICE</div>
+    <h1>Bir Redlift cihazına bağlanın</h1>
+    <p class="desc">Devam etmek için yakındaki bir Redlift cihazını Bluetooth ile eşleştirin. Cihaz tipine göre ilgili kontrol paneli otomatik olarak açılacaktır.</p>
+    <button class="connect-btn" id="connectBtn">Cihaza Bağlan</button>
+    <div class="status" id="statusText"></div>
   </div>
 
 <script>
 // =========================================================
-// EKRAN GEÇİŞ FONKSİYONU (sayfa yenilenmez, BLE bağlantısı korunur)
+// CİHAZ -> KLASÖR YÖNLENDİRME TABLOSU
+// Yeni cihaz tipi eklendikçe buraya satır eklenecek.
 // =========================================================
-function showScreen(screenId) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(screenId).classList.add('active');
-}
-
-document.getElementById('backBtnDSPM').addEventListener('click', () => showScreen('screen-connect'));
-document.getElementById('backBtnWeld').addEventListener('click', () => showScreen('screen-connect'));
-
-// =========================================================
-// BLE BAĞLANTI (Web Bluetooth API)
-// bleDevice ve bleCharacteristic global scope'ta tutuluyor,
-// ekran değişse bile bağlantı canlı kalıyor.
-// =========================================================
-const connectBtn = document.getElementById('connectBtn');
-const statusText = document.getElementById('statusText');
-const deviceDetected = document.getElementById('deviceDetected');
-const detectedName = document.getElementById('detectedName');
-const detectedType = document.getElementById('detectedType');
-
-let bleDevice = null;
-let bleCharacteristic = null;
-
-// Cihaz adı ön eklerine göre yönlendirme tablosu
-// route = gösterilecek screen id'si
 const DEVICE_ROUTES = [
-  { prefix: 'BILAB-DSPM',   label: 'KONE Panel Kontrolcü',       route: 'screen-displayManager' },
-  { prefix: 'REDLIFT-WELD', label: 'Kaynak Makinesi Kontrolcü',  route: 'screen-weldmac' },
-  // BLE: yeni cihaz tipleri eklendikçe buraya satır eklenecek
+  { prefix: 'BILAB-DSPM',   label: 'KONE Panel Kontrolcü',      route: 'displayManager' },
+  { prefix: 'REDLIFT-WELD', label: 'Kaynak Makinesi Kontrolcü', route: 'weldmac' },
 ];
 
 function detectDeviceType(deviceName) {
-  const match = DEVICE_ROUTES.find(r => deviceName && deviceName.startsWith(r.prefix));
-  return match || { label: 'Bilinmeyen cihaz tipi', route: null };
+  return DEVICE_ROUTES.find(r => deviceName && deviceName.startsWith(r.prefix)) || null;
 }
+
+const connectBtn = document.getElementById('connectBtn');
+const statusText = document.getElementById('statusText');
 
 connectBtn.addEventListener('click', async () => {
   connectBtn.disabled = true;
   statusText.className = 'status';
   statusText.innerHTML = '<span class="spinner"></span>Cihaz aranıyor...';
-  deviceDetected.classList.remove('show');
 
   try {
-    bleDevice = await navigator.bluetooth.requestDevice({
+    const device = await navigator.bluetooth.requestDevice({
       filters: [
         { namePrefix: 'BILAB' },
         { namePrefix: 'REDLIFT' }
       ],
-      optionalServices: ['0000ffe0-0000-1000-8000-00805f9b34fb'] // örnek UUID, gerçeğiyle değiştirilecek
+      optionalServices: [
+        '0000ffe0-0000-1000-8000-00805f9b34fb', // genel/örnek UUID
+        '12345678-1234-1234-1234-123456789abc'  // DSPM servis UUID
+      ]
     });
 
-    statusText.innerHTML = '<span class="spinner"></span>Bağlanılıyor...';
-    const server = await bleDevice.gatt.connect();
+    const info = detectDeviceType(device.name);
 
-    // BLE: gerçek service/characteristic UUID'lerini buraya yaz
-    // const service = await server.getPrimaryService('SERVICE_UUID');
-    // bleCharacteristic = await service.getCharacteristic('CHAR_UUID');
-
-    const name = bleDevice.name || 'Bilinmeyen Cihaz';
-    const info = detectDeviceType(name);
-
-    detectedName.textContent = name;
-    detectedType.textContent = info.route
-      ? 'Tespit edilen: ' + info.label
-      : 'Cihaz tipi tanınamadı — yönlendirme tanımlı değil';
-    deviceDetected.classList.add('show');
-
-    statusText.textContent = 'Bağlandı';
-    statusText.className = 'status ok';
-
-    bleDevice.addEventListener('gattserverdisconnected', () => {
-      statusText.textContent = 'Bağlantı kesildi.';
+    if (!info) {
+      statusText.textContent = 'Tanınmayan cihaz tipi: ' + (device.name || '—');
       statusText.className = 'status error';
       connectBtn.disabled = false;
-      deviceDetected.classList.remove('show');
-      showScreen('screen-connect');
-    });
-
-    // Sayfa değişmez, sadece ilgili ekran gösterilir — bağlantı canlı kalır
-    if (info.route) {
-      setTimeout(() => showScreen(info.route), 600);
+      return;
     }
 
+    // Bu cihazın id'sini ve rotasını kaydet — hedef sayfa bunu okuyup
+    // otomatik (picker'sız) yeniden bağlanacak.
+    localStorage.setItem('redlift_last_device_id', device.id);
+    localStorage.setItem('redlift_last_device_name', device.name || '');
+    localStorage.setItem('redlift_last_route', info.route);
+
+    statusText.textContent = 'Bağlandı: ' + info.label + ', yönlendiriliyor...';
+    statusText.className = 'status ok';
+
+    setTimeout(() => {
+      window.location.href = info.route + '/';
+    }, 500);
+
   } catch (err) {
-    console.error('BLE bağlantı hatası:', err);
+    console.error('BLE hatası:', err);
     statusText.textContent = 'Bağlantı başarısız: ' + err.message;
     statusText.className = 'status error';
     connectBtn.disabled = false;
