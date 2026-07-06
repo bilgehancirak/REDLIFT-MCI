@@ -1,1 +1,361 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, viewport-fit=cover">
+<title>HWM Kontrol</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{
+  height:100%; width:100%;
+  overflow:hidden; overscroll-behavior:none;
+}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background:#f1f5f9;color:#0f172a;
+  height:100dvh; width:100vw;
+  max-width:480px; margin:0 auto;
+  display:flex; flex-direction:column;
+}
 
+/* ================= TOPBAR (sabit) ================= */
+.topbar{
+  display:flex; align-items:center; justify-content:space-between;
+  flex-shrink:0;
+  padding:10px 12px;
+}
+.topbar-left{display:flex; align-items:center; gap:7px;}
+.topbar-title{
+  font-size:11px; font-weight:700; letter-spacing:.05em; color:#e2e8f0;
+  background:#1e293b; border:.5px solid #334155;
+  height:36px; padding:0 12px; border-radius:9px;
+  display:flex; align-items:center;
+  box-sizing:border-box;
+}
+.home-btn{
+  background:#1e293b;color:#e2e8f0;border:none;
+  width:36px; height:36px; border-radius:9px;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; flex-shrink:0;
+}
+.home-btn:active{ transform:scale(.93); }
+
+/* Bağlantı durumu kutusu */
+.conn-status-box{
+  width:36px; height:36px; border-radius:9px;
+  background:#1e293b; border:.5px solid #334155;
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0;
+}
+.conn-status-led{
+  width:14px; height:14px; border-radius:50%;
+  background:#ef4444;
+  animation:ledBlink 1s infinite;
+}
+.conn-status-led.on{
+  background:#16a34a;
+  animation:none;
+}
+@keyframes ledBlink{
+  0%, 100% { opacity:1; }
+  50% { opacity:0; }
+}
+
+/* RX/TX gösterge kutusu — ikisi tek kutu içinde, üst üste iki led */
+.rxtx-box{
+  height:36px; padding:0 10px; border-radius:9px;
+  background:#1e293b; border:.5px solid #334155;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:3px; flex-shrink:0;
+}
+.rxtx-row{ display:flex; align-items:center; gap:5px; }
+.rxtx-label{ font-size:8px; font-weight:700; color:#64748b; letter-spacing:.05em; width:16px; }
+.rxtx-led{
+  width:7px; height:7px; border-radius:50%;
+  background:#334155;
+  transition:background .1s, opacity .1s;
+}
+.rxtx-led.flash{ background:#3b82f6; }
+.rxtx-led.rx.flash{ background:#22d3ee; }
+
+.conn-fallback-btn{
+  background:#3b82f6;color:#fff;border:none;
+  padding:5px 10px;border-radius:7px;font-size:11px;cursor:pointer;
+  display:none; margin-right:6px;
+}
+.conn-fallback-btn.show{display:inline-block}
+
+/* ================= YATAY KAYDIRMA (pager) ================= */
+.pager{
+  flex:1;
+  display:flex;
+  overflow-x:auto;
+  overflow-y:hidden;
+  scroll-snap-type:x mandatory;
+  -webkit-overflow-scrolling:touch;
+}
+.pager::-webkit-scrollbar{ display:none; }
+.page{
+  flex:0 0 100%;
+  width:100%;
+  scroll-snap-align:start;
+  overflow-y:auto;
+  padding:8px 10px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+/* ================= DOTS (sabit, alt) ================= */
+.dots{
+  flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  gap:8px;
+  padding:10px 0 14px;
+}
+.dot{
+  width:7px; height:7px; border-radius:50%;
+  background:#cbd5e1; border:none; cursor:pointer; padding:0;
+  transition:all .2s;
+}
+.dot.active{ background:#3b82f6; width:20px; border-radius:4px; }
+
+/* ================= Kartlar (ileride kullanılacak ortak stiller) ================= */
+.card{
+  background:#1e293b;border:.5px solid #334155;border-radius:12px;
+  padding:12px;
+}
+.card-title{font-size:10px;font-weight:500;color:#64748b;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
+.placeholder-card{
+  flex:1;
+  display:flex; align-items:center; justify-content:center;
+  color:#64748b; font-size:13px; text-align:center; padding:20px;
+}
+</style>
+</head>
+<body>
+
+<!-- ================= TOPBAR ================= -->
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-title">HWM</div>
+  </div>
+  <div style="display:flex; align-items:center; gap:8px;">
+    <button class="conn-fallback-btn" id="connFallbackBtn">Bağlan</button>
+    <div class="rxtx-box" title="RX / TX">
+      <div class="rxtx-row"><span class="rxtx-label">TX</span><span class="rxtx-led" id="txLed"></span></div>
+      <div class="rxtx-row"><span class="rxtx-label">RX</span><span class="rxtx-led rx" id="rxLed"></span></div>
+    </div>
+    <div class="conn-status-box" title="Bağlantı durumu">
+      <span class="conn-status-led" id="connStatusLed"></span>
+    </div>
+    <button class="home-btn" id="homeBtn" aria-label="Ana Sayfa" title="Ana Sayfa">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+        <polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<!-- ================= YATAY KAYDIRMALI SAYFALAR ================= -->
+<div class="pager" id="pager">
+
+  <!-- SAYFA 1: KONTROL (placeholder) -->
+  <div class="page" id="page-0">
+    <div class="card placeholder-card">
+      Kontrol ekranı buraya gelecek<br>(ön ısıtma / proses başlat / durdur)
+    </div>
+  </div>
+
+  <!-- SAYFA 2: AYARLAR (placeholder) -->
+  <div class="page" id="page-1">
+    <div class="card placeholder-card">
+      Ayarlar ekranı buraya gelecek
+    </div>
+  </div>
+
+</div>
+
+<!-- ================= DOTS ================= -->
+<div class="dots" id="dots">
+  <button class="dot active" data-page="0"></button>
+  <button class="dot" data-page="1"></button>
+</div>
+
+<script>
+// =====================================================================
+// PAGER — yatay kaydırma + nokta senkronizasyonu
+// =====================================================================
+const pager = document.getElementById('pager');
+const dots = Array.from(document.querySelectorAll('.dot'));
+
+function goToPage(index) {
+  const page = document.getElementById('page-' + index);
+  pager.scrollTo({ left: page.offsetLeft, behavior: 'smooth' });
+}
+
+dots.forEach(dot => {
+  dot.addEventListener('click', () => goToPage(Number(dot.dataset.page)));
+});
+
+let scrollTimeout;
+pager.addEventListener('scroll', () => {
+  clearTimeout(scrollTimeout);
+  scrollTimeout = setTimeout(() => {
+    const index = Math.round(pager.scrollLeft / pager.clientWidth);
+    dots.forEach((d, i) => d.classList.toggle('active', i === index));
+  }, 60);
+});
+
+// =====================================================================
+// ANA SAYFAYA DÖN — BLE bağlantısını kesip yönlendir
+// =====================================================================
+document.getElementById('homeBtn').addEventListener('click', () => {
+  if (bleDevice && bleDevice.gatt.connected) {
+    bleDevice.gatt.disconnect();
+  }
+  window.location.href = '../';
+});
+
+// =====================================================================
+// RX / TX LED — kısa yanıp sönme efekti
+// =====================================================================
+const txLed = document.getElementById('txLed');
+const rxLed = document.getElementById('rxLed');
+
+function flashTx() {
+  txLed.classList.add('flash');
+  clearTimeout(txLed._t);
+  txLed._t = setTimeout(() => txLed.classList.remove('flash'), 120);
+}
+function flashRx() {
+  rxLed.classList.add('flash');
+  clearTimeout(rxLed._t);
+  rxLed._t = setTimeout(() => rxLed.classList.remove('flash'), 120);
+}
+
+// =====================================================================
+// BLE — OTOMATİK YENİDEN BAĞLANMA + GÖNDER/AL
+// =====================================================================
+// NOT: Bu UUID'ler placeholder — WELDMAC'in gerçek servis/characteristic
+// UUID'leriyle değiştirilecek. Muhtemelen TX (yazma) ve RX (notify)
+// için AYRI characteristic'ler olacak, cihazının tasarımına göre.
+const SERVICE_UUID           = '12345678-1234-1234-1234-123456789abd'; // WELDMAC servis UUID (değiştir)
+const TX_CHARACTERISTIC_UUID = 'abcd1234-ab12-cd34-ef56-abcdef123457'; // Komut gönderme (değiştir)
+const RX_CHARACTERISTIC_UUID = 'abcd1234-ab12-cd34-ef56-abcdef123458'; // Veri alma / notify (değiştir)
+
+let bleDevice          = null;
+let txCharacteristic   = null;
+let rxCharacteristic   = null;
+let connected          = false;
+
+const connStatusLed = document.getElementById('connStatusLed');
+const connFallbackBtn = document.getElementById('connFallbackBtn');
+
+async function connectToDevice(device) {
+  try {
+    device.addEventListener('gattserverdisconnected', onDisconnected);
+    const server  = await device.gatt.connect();
+    const service = await server.getPrimaryService(SERVICE_UUID);
+
+    txCharacteristic = await service.getCharacteristic(TX_CHARACTERISTIC_UUID);
+    rxCharacteristic = await service.getCharacteristic(RX_CHARACTERISTIC_UUID);
+
+    // Cihazdan gelen verileri dinlemeye başla (notify)
+    await rxCharacteristic.startNotifications();
+    rxCharacteristic.addEventListener('characteristicvaluechanged', handleIncomingData);
+
+    bleDevice = device;
+    connected = true;
+    updateConnUI();
+  } catch (err) {
+    console.error('Bağlantı hatası:', err);
+    connected = false;
+    updateConnUI();
+  }
+}
+
+async function tryAutoReconnect() {
+  const savedId = localStorage.getItem('redlift_last_device_id');
+  if (!savedId || !navigator.bluetooth.getDevices) {
+    updateConnUI();
+    return;
+  }
+  try {
+    const knownDevices = await navigator.bluetooth.getDevices();
+    const match = knownDevices.find(d => d.id === savedId);
+    if (match) {
+      await connectToDevice(match);
+    } else {
+      updateConnUI();
+    }
+  } catch (err) {
+    console.error('Otomatik bağlantı hatası:', err);
+    updateConnUI();
+  }
+}
+
+connFallbackBtn.addEventListener('click', async () => {
+  try {
+    const device = await navigator.bluetooth.requestDevice({
+      filters: [{ namePrefix: 'REDLIFT-WELD' }],
+      optionalServices: [SERVICE_UUID]
+    });
+    localStorage.setItem('redlift_last_device_id', device.id);
+    await connectToDevice(device);
+  } catch (err) {
+    console.error('Bağlantı hatası:', err);
+  }
+});
+
+function onDisconnected() {
+  connected = false;
+  txCharacteristic = null;
+  rxCharacteristic = null;
+  updateConnUI();
+}
+
+function updateConnUI() {
+  connStatusLed.classList.toggle('on', connected);
+  connFallbackBtn.classList.toggle('show', !connected);
+}
+
+// =====================================================================
+// VERİ GÖNDERME (TX)
+// =====================================================================
+async function sendCommand(bytes) {
+  if (!connected || !txCharacteristic) return;
+  try {
+    await txCharacteristic.writeValue(new Uint8Array(bytes));
+    flashTx();
+  } catch (err) {
+    console.error('Gönderme hatası:', err);
+  }
+}
+
+// =====================================================================
+// VERİ ALMA (RX) — cihazdan gelen bildirimler burada işlenecek
+// =====================================================================
+function handleIncomingData(event) {
+  flashRx();
+  const value = event.target.value; // DataView
+  const bytes = [];
+  for (let i = 0; i < value.byteLength; i++) bytes.push(value.getUint8(i));
+
+  // TODO: Gelen byte'ları burada parse edeceğiz.
+  // Örn: sıcaklık = bytes[0] + bytes[1]/10 gibi bir formül,
+  // ENDA1/ENDA2 sıcaklıkları, durum bitleri vs.
+  console.log('Gelen veri:', bytes);
+}
+
+// =====================================================================
+// INIT
+// =====================================================================
+tryAutoReconnect();
+</script>
+</body>
+</html>
