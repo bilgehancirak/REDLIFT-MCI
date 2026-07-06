@@ -31,19 +31,27 @@
     font-family: var(--font-display);
   }
 
-  body {
+  /* ===================================================
+     EKRAN YÖNETİMİ (SPA mantığı)
+     Her "screen" tam ekranı kaplar, sadece .active olan görünür
+     =================================================== */
+  .screen {
+    display: none;
+    height: 100dvh;
+    width: 100vw;
+  }
+  .screen.active {
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 100dvh;
-    width: 100vw;
-    padding: 20px;
   }
 
+  /* ---- Connect ekranı stilleri ---- */
   .card {
     width: 100%;
     max-width: 400px;
     text-align: center;
+    padding: 20px;
   }
 
   .logo-mark {
@@ -139,26 +147,83 @@
     .logo-mark { width: 48px; height: 48px; font-size: 16px; margin-bottom: 12px; }
     p.desc { margin-bottom: 16px; }
   }
+
+  /* ---- Placeholder ekranlar (B2'de gerçek içerikle değişecek) ---- */
+  .placeholder-screen {
+    flex-direction: column;
+    gap: 12px;
+    padding: 20px;
+    text-align: center;
+    color: var(--text-dim);
+  }
+  .placeholder-screen h2 { color: var(--text); font-size: 16px; margin: 0; }
+  .back-btn {
+    margin-top: 20px;
+    background: transparent;
+    border: 1px solid var(--panel-border);
+    color: var(--text-dim);
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 12px;
+    cursor: pointer;
+  }
 </style>
 </head>
 <body>
 
-  <div class="card">
-    <div class="logo-mark">RL</div>
-    <div class="eyebrow">CONNECT A REDLIFT DEVICE</div>
-    <h1>Bir Redlift cihazına bağlanın</h1>
-    <p class="desc">Devam etmek için yakındaki bir Redlift cihazını Bluetooth ile eşleştirin. Cihaz tipine göre ilgili kontrol paneli otomatik olarak açılacaktır.</p>
+  <!-- ============ EKRAN 1: BAĞLANTI ============ -->
+  <div class="screen active" id="screen-connect">
+    <div class="card">
+      <div class="logo-mark">RL</div>
+      <div class="eyebrow">CONNECT A REDLIFT DEVICE</div>
+      <h1>Bir Redlift cihazına bağlanın</h1>
+      <p class="desc">Devam etmek için yakındaki bir Redlift cihazını Bluetooth ile eşleştirin. Cihaz tipine göre ilgili kontrol paneli otomatik olarak açılacaktır.</p>
 
-    <button class="connect-btn" id="connectBtn">Cihaza Bağlan</button>
-    <div class="status" id="statusText"></div>
+      <button class="connect-btn" id="connectBtn">Cihaza Bağlan</button>
+      <div class="status" id="statusText"></div>
 
-    <div class="device-detected" id="deviceDetected">
-      <div class="name" id="detectedName">—</div>
-      <div id="detectedType">Cihaz tipi tespit ediliyor...</div>
+      <div class="device-detected" id="deviceDetected">
+        <div class="name" id="detectedName">—</div>
+        <div id="detectedType">Cihaz tipi tespit ediliyor...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ EKRAN 2: DISPLAY MANAGER (B2'de doldurulacak) ============ -->
+  <div class="screen" id="screen-displayManager">
+    <div class="placeholder-screen">
+      <h2>KONE Panel Kontrolcü</h2>
+      <p>displayManager içeriği buraya taşınacak (B2 aşaması).</p>
+      <button class="back-btn" id="backBtnDSPM">← Bağlantı ekranına dön</button>
+    </div>
+  </div>
+
+  <!-- ============ EKRAN 3: WELDMAC (ileride doldurulacak) ============ -->
+  <div class="screen" id="screen-weldmac">
+    <div class="placeholder-screen">
+      <h2>Kaynak Makinesi Kontrolcü</h2>
+      <p>WELDMAC arayüzü buraya taşınacak.</p>
+      <button class="back-btn" id="backBtnWeld">← Bağlantı ekranına dön</button>
     </div>
   </div>
 
 <script>
+// =========================================================
+// EKRAN GEÇİŞ FONKSİYONU (sayfa yenilenmez, BLE bağlantısı korunur)
+// =========================================================
+function showScreen(screenId) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(screenId).classList.add('active');
+}
+
+document.getElementById('backBtnDSPM').addEventListener('click', () => showScreen('screen-connect'));
+document.getElementById('backBtnWeld').addEventListener('click', () => showScreen('screen-connect'));
+
+// =========================================================
+// BLE BAĞLANTI (Web Bluetooth API)
+// bleDevice ve bleCharacteristic global scope'ta tutuluyor,
+// ekran değişse bile bağlantı canlı kalıyor.
+// =========================================================
 const connectBtn = document.getElementById('connectBtn');
 const statusText = document.getElementById('statusText');
 const deviceDetected = document.getElementById('deviceDetected');
@@ -166,12 +231,13 @@ const detectedName = document.getElementById('detectedName');
 const detectedType = document.getElementById('detectedType');
 
 let bleDevice = null;
+let bleCharacteristic = null;
 
 // Cihaz adı ön eklerine göre yönlendirme tablosu
-// route = ilgili klasörün adı (örn. displayManager, weldmac)
+// route = gösterilecek screen id'si
 const DEVICE_ROUTES = [
-  { prefix: 'BILAB-DSPM',  label: 'KONE Panel Kontrolcü',       route: 'displayManager' },
-  { prefix: 'REDLIFT-WELD', label: 'Kaynak Makinesi Kontrolcü', route: 'weldmac' },
+  { prefix: 'BILAB-DSPM',   label: 'KONE Panel Kontrolcü',       route: 'screen-displayManager' },
+  { prefix: 'REDLIFT-WELD', label: 'Kaynak Makinesi Kontrolcü',  route: 'screen-weldmac' },
   // BLE: yeni cihaz tipleri eklendikçe buraya satır eklenecek
 ];
 
@@ -196,7 +262,11 @@ connectBtn.addEventListener('click', async () => {
     });
 
     statusText.innerHTML = '<span class="spinner"></span>Bağlanılıyor...';
-    await bleDevice.gatt.connect();
+    const server = await bleDevice.gatt.connect();
+
+    // BLE: gerçek service/characteristic UUID'lerini buraya yaz
+    // const service = await server.getPrimaryService('SERVICE_UUID');
+    // bleCharacteristic = await service.getCharacteristic('CHAR_UUID');
 
     const name = bleDevice.name || 'Bilinmeyen Cihaz';
     const info = detectDeviceType(name);
@@ -207,25 +277,21 @@ connectBtn.addEventListener('click', async () => {
       : 'Cihaz tipi tanınamadı — yönlendirme tanımlı değil';
     deviceDetected.classList.add('show');
 
-    statusText.textContent = 'Bağlandı, yönlendiriliyor...';
+    statusText.textContent = 'Bağlandı';
     statusText.className = 'status ok';
-
-    // Cihaz tipine göre ilgili klasöre yönlendirme
-    if (info.route) {
-      setTimeout(() => {
-        // BLE: aynı sekmede aynı BLE bağlantısını korumak istersen
-        // bu yönlendirmeyi kaldırıp tüm mantığı tek sayfada tutman gerekir.
-        // Şimdilik basit yönlendirme:
-        window.location.href = info.route + '/';
-      }, 800);
-    }
 
     bleDevice.addEventListener('gattserverdisconnected', () => {
       statusText.textContent = 'Bağlantı kesildi.';
       statusText.className = 'status error';
       connectBtn.disabled = false;
       deviceDetected.classList.remove('show');
+      showScreen('screen-connect');
     });
+
+    // Sayfa değişmez, sadece ilgili ekran gösterilir — bağlantı canlı kalır
+    if (info.route) {
+      setTimeout(() => showScreen(info.route), 600);
+    }
 
   } catch (err) {
     console.error('BLE bağlantı hatası:', err);
