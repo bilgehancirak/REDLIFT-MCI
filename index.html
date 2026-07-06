@@ -1,1 +1,240 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Redlift Cihaz Bağlantısı</title>
+<style>
+  :root {
+    --bg: #14161a;
+    --panel: #1e2227;
+    --panel-border: #2c3138;
+    --text: #e8e6e1;
+    --text-dim: #8a8f98;
+    --accent: #ff6a3d;
+    --accent-dim: #ff6a3d33;
+    --ok: #3ddc84;
+    --danger: #ff4d4d;
+    --font-display: 'Segoe UI', Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; }
 
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-display);
+  }
+
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100dvh;
+    width: 100vw;
+    padding: 20px;
+  }
+
+  .card {
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+  }
+
+  .logo-mark {
+    width: 64px; height: 64px;
+    border-radius: 16px;
+    background: var(--accent-dim);
+    border: 1px solid var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800;
+    font-size: 21px;
+    color: var(--accent);
+    margin: 0 auto 20px;
+    letter-spacing: 0.5px;
+  }
+
+  .eyebrow {
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  h1 {
+    font-size: 18px;
+    margin: 0 0 10px;
+    letter-spacing: 0.2px;
+    line-height: 1.3;
+  }
+
+  p.desc {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin: 0 0 26px;
+    line-height: 1.5;
+    padding: 0 8px;
+  }
+
+  .connect-btn {
+    width: 100%;
+    background: var(--accent);
+    color: #1a0900;
+    border: none;
+    padding: 16px 20px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .connect-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .connect-btn:hover:not(:disabled) { filter: brightness(1.08); }
+
+  .status {
+    margin-top: 16px;
+    font-size: 13px;
+    color: var(--text-dim);
+    min-height: 18px;
+  }
+  .status.error { color: var(--danger); }
+  .status.ok { color: var(--ok); }
+
+  .spinner {
+    width: 14px; height: 14px;
+    border: 2px solid var(--panel-border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 8px;
+    animation: spin 0.7s linear infinite;
+    vertical-align: middle;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .device-detected {
+    margin-top: 20px;
+    padding: 12px 14px;
+    border: 1px solid var(--panel-border);
+    border-radius: 10px;
+    background: var(--panel);
+    font-size: 12px;
+    color: var(--text-dim);
+    display: none;
+    text-align: left;
+  }
+  .device-detected.show { display: block; }
+  .device-detected .name {
+    color: var(--text);
+    font-weight: 700;
+    font-size: 13px;
+  }
+
+  @media (max-height: 480px) {
+    .logo-mark { width: 48px; height: 48px; font-size: 16px; margin-bottom: 12px; }
+    p.desc { margin-bottom: 16px; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="card">
+    <div class="logo-mark">RL</div>
+    <div class="eyebrow">CONNECT A REDLIFT DEVICE</div>
+    <h1>Bir Redlift cihazına bağlanın</h1>
+    <p class="desc">Devam etmek için yakındaki bir Redlift cihazını Bluetooth ile eşleştirin. Cihaz tipine göre ilgili kontrol paneli otomatik olarak açılacaktır.</p>
+
+    <button class="connect-btn" id="connectBtn">Cihaza Bağlan</button>
+    <div class="status" id="statusText"></div>
+
+    <div class="device-detected" id="deviceDetected">
+      <div class="name" id="detectedName">—</div>
+      <div id="detectedType">Cihaz tipi tespit ediliyor...</div>
+    </div>
+  </div>
+
+<script>
+const connectBtn = document.getElementById('connectBtn');
+const statusText = document.getElementById('statusText');
+const deviceDetected = document.getElementById('deviceDetected');
+const detectedName = document.getElementById('detectedName');
+const detectedType = document.getElementById('detectedType');
+
+let bleDevice = null;
+
+// Cihaz adı ön eklerine göre yönlendirme tablosu
+// route = ilgili klasörün adı (örn. displayManager, weldmac)
+const DEVICE_ROUTES = [
+  { prefix: 'BILAB-DSPM',  label: 'KONE Panel Kontrolcü',       route: 'displayManager' },
+  { prefix: 'REDLIFT-WELD', label: 'Kaynak Makinesi Kontrolcü', route: 'weldmac' },
+  // BLE: yeni cihaz tipleri eklendikçe buraya satır eklenecek
+];
+
+function detectDeviceType(deviceName) {
+  const match = DEVICE_ROUTES.find(r => deviceName && deviceName.startsWith(r.prefix));
+  return match || { label: 'Bilinmeyen cihaz tipi', route: null };
+}
+
+connectBtn.addEventListener('click', async () => {
+  connectBtn.disabled = true;
+  statusText.className = 'status';
+  statusText.innerHTML = '<span class="spinner"></span>Cihaz aranıyor...';
+  deviceDetected.classList.remove('show');
+
+  try {
+    bleDevice = await navigator.bluetooth.requestDevice({
+      filters: [
+        { namePrefix: 'BILAB' },
+        { namePrefix: 'REDLIFT' }
+      ],
+      optionalServices: ['0000ffe0-0000-1000-8000-00805f9b34fb'] // örnek UUID, gerçeğiyle değiştirilecek
+    });
+
+    statusText.innerHTML = '<span class="spinner"></span>Bağlanılıyor...';
+    await bleDevice.gatt.connect();
+
+    const name = bleDevice.name || 'Bilinmeyen Cihaz';
+    const info = detectDeviceType(name);
+
+    detectedName.textContent = name;
+    detectedType.textContent = info.route
+      ? 'Tespit edilen: ' + info.label
+      : 'Cihaz tipi tanınamadı — yönlendirme tanımlı değil';
+    deviceDetected.classList.add('show');
+
+    statusText.textContent = 'Bağlandı, yönlendiriliyor...';
+    statusText.className = 'status ok';
+
+    // Cihaz tipine göre ilgili klasöre yönlendirme
+    if (info.route) {
+      setTimeout(() => {
+        // BLE: aynı sekmede aynı BLE bağlantısını korumak istersen
+        // bu yönlendirmeyi kaldırıp tüm mantığı tek sayfada tutman gerekir.
+        // Şimdilik basit yönlendirme:
+        window.location.href = info.route + '/';
+      }, 800);
+    }
+
+    bleDevice.addEventListener('gattserverdisconnected', () => {
+      statusText.textContent = 'Bağlantı kesildi.';
+      statusText.className = 'status error';
+      connectBtn.disabled = false;
+      deviceDetected.classList.remove('show');
+    });
+
+  } catch (err) {
+    console.error('BLE bağlantı hatası:', err);
+    statusText.textContent = 'Bağlantı başarısız: ' + err.message;
+    statusText.className = 'status error';
+    connectBtn.disabled = false;
+  }
+});
+</script>
+
+</body>
+</html>
