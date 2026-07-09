@@ -542,9 +542,18 @@ class TempGridUI {
   }
 
   // Ekranda hiç ENDA kartı yokken gösterilecek durum mesajı
-  // (ör. ESP'ye sorulurken veya ESP "0 ENDA" yanıtı verince)
-  showEmpty(message = 'ENDA modülü bulunamadı') {
-    this.grid.innerHTML = `<div class="placeholder-card">${message}</div>`;
+  // (ör. ESP'ye sorulurken, ESP "0 ENDA" yanıtı verince veya yanıt hiç gelmeyince)
+  showEmpty(message = 'ENDA modülü bulunamadı', onRetry = null) {
+    if (onRetry) {
+      this.grid.innerHTML = `
+        <div class="placeholder-card fw-error">
+          <span>${message}</span>
+          <button class="fw-retry-btn" id="tempGridRetryBtn">Tekrar Dene</button>
+        </div>`;
+      document.getElementById('tempGridRetryBtn').addEventListener('click', onRetry);
+    } else {
+      this.grid.innerHTML = `<div class="placeholder-card">${message}</div>`;
+    }
     this.grid.classList.remove('cols-2');
     delete this.grid.dataset.count;
   }
@@ -905,8 +914,14 @@ class WeldmacApp {
   // Hedef sıcaklığa "ulaşıldı" sayılması için izin verilen fark (°C)
   static TEMP_REACHED_TOLERANCE_C = 2;
 
+  // ENDA sayısı isteği (ISTEK_ENDA_SAYISI) için yeniden deneme ayarları
+  static ENDA_COUNT_RETRY_INTERVAL_MS = 1500;
+  static ENDA_COUNT_MAX_RETRIES = 5;
+
   constructor() {
     this.lastTemps = [];
+    this._endaCountRetryTimer = null;
+    this._endaCountAttempts = 0;
 
     this.pager = new Pager(document.getElementById('pager'), document.getElementById('dots'));
 
@@ -983,10 +998,10 @@ class WeldmacApp {
     this.ble = new BleLink({
       onConnectionChange: (connected) => {
         this.connUI.update(connected);
-        // Ekranda ENDA paneli yoksa (henüz veri gelmediyse) bağlanır bağlanmaz sor
         if (connected && this.lastTemps.length === 0) {
-          this.tempGrid.showEmpty('ENDA sayısı soruluyor...');
-          this.ble.requestEndaCount();
+          this._requestEndaCountWithRetry();
+        } else if (!connected) {
+          this._stopEndaCountRetry();
         }
       },
       onFrame: (frame) => this._handleFrame(frame),
@@ -1027,6 +1042,7 @@ class WeldmacApp {
           temps.push({ current: currentRaw / 10, target: targetRaw / 10, connected: isConnected });
         }
         this.lastTemps = temps;
+        this._stopEndaCountRetry(); // gerçek veri geldi, artık sormaya gerek yok
         this.tempGrid.update(temps);
         this.infoPopup.refresh(temps);
         this._updateModeButtons();
@@ -1037,10 +1053,41 @@ class WeldmacApp {
       }
     } else if (frame.type === BleLink.TYPE_YANIT && frame.id === BleLink.YANIT_ENDA_SAYISI) {
       // payload: [enda_sayısı(1B)] — 0 ise gerçek kart verisi (STATUS_SICAKLIK) gelmeyecek demektir
+      this._stopEndaCountRetry();
       const endaCount = frame.payload[0];
       if (endaCount === 0) {
         this.tempGrid.showEmpty('ENDA modülü bulunamadı');
       }
+    }
+  }
+
+  // ENDA sayısını ESP'ye sorar; yanıt gelmezse belirli aralıklarla tekrar dener,
+  // azami deneme sayısına ulaşınca "Tekrar Dene" butonlu hata durumunu gösterir.
+  _requestEndaCountWithRetry() {
+    this._stopEndaCountRetry();
+    this._endaCountAttempts = 0;
+    this.tempGrid.showEmpty('ENDA sayısı soruluyor...');
+    this._sendEndaCountRequest();
+  }
+
+  _sendEndaCountRequest() {
+    this._endaCountAttempts++;
+    this.ble.requestEndaCount();
+
+    if (this._endaCountAttempts >= WeldmacApp.ENDA_COUNT_MAX_RETRIES) {
+      this._endaCountRetryTimer = setTimeout(() => {
+        this._endaCountRetryTimer = null;
+        this.tempGrid.showEmpty('ESP\'den yanıt alınamadı.', () => this._requestEndaCountWithRetry());
+      }, WeldmacApp.ENDA_COUNT_RETRY_INTERVAL_MS);
+    } else {
+      this._endaCountRetryTimer = setTimeout(() => this._sendEndaCountRequest(), WeldmacApp.ENDA_COUNT_RETRY_INTERVAL_MS);
+    }
+  }
+
+  _stopEndaCountRetry() {
+    if (this._endaCountRetryTimer) {
+      clearTimeout(this._endaCountRetryTimer);
+      this._endaCountRetryTimer = null;
     }
   }
 
@@ -1081,6 +1128,8 @@ class WeldmacApp {
     window.testFirmwareVersion = (version) => this.firmwareUpdateUI.setCurrentVersion(version);
     // ESP'nin ISTEK_ENDA_SAYISI'ya verdiği YANIT_ENDA_SAYISI yanıtını simüle eder
     window.testEndaCount = (count) => this._handleFrame({ type: BleLink.TYPE_YANIT, id: BleLink.YANIT_ENDA_SAYISI, payload: [count] });
+    // yanıt hiç gelmeyen senaryoyu (retry + zaman aşımı) test etmek için
+    window.testEndaCountTimeout = () => this._requestEndaCountWithRetry();
   }
 }
 
