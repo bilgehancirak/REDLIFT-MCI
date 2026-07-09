@@ -77,6 +77,12 @@ class BleLink {
   static STATUS_SICAKLIK    = 0x0001;
   static STATUS_FAZ_DEGISTI = 0x0002;
 
+  // ===== İSTEK ID'leri (TYPE_ISTEK ile gönderilir) =====
+  static ISTEK_ENDA_SAYISI = 0x0001;
+
+  // ===== YANIT ID'leri (TYPE_YANIT ile gelir) =====
+  static YANIT_ENDA_SAYISI = 0x0001;
+
   constructor({ onConnectionChange, onFrame, onTx, onRx }) {
     this.device = null;
     this.txCharacteristic = null;
@@ -185,15 +191,24 @@ class BleLink {
     return { type, id, payload };
   }
 
-  async sendEmir(cmdId, payload = []) {
+  async _send(type, id, payload = []) {
     if (!this.connected || !this.txCharacteristic) return;
     try {
-      const frame = this._buildFrame(BleLink.TYPE_EMIR, cmdId, payload);
+      const frame = this._buildFrame(type, id, payload);
       await this.txCharacteristic.writeValue(new Uint8Array(frame));
       this.onTx && this.onTx();
     } catch (err) {
       console.error('Gönderme hatası:', err);
     }
+  }
+
+  sendEmir(cmdId, payload = []) {
+    return this._send(BleLink.TYPE_EMIR, cmdId, payload);
+  }
+
+  // Ekranda ENDA paneli yokken ESP'ye "kaç ENDA bağlı" diye sorar.
+  requestEndaCount() {
+    return this._send(BleLink.TYPE_ISTEK, BleLink.ISTEK_ENDA_SAYISI);
   }
 
   _handleIncomingData(event) {
@@ -526,7 +541,20 @@ class TempGridUI {
     this.onInfoClick = onInfoClick;
   }
 
+  // Ekranda hiç ENDA kartı yokken gösterilecek durum mesajı
+  // (ör. ESP'ye sorulurken veya ESP "0 ENDA" yanıtı verince)
+  showEmpty(message = 'ENDA modülü bulunamadı') {
+    this.grid.innerHTML = `<div class="placeholder-card">${message}</div>`;
+    this.grid.classList.remove('cols-2');
+    delete this.grid.dataset.count;
+  }
+
   update(temps) {
+    if (!temps.length) {
+      this.showEmpty();
+      return;
+    }
+
     const grid = this.grid;
     const count = temps.length;
 
@@ -953,7 +981,14 @@ class WeldmacApp {
     });
 
     this.ble = new BleLink({
-      onConnectionChange: (connected) => this.connUI.update(connected),
+      onConnectionChange: (connected) => {
+        this.connUI.update(connected);
+        // Ekranda ENDA paneli yoksa (henüz veri gelmediyse) bağlanır bağlanmaz sor
+        if (connected && this.lastTemps.length === 0) {
+          this.tempGrid.showEmpty('ENDA sayısı soruluyor...');
+          this.ble.requestEndaCount();
+        }
+      },
       onFrame: (frame) => this._handleFrame(frame),
       onTx: () => this.connUI.flashTx(),
       onRx: () => this.connUI.flashRx(),
@@ -979,27 +1014,33 @@ class WeldmacApp {
   }
 
   _handleFrame(frame) {
-    if (frame.type !== BleLink.TYPE_DURUM) return;
-
-    if (frame.id === BleLink.STATUS_SICAKLIK) {
-      // payload: [enda_sayısı(1B)] + her ENDA için [current_low, current_high, target_low, target_high, connected(1B)]
-      const endaCount = frame.payload[0];
-      const temps = [];
-      for (let i = 0; i < endaCount; i++) {
-        const offset = 1 + i * 5;
-        const currentRaw = (frame.payload[offset] | (frame.payload[offset + 1] << 8)) << 16 >> 16;
-        const targetRaw  = (frame.payload[offset + 2] | (frame.payload[offset + 3] << 8)) << 16 >> 16;
-        const isConnected = frame.payload[offset + 4] === 1;
-        temps.push({ current: currentRaw / 10, target: targetRaw / 10, connected: isConnected });
+    if (frame.type === BleLink.TYPE_DURUM) {
+      if (frame.id === BleLink.STATUS_SICAKLIK) {
+        // payload: [enda_sayısı(1B)] + her ENDA için [current_low, current_high, target_low, target_high, connected(1B)]
+        const endaCount = frame.payload[0];
+        const temps = [];
+        for (let i = 0; i < endaCount; i++) {
+          const offset = 1 + i * 5;
+          const currentRaw = (frame.payload[offset] | (frame.payload[offset + 1] << 8)) << 16 >> 16;
+          const targetRaw  = (frame.payload[offset + 2] | (frame.payload[offset + 3] << 8)) << 16 >> 16;
+          const isConnected = frame.payload[offset + 4] === 1;
+          temps.push({ current: currentRaw / 10, target: targetRaw / 10, connected: isConnected });
+        }
+        this.lastTemps = temps;
+        this.tempGrid.update(temps);
+        this.infoPopup.refresh(temps);
+        this._updateModeButtons();
+      } else if (frame.id === BleLink.STATUS_FAZ_DEGISTI) {
+        this.currentPhase = frame.payload[0];
+        this.phaseBadge.update(this.currentPhase);
+        this._updateModeButtons();
       }
-      this.lastTemps = temps;
-      this.tempGrid.update(temps);
-      this.infoPopup.refresh(temps);
-      this._updateModeButtons();
-    } else if (frame.id === BleLink.STATUS_FAZ_DEGISTI) {
-      this.currentPhase = frame.payload[0];
-      this.phaseBadge.update(this.currentPhase);
-      this._updateModeButtons();
+    } else if (frame.type === BleLink.TYPE_YANIT && frame.id === BleLink.YANIT_ENDA_SAYISI) {
+      // payload: [enda_sayısı(1B)] — 0 ise gerçek kart verisi (STATUS_SICAKLIK) gelmeyecek demektir
+      const endaCount = frame.payload[0];
+      if (endaCount === 0) {
+        this.tempGrid.showEmpty('ENDA modülü bulunamadı');
+      }
     }
   }
 
@@ -1038,6 +1079,8 @@ class WeldmacApp {
     window.testLogsLoading = () => this.logsUI.showLoading();
     // örnek: testFirmwareVersion('1.2.0')
     window.testFirmwareVersion = (version) => this.firmwareUpdateUI.setCurrentVersion(version);
+    // ESP'nin ISTEK_ENDA_SAYISI'ya verdiği YANIT_ENDA_SAYISI yanıtını simüle eder
+    window.testEndaCount = (count) => this._handleFrame({ type: BleLink.TYPE_YANIT, id: BleLink.YANIT_ENDA_SAYISI, payload: [count] });
   }
 }
 
