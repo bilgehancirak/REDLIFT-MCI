@@ -2,265 +2,155 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, viewport-fit=cover">
-<title>HWM Kontrol</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>REDLIFT-MCI | Bağlantı</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --text: #e6e8eb;
+    --muted: #8a8f98;
+    --accent: #3b82f6;
+    --danger: #ef4444;
+    --safe: #6b7280; /* bağlantı yokken nötr/güvenli renk */
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    height: 100dvh;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  .wrap {
+    height: 100dvh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 24px; text-align: center;
+  }
+  .logo { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .logo span { color: var(--accent); }
+  .subtitle { color: var(--muted); font-size: 13px; margin-bottom: 40px; }
+  .connect-btn {
+    width: 100%; max-width: 320px;
+    padding: 18px 24px; font-size: 16px; font-weight: 600;
+    border: none; border-radius: 14px;
+    background: var(--accent); color: white;
+    cursor: pointer; transition: transform 0.1s ease;
+  }
+  .connect-btn:active { transform: scale(0.98); }
+  .connect-btn:disabled { background: var(--safe); cursor: not-allowed; }
+  .status { margin-top: 24px; font-size: 13px; color: var(--muted); min-height: 18px; }
+  .status.error { color: var(--danger); }
+  .status.ok { color: #22c55e; }
+  .spinner {
+    display: inline-block; width: 14px; height: 14px;
+    border: 2px solid rgba(255,255,255,0.3); border-top-color: white;
+    border-radius: 50%; animation: spin 0.7s linear infinite;
+    margin-right: 8px; vertical-align: middle;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
 </head>
 <body>
+  <div class="wrap">
+    <div class="logo">REDLIFT<span>-MCI</span></div>
+    <div class="subtitle">Kontrol panelini başlatmak için cihaza bağlanın</div>
 
-<!-- ================= TOPBAR ================= -->
-<div class="topbar">
-  <div class="topbar-left">
-    <div class="topbar-title">HWM</div>
-  </div>
-  <div style="display:flex; align-items:center; gap:8px;">
-    <button class="conn-fallback-btn" id="connFallbackBtn">Bağlan</button>
-    <div class="rxtx-box" title="RX / TX">
-      <div class="rxtx-row"><span class="rxtx-label">TX</span><span class="rxtx-led" id="txLed"></span></div>
-      <div class="rxtx-row"><span class="rxtx-label">RX</span><span class="rxtx-led rx" id="rxLed"></span></div>
-    </div>
-    <div class="conn-status-box" title="Bağlantı durumu">
-      <span class="conn-status-led" id="connStatusLed"></span>
-    </div>
-    <button class="home-btn" id="homeBtn" aria-label="Ana Sayfa" title="Ana Sayfa">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-        <polyline points="9 22 9 12 15 12 15 22"/>
-      </svg>
-    </button>
-  </div>
-</div>
+    <button id="connectBtn" class="connect-btn">REDLIFT Cihazına Bağlan</button>
 
-<!-- ================= YATAY KAYDIRMALI SAYFALAR ================= -->
-<div class="pager" id="pager">
-
-  <!-- SAYFA 1: KONTROL -->
-  <div class="page" id="page-0">
-    <div class="card control-card">
-      <div class="card-title">Sıcaklık</div>
-      <div class="temp-grid" id="tempGrid"></div>
-
-      <div class="info-overlay" id="infoOverlay">
-        <div class="info-popup">
-          <div class="info-popup-header">
-            <span class="info-popup-title" id="infoPopupTitle">ENDA 1 BILGI</span>
-            <button class="info-popup-close" id="closeInfoPopup" aria-label="Kapat">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18"/>
-                <line x1="6" y1="6" x2="18" y2="18"/>
-              </svg>
-            </button>
-          </div>
-          <div class="info-popup-body" id="infoPopupBody"></div>
-        </div>
-      </div>
-
-      <div class="phase-badge" id="phaseBadge">BEKLEMEDE</div>
-
-      <div class="control-buttons">
-        <div class="control-buttons-left">
-          <button class="ctrl-btn preheat" id="btnPreheat">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"/>
-            </svg>
-            ÖN ISITMA
-          </button>
-          <button class="ctrl-btn process" id="btnProcess">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polygon points="5 3 19 12 5 21 5 3"/>
-            </svg>
-            PROSES
-          </button>
-        </div>
-        <button class="ctrl-btn stop" id="btnStop">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="5" y="5" width="14" height="14" rx="2"/>
-          </svg>
-          DURDUR
-        </button>
-      </div>
-    </div>
+    <div id="status" class="status"></div>
   </div>
 
-  <!-- SAYFA 2: ARIZA KAYITLARI -->
-  <div class="page" id="page-1">
-    <div class="card logs-card">
-      <div class="card-title">Arıza Kayıtları</div>
+<script>
+  // Cihaz adı hangi ön ekle başlıyorsa o klasöre yönlendirilir.
+  // Klasör yollarını kendi repo yapına göre güncelle.
+  const DEVICE_ROUTES = [
+    { prefix: 'BILAB-DSPM',   path: './DSPM/index.html' },
+    { prefix: 'REDLIFT-WELD', path: './WELDMAC/index.html' },
+  ];
 
-      <div class="placeholder-card hero-loading" id="logsLoading">
-        <div class="spinner-wrap">
-          <div class="spinner-ring"></div>
-          <svg class="spinner-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"/>
-          </svg>
-        </div>
-        <span class="loading-text">Kayıtlar Alınıyor</span>
-        <div class="loading-bar"></div>
-      </div>
+  const connectBtn = document.getElementById('connectBtn');
+  const statusEl = document.getElementById('status');
 
-      <div class="logs-content" id="logsContent" style="display:none;">
-        <div class="logs-tabs">
-          <button class="logs-tab active" data-logs-tab="active">Aktif</button>
-          <button class="logs-tab" data-logs-tab="permanent">Kalıcı</button>
-          <button class="logs-tab" data-logs-tab="history">Geçmiş</button>
-        </div>
+  function setStatus(html, type) {
+    statusEl.innerHTML = html;
+    statusEl.className = 'status' + (type ? ' ' + type : '');
+  }
 
-        <div class="logs-panel" id="logsPanel-active">
-          <div class="placeholder-card" id="logsEmpty-active" style="display:none;">Aktif arıza bulunmuyor.</div>
-          <div class="logs-list" id="logsList-active" style="display:none;"></div>
-        </div>
+  function resolveRoute(deviceName) {
+    if (!deviceName) return null;
+    return DEVICE_ROUTES.find(r => deviceName.startsWith(r.prefix)) || null;
+  }
 
-        <div class="logs-panel" id="logsPanel-permanent" style="display:none;">
-          <div class="placeholder-card" id="logsEmpty-permanent" style="display:none;">Kalıcı arıza bulunmuyor.</div>
-          <div class="logs-list" id="logsList-permanent" style="display:none;"></div>
-        </div>
+  async function connectToDevice() {
+    if (!navigator.bluetooth) {
+      setStatus('Bu tarayıcı Web Bluetooth desteklemiyor.', 'error');
+      return;
+    }
 
-        <div class="logs-panel" id="logsPanel-history" style="display:none;">
-          <div class="placeholder-card" id="logsEmpty-history" style="display:none;">Geçmiş kayıt bulunmuyor.</div>
-          <div class="logs-list" id="logsList-history" style="display:none;"></div>
-        </div>
-      </div>
-    </div>
-  </div>
+    connectBtn.disabled = true;
+    setStatus('Cihaz seçimi bekleniyor...');
 
-  <!-- SAYFA 3: AYARLAR -->
-  <div class="page" id="page-2">
-    <div class="card placeholder-card">
-      Ayarlar — yakında
-    </div>
-  </div>
+    try {
+      const device = await navigator.bluetooth.requestDevice({
+        filters: DEVICE_ROUTES.map(r => ({ namePrefix: r.prefix })),
+        optionalServices: [
+          // TODO: Gerçek Service UUID'lerini buraya ekle
+          // 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'
+        ]
+      });
 
-  <!-- SAYFA 4: YAZILIM GÜNCELLEME -->
-  <div class="page" id="page-3">
-    <div class="card fw-card">
-      <div class="card-title">Yazılım Güncelleme</div>
+      const route = resolveRoute(device.name);
+      if (!route) {
+        setStatus('Tanınmayan cihaz: ' + (device.name || 'isimsiz'), 'error');
+        connectBtn.disabled = false;
+        return;
+      }
 
-      <div class="placeholder-card hero-loading" id="fwLoading">
-        <div class="spinner-wrap">
-          <div class="spinner-ring"></div>
-          <svg class="spinner-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="7 10 12 15 17 10"/>
-            <line x1="12" y1="15" x2="12" y2="3"/>
-          </svg>
-        </div>
-        <span class="loading-text">Güncel Versiyon Kontrol Ediliyor</span>
-        <div class="loading-bar"></div>
-      </div>
+      setStatus('<span class="spinner"></span>Bağlanılıyor: ' + device.name);
+      await device.gatt.connect();
 
-      <div class="placeholder-card fw-error" id="fwError" style="display:none;">
-        <span>Sürüm bilgisi alınamadı.</span>
-        <button class="fw-retry-btn" id="fwRetryBtn">Tekrar Dene</button>
-      </div>
+      // Sonraki açılışlarda otomatik yeniden bağlanma için sakla
+      localStorage.setItem('redlift_last_device_id', device.id);
+      localStorage.setItem('redlift_last_device_name', device.name);
 
-      <div class="placeholder-card hero-loading" id="fwUpdating" style="display:none;">
-        <div class="spinner-wrap">
-          <div class="spinner-ring"></div>
-          <svg class="spinner-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="7 10 12 15 17 10"/>
-            <line x1="12" y1="15" x2="12" y2="3"/>
-          </svg>
-        </div>
-        <span class="loading-text">Güncelleniyor</span>
-        <div class="fw-progress-wrap">
-          <div class="fw-progress-bar"><div class="fw-progress-fill" id="fwProgressFill"></div></div>
-          <span class="fw-progress-text" id="fwProgressText">0%</span>
-        </div>
-      </div>
+      setStatus('Bağlandı: ' + device.name, 'ok');
+      window.location.href = route.path;
 
-      <div class="fw-content" id="fwContent" style="display:none;">
-        <div class="fw-row">
-          <span class="fw-label">Cihazdaki Sürüm</span>
-          <span class="fw-value" id="fwCurrentVersion">—</span>
-        </div>
+    } catch (err) {
+      if (err.name === 'NotFoundError') {
+        setStatus('Cihaz seçilmedi.', 'error');
+      } else {
+        setStatus('Bağlantı hatası: ' + err.message, 'error');
+      }
+      connectBtn.disabled = false;
+    }
+  }
 
-        <div class="fw-row">
-          <span class="fw-label">Güncel Sürüm</span>
-          <span class="fw-value" id="fwLatestVersion">—</span>
-        </div>
+  connectBtn.addEventListener('click', connectToDevice);
 
-        <div class="fw-status" id="fwStatus"></div>
+  // Daha önce eşleşmiş cihaz varsa sayfa açılışında otomatik bağlan
+  window.addEventListener('load', async () => {
+    if (!navigator.bluetooth || !navigator.bluetooth.getDevices) return;
 
-        <button class="ctrl-btn fw-update-btn" id="fwUpdateBtn" disabled>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="7 10 12 15 17 10"/>
-            <line x1="12" y1="15" x2="12" y2="3"/>
-          </svg>
-          GÜNCELLE
-        </button>
-      </div>
-    </div>
-  </div>
+    const lastId = localStorage.getItem('redlift_last_device_id');
+    if (!lastId) return;
 
-</div>
+    try {
+      const devices = await navigator.bluetooth.getDevices();
+      const known = devices.find(d => d.id === lastId);
+      if (!known) return;
 
-<!-- ================= DOTS ================= -->
-<div class="dots" id="dots">
-  <button class="dot active" data-page="0"></button>
-  <button class="dot" data-page="1"></button>
-  <button class="dot" data-page="2"></button>
-  <button class="dot" data-page="3"></button>
-</div>
+      const route = resolveRoute(known.name);
+      if (!route) return;
 
-<!-- ================= ENDA PARAMETRELERİ (tam ekran overlay, dişli butonuyla açılır) ================= -->
-<div class="settings-overlay" id="settingsOverlay">
-  <div class="settings-overlay-header">
-    <span class="settings-overlay-title" id="settingsOverlayTitle">ENDA 1 PARAMETRELERİ</span>
-    <button class="settings-overlay-close" id="closeSettingsOverlay" aria-label="Kapat">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="18" y1="6" x2="6" y2="18"/>
-        <line x1="6" y1="6" x2="18" y2="18"/>
-      </svg>
-    </button>
-  </div>
-
-  <div class="settings-overlay-body">
-    <div class="settings-tabs">
-      <button class="settings-tab active" data-tab="temel">Temel</button>
-      <button class="settings-tab" data-tab="readonly">Salt Okunur</button>
-      <button class="settings-tab" data-tab="all">Tüm Parametreler</button>
-    </div>
-
-    <div class="settings-panel" id="panel-temel"></div>
-
-    <div class="settings-panel" id="panel-readonly" style="display:none;"></div>
-
-    <div class="settings-panel" id="panel-all" style="display:none;">
-      <div class="step-selector-row">
-        <span class="param-label">Profil Adımı</span>
-        <select class="param-select" id="stepSelector"></select>
-      </div>
-      <div id="stepFieldsContainer"></div>
-      <div class="section-header">Profil Kontrol Bitleri</div>
-      <div id="profileControlContainer"></div>
-      <div class="section-header">Diğer Tüm Parametreler</div>
-      <div id="allParamsContainer"></div>
-    </div>
-  </div>
-</div>
-
-<!-- ================= PARAMETRE BİLGİ MESAJI ================= -->
-<div class="info-overlay" id="paramInfoOverlay">
-  <div class="info-popup">
-    <div class="info-popup-header">
-      <span class="info-popup-title" id="paramInfoTitle">H0 · 0x0000</span>
-      <button class="info-popup-close" id="closeParamInfo" aria-label="Kapat">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="18" y1="6" x2="6" y2="18"/>
-          <line x1="6" y1="6" x2="18" y2="18"/>
-        </svg>
-      </button>
-    </div>
-    <div class="info-popup-body" id="paramInfoBody"></div>
-  </div>
-</div>
-
-<script src="app.js"></script>
+      setStatus('Önceki cihaza otomatik bağlanılıyor: ' + known.name);
+      await known.gatt.connect();
+      window.location.href = route.path;
+    } catch (err) {
+      console.warn('Oto-bağlantı başarısız:', err);
+    }
+  });
+</script>
 </body>
 </html>
