@@ -37,8 +37,6 @@
   <!-- SAYFA 1: KONTROL -->
   <div class="page" id="page-0">
     <div class="card control-card" id="normalControlCard">
-      <div class="temp-grid" id="tempGrid"></div>
-
       <div class="info-overlay" id="infoOverlay">
         <div class="info-popup">
           <div class="info-popup-header">
@@ -54,10 +52,52 @@
         </div>
       </div>
 
-      <div class="phase-badge" id="phaseBadge">BEKLEMEDE</div>
+      <div class="process-step-header">
+        <span class="line left"></span>
+        <span class="process-step-label" id="processStepLabel">BEKLEME MODU</span>
+        <span class="line right"></span>
+      </div>
+
+      <div class="process-body">
+        <span class="process-temp-value" id="processCurrentTemp">--.-</span>
+      </div>
+
+      <div class="process-target-row passive" id="processTargetRow">
+        <span class="k">Hedef Sıcaklık</span>
+        <span class="process-target-value" id="processTargetTemp">--.-°C</span>
+        <span class="process-target-tolerance" id="processTargetTolerance">±--</span>
+        <button class="temp-actions-toggle" id="tempActionsToggle" aria-label="Bağlantı ve ayarları göster">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="temp-actions" id="tempActionsGroup">
+        <button class="temp-action-box" id="tempInfoBtn" aria-label="Bilgi">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="16" x2="12" y2="12"/>
+            <line x1="12" y1="8" x2="12.01" y2="8"/>
+          </svg>
+          <span class="temp-action-label">Bilgi</span>
+        </button>
+        <button class="temp-action-box" id="tempSettingsBtn" aria-label="Parametreler">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+          <span class="temp-action-label">Ayarlar</span>
+        </button>
+      </div>
+
+      <div class="process-remaining" id="processRemainingWrap" style="display:none;">
+        <span class="process-remaining-label">Kalan Süre</span>
+        <span class="process-remaining-value" id="processRemainingTime">--:--</span>
+      </div>
 
       <div class="control-buttons">
-        <div class="control-buttons-left">
+        <div class="control-buttons-left" id="startButtonsWrap">
           <button class="ctrl-btn preheat" id="btnPreheat">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"/>
@@ -78,42 +118,6 @@
           DURDUR
         </button>
       </div>
-    </div>
-
-    <!-- PROSES EKRANI — Proses fazında normal ekranın yerini alır -->
-    <div class="card process-card" id="processCard" style="display:none;">
-      <div class="phase-badge process">PROSES</div>
-
-      <div class="process-step-header">
-        <span class="line left"></span>
-        <span class="process-step-label" id="processStepLabel">ADIM -- / --</span>
-        <span class="line right"></span>
-      </div>
-
-      <div class="process-body">
-        <svg class="thermo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"/>
-        </svg>
-        <span class="process-temp-value" id="processCurrentTemp">--.-</span>
-      </div>
-
-      <div class="process-target-row">
-        <span class="k">Adım Hedef Sıcaklığı</span>
-        <span class="process-target-value" id="processTargetTemp">--.-°C</span>
-        <span class="process-target-tolerance" id="processTargetTolerance">±--</span>
-      </div>
-
-      <div class="process-remaining">
-        <span class="process-remaining-label">Kalan Süre</span>
-        <span class="process-remaining-value" id="processRemainingTime">--:--</span>
-      </div>
-
-      <button class="ctrl-btn stop process-stop-btn" id="btnProcessStop">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="5" y="5" width="14" height="14" rx="2"/>
-        </svg>
-        DURDUR
-      </button>
     </div>
   </div>
 
@@ -309,19 +313,15 @@
 <!-- ================= BAĞLANTI SAYFASI (BLE bağlı değilken pager'ın yerini alır) ================= -->
 <div class="connection-overlay" id="connectionOverlay">
   <div class="connection-content">
-    <div class="connection-icon">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polygon points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"/>
-      </svg>
-    </div>
-    <div class="connection-title">Bir REDLIFT Cihazına Bağlanın</div>
-    <div class="connection-subtitle">Cihazın açık ve yakınında olduğundan emin olun.</div>
+    <img class="connection-logo-mark" src="../assets/redlift-mark.png" alt="REDLIFT">
+    <div class="connection-wordmark">REDLIFT<span>-WELD</span></div>
+    <div class="connection-subtitle">Bir REDLIFT-WELD cihazına bağlanın.</div>
 
     <button class="connection-scan-btn" id="connectionScanBtn">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <polygon points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"/>
       </svg>
-      Yeni Cihaz Ara
+      Cihaza Bağlan
     </button>
 
     <div class="connection-known-box" id="connectionKnownBox" style="display:none;">

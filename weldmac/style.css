@@ -116,27 +116,24 @@ body.ble-disconnected .connection-overlay{ display:flex; }
   width:100%; max-width:360px;
   display:flex; flex-direction:column; align-items:center;
 }
-.connection-icon{
-  width:64px; height:64px; border-radius:50%;
-  background:#1e293b; border:1px solid #334155;
-  display:flex; align-items:center; justify-content:center;
-  color:var(--accent); margin-bottom:14px;
+/* bilgehancirak.github.io/REDLIFT-MCI kök sayfasıyla aynı kompozisyon: logo,
+   kelime markası (REDLIFT + vurgu renginde alt-marka), alt yazı, büyük yuvarlak buton. */
+.connection-logo-mark{ width:52px; height:auto; margin-bottom:18px; }
+.connection-wordmark{
+  font-family:'Space Grotesk',sans-serif; font-size:26px; font-weight:700;
+  color:var(--text); letter-spacing:.02em; margin-bottom:4px; text-align:center;
 }
-.connection-icon svg{ width:30px; height:30px; }
-.connection-title{
-  font-family:'Space Grotesk',sans-serif; font-size:16px; font-weight:700;
-  color:#e2e8f0; text-align:center;
-}
+.connection-wordmark span{ color:var(--accent); }
 .connection-subtitle{
-  font-size:12.5px; color:#64748b; text-align:center;
-  margin-top:6px; margin-bottom:20px;
+  font-size:13px; color:var(--muted); text-align:center;
+  margin-top:0; margin-bottom:32px;
 }
 .connection-scan-btn{
   width:100%;
-  display:flex; align-items:center; justify-content:center; gap:8px;
-  background:linear-gradient(180deg,var(--accent-light),var(--accent-dark)); border:none; color:#fff;
-  font-family:'Space Grotesk',sans-serif; font-size:13px; font-weight:700;
-  padding:13px; border-radius:10px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; gap:10px;
+  background:var(--accent); border:none; color:#fff;
+  font-family:'Space Grotesk',sans-serif; font-size:14px; font-weight:700;
+  padding:16px 24px; border-radius:14px; cursor:pointer;
 }
 .connection-scan-btn svg{ width:16px; height:16px; }
 .connection-scan-btn:active{ transform:scale(.97); }
@@ -180,19 +177,19 @@ body.ble-disconnected .connection-overlay{ display:flex; }
 }
 
 /* ================= ALT NAVİGASYON (sabit) ================= */
+/* Ortak tek şerit arka planı yerine her sekme kendi bağımsız kutucuğunda durur. */
 .bottom-nav{
   flex-shrink:0;
-  display:flex; gap:4px;
+  display:flex; gap:8px;
   padding:8px 8px calc(8px + env(safe-area-inset-bottom));
-  background:#0f172a; border-top:.5px solid #1e293b;
 }
 .nav-tab{
   flex:1;
   display:flex; flex-direction:column; align-items:center; gap:3px;
-  background:none; border:none; cursor:pointer;
-  padding:6px 2px; border-radius:9px;
+  background:#1e293b; border:1px solid #334155; cursor:pointer;
+  padding:8px 2px; border-radius:10px;
   color:#64748b;
-  transition:color .15s, background-color .15s;
+  transition:color .15s, background-color .15s, border-color .15s;
 }
 .nav-tab-icon{ width:20px; height:20px; }
 .nav-tab-icon-wrap{ position:relative; display:inline-flex; }
@@ -200,7 +197,7 @@ body.ble-disconnected .connection-overlay{ display:flex; }
   font-family:'Space Grotesk',sans-serif;
   font-size:9.5px; font-weight:700; letter-spacing:.03em;
 }
-.nav-tab.active{ color:var(--accent); background:rgba(185,40,52,.14); }
+.nav-tab.active{ color:var(--accent); background:rgba(185,40,52,.14); border-color:rgba(185,40,52,.4); }
 .nav-tab:active{ transform:scale(.95); }
 
 /* Log sekmesindeki durum baloncuğu: kırmızı(yanıp söner)=aktif arıza,
@@ -498,24 +495,22 @@ body.ble-disconnected .connection-overlay{ display:flex; }
 }
 
 /* ================= KONTROL SAYFASI ================= */
-/* Anasayfa (kontrol + proses kartları): çevreleyen panel arka planı/kenarlığı/gölgesi
-   kaldırıldı — ENDA sıcaklık kartı ve butonlar doğrudan sayfa arka planı üzerinde durur.
-   Diğer sayfalardaki (.card kullanan) paneller etkilenmez. */
-.control-card, .process-card{
+/* Tüm sayfalarda çevreleyen tek büyük panel arka planı/kenarlığı/gölgesi kaldırıldı —
+   her sayfa kendi içindeki kutucuklarla (ENDA kartı, log kayıtları, param satırları,
+   io-row'lar vb.) doğrudan sayfa arka planı üzerinde durur. */
+.control-card, .logs-card, .fw-card{
   background:none; border:none; box-shadow:none;
 }
-.control-card::before, .process-card::before{
+.control-card::before, .logs-card::before, .fw-card::before{
   content:none;
 }
+/* Anasayfa artık tek parça: ENDA kartı + durum bilgisi (adım/hedef/kalan süre) +
+   butonlar hep aynı ekranda, faz değiştikçe içerik güncelleniyor (bkz. ProcessScreen). */
 .control-card{
   flex:1; display:flex; flex-direction:column; gap:16px;
-}
-
-/* ================= PROSES EKRANI — Proses fazında normal ekranın yerini alır ================= */
-.process-card{
-  flex:1; display:flex; flex-direction:column; align-items:center; gap:10px;
   container-type:inline-size;
 }
+
 .process-step-header{
   display:flex; align-items:center; justify-content:center; gap:8px; width:100%;
 }
@@ -527,34 +522,45 @@ body.ble-disconnected .connection-overlay{ display:flex; }
   font-size:13px; font-weight:700; color:#f1f5f9; letter-spacing:.1em;
 }
 
-.process-body{
-  flex:1; display:flex; align-items:center; justify-content:center; gap:10px; width:100%;
-}
-.process-body .thermo-icon{
-  width:15cqw; height:15cqw; color:#f97316;
-  filter:drop-shadow(0 0 4px rgba(249,115,22,.6));
-  flex-shrink:0;
-}
-.process-temp-value{
-  font-family:'JetBrains Mono',monospace;
-  font-size:22cqw; font-weight:700;
-  background:linear-gradient(180deg,#67e8f9,#0ea5e9);
-  -webkit-background-clip:text; background-clip:text; color:transparent;
-  filter:drop-shadow(0 0 6px rgba(14,165,233,.5));
-  line-height:1;
-}
-.process-temp-value::after{
-  content:'°C'; font-size:.4em;
-  background:none; -webkit-text-fill-color:#0ea5e9; color:#0ea5e9;
-  filter:none;
-}
-
 .process-target-row{
-  display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%;
+  display:flex; align-items:center; gap:10px; width:100%;
   background:#151d29; border:1px solid #263140; border-radius:8px;
-  padding:9px 12px;
+  padding:9px 10px 9px 12px;
+  transition:opacity .2s;
+}
+.temp-actions-toggle{
+  flex-shrink:0;
+  width:24px; height:24px; padding:0;
+  background:#1e293b; border:1px solid #334155; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  color:#64748b; cursor:pointer;
+  transition:transform .2s, color .15s, border-color .15s;
+}
+.temp-actions-toggle svg{ width:13px; height:13px; }
+.temp-actions-toggle.open{ transform:rotate(180deg); color:var(--accent); border-color:rgba(185,40,52,.4); }
+
+/* Bağlantı/bilgi/ayarlar kutucukları — Hedef Sıcaklık satırının ALTINDA, ok tıklanınca
+   açılır, her biri kendi bağımsız kutucuğunda. */
+.temp-actions{
+  display:none;
+  gap:8px; width:100%; margin-top:8px;
+}
+.temp-actions.show{ display:flex; }
+.temp-action-box{
+  flex:1; display:flex; flex-direction:column; align-items:center; gap:5px;
+  background:#1e293b; border:1px solid #334155; border-radius:10px;
+  padding:12px 6px;
+  color:#64748b; cursor:pointer;
+  transition:color .15s, border-color .15s;
+}
+.temp-action-box svg{ width:20px; height:20px; }
+.temp-action-box:active{ transform:scale(.95); }
+.temp-action-label{
+  font-family:'Space Grotesk',sans-serif; font-size:9.5px; font-weight:700;
+  letter-spacing:.04em; text-transform:uppercase;
 }
 .process-target-row .k{
+  flex:1;
   font-family:'Space Grotesk',sans-serif; font-size:10px; font-weight:700;
   color:#64748b; text-transform:uppercase; letter-spacing:.08em;
 }
@@ -569,6 +575,7 @@ body.ble-disconnected .connection-overlay{ display:flex; }
 
 .process-remaining{
   display:flex; flex-direction:column; align-items:center; gap:2px; width:100%;
+  transition:opacity .2s;
 }
 .process-remaining-label{
   font-family:'Space Grotesk',sans-serif; font-size:10px; font-weight:700;
@@ -579,88 +586,31 @@ body.ble-disconnected .connection-overlay{ display:flex; }
   color:#22d3ee;
   filter:drop-shadow(0 0 6px rgba(34,211,238,.5));
 }
+/* BEKLEMEDE/ÖN ISITMA fazlarında (adım verisi yokken) hedef sıcaklık soluk/pasif görünür —
+   Kalan Süre ise (bu fazlarda anlamsız olduğu için) tamamen gizlenir, bkz. ProcessScreen. */
+.process-target-row.passive{ opacity:.4; }
 
-.process-stop-btn{ width:100%; }
-
-.temp-grid{
-  display:grid; grid-template-columns:1fr; gap:10px;
+/* Anlık sıcaklık — adım/durum etiketinin hemen altında, büyük ve ortalı, ferah durması
+   için üst/alt alanlardan biraz uzak tutuldu. */
+.process-body{
+  display:flex; align-items:center; justify-content:center; width:100%;
+  margin:30px 0 21px;
 }
-
-.temp-card{
-  position:relative;
-  width:100%;
-  container-type:inline-size;
-  background:#f3efe9;
-  border-radius:14px;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  box-sizing:border-box;
-  padding:10px 8px;
-}
-
-.temp-card .conn-badge{
-  background:#151d29; border:1px solid #263140; border-radius:7px;
-  width:9cqw; height:9cqw; min-width:26px; min-height:26px;
-  display:flex; align-items:center; justify-content:center;
-  color:#4a1616; flex-shrink:0;
-}
-.temp-card .conn-badge.on{ color:#22c55e; }
-.temp-card .conn-badge svg{ width:60%; height:60%; }
-
-.temp-card .temp-card-label{
-  position:absolute; top:8px; right:11px;
+/* Turkuaz — "Kalan Süre" değeriyle aynı aileden (canlı veri rengi), marka kırmızısı
+   ise butonlarda/vurgularda ayrı bir dil olarak kalsın diye burada kullanılmadı. */
+.process-temp-value{
   font-family:'JetBrains Mono',monospace;
-  font-size:9px; font-weight:700; color:#a49c8f; letter-spacing:.08em;
-}
-
-.temp-card .temp-body{
-  flex:1; display:flex; align-items:center; justify-content:center; width:100%;
-  margin-top:6cqw;
-}
-.temp-card .temp-value{
-  font-family:'JetBrains Mono',monospace;
-  font-size:27cqw; font-weight:700;
-  background:linear-gradient(180deg,var(--accent-light),var(--accent-dark));
+  font-size:26cqw; font-weight:700;
+  background:linear-gradient(180deg,#67e8f9,#0ea5e9);
   -webkit-background-clip:text; background-clip:text; color:transparent;
-  filter:drop-shadow(0 0 4px rgba(185,40,52,.35));
+  filter:drop-shadow(0 0 6px rgba(14,165,233,.5));
   line-height:1;
 }
-.temp-card .temp-value::after{
+.process-temp-value::after{
   content:'°C'; font-size:.4em;
-  background:none; -webkit-text-fill-color:var(--accent-dark); color:var(--accent-dark);
+  background:none; -webkit-text-fill-color:#0ea5e9; color:#0ea5e9;
   filter:none;
 }
-.temp-card .temp-value.no-unit::after{ content:''; }
-
-.temp-card .footer-line{
-  display:flex; align-items:center; gap:8px;
-  width:100%;
-  margin-top:6cqw;
-}
-.temp-card .footer-line .line{
-  flex:1; height:1px;
-  background:#c9c1b6;
-}
-/* SET değeri — footer-line'ın solunda, sadece sayı (ikincil bir bilgi) */
-.temp-card .temp-set-value{
-  font-family:'JetBrains Mono',monospace;
-  font-size:14px; font-weight:700; color:#8a8175; flex-shrink:0; white-space:nowrap;
-}
-/* ENDA bağlantı rozeti + Bilgi + Ayarlar ikonları yan yana */
-.temp-actions{ display:flex; gap:6px; flex-shrink:0; }
-.temp-settings-btn, .temp-info-btn{
-  background:#151d29; border:1px solid #263140; border-radius:7px;
-  color:#64748b; cursor:pointer;
-  width:9cqw; height:9cqw;
-  min-width:26px; min-height:26px;
-  display:flex; align-items:center; justify-content:center;
-  padding:0;
-  transition:color .15s, border-color .15s;
-}
-.temp-settings-btn:active, .temp-info-btn:active{ transform:scale(.9); color:#fbbf24; border-color:#f59e0b; }
-.temp-settings-btn svg, .temp-info-btn svg{ width:60%; height:60%; }.temp-settings-btn:active, .temp-info-btn:active{ transform:scale(.9); color:#fbbf24; border-color:#f59e0b; }
-.temp-settings-btn svg, .temp-info-btn svg{ width:12px; height:12px; }
 
 /* ================= INFO POPUP ================= */
 .info-overlay{
@@ -740,28 +690,11 @@ body.ble-disconnected .connection-overlay{ display:flex; }
 /* Resetleme onayı da diğer overlay'lerin üzerinde açılmalı */
 #resetConfirmOverlay{ z-index:300; }
 
-.phase-badge{
-  align-self:center; background:#0a0f1a; border:1px solid #263140;
-  color:#94a3b8; font-family:'Space Grotesk',sans-serif;
-  font-size:11px; font-weight:700; letter-spacing:.1em;
-  padding:7px 16px 7px 26px; border-radius:20px; position:relative;
-}
-.phase-badge::before{
-  content:''; position:absolute; left:12px; top:50%; transform:translateY(-50%);
-  width:7px; height:7px; border-radius:50%; background:#64748b;
-}
-.phase-badge.preheat{ color:#fbbf24; border-color:#78530f; }
-.phase-badge.preheat::before{ background:#f59e0b; box-shadow:0 0 6px rgba(245,158,11,.8); }
-.phase-badge.process{ color:#22d3ee; border-color:#155e75; }
-.phase-badge.process::before{ background:#22d3ee; box-shadow:0 0 6px rgba(34,211,238,.8); }
-.phase-badge.stopped{ color:#f87171; border-color:#7f1d1d; }
-.phase-badge.stopped::before{ background:#ef4444; box-shadow:0 0 6px rgba(239,68,68,.8); }
-
 .control-buttons{ display:flex; flex-direction:row; gap:10px; margin-top:auto; }
-.control-buttons-left{ display:flex; flex-direction:column; gap:10px; flex:1; }
+.control-buttons-left{ display:flex; flex-direction:row; gap:10px; flex:1; }
 .ctrl-btn{
   display:flex; align-items:center; justify-content:center; gap:9px;
-  border:none; border-radius:12px; padding:16px;
+  border:none; border-radius:12px; padding:22px 16px;
   font-family:'Space Grotesk',sans-serif;
   font-size:14px; font-weight:700; letter-spacing:.06em; color:#fff; cursor:pointer;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.18), inset 0 -3px 0 rgba(0,0,0,.22), 0 3px 6px rgba(0,0,0,.3);
@@ -772,9 +705,15 @@ body.ble-disconnected .connection-overlay{ display:flex; }
   box-shadow:inset 0 1px 4px rgba(0,0,0,.4);
 }
 .ctrl-btn:disabled{ opacity:.35; cursor:not-allowed; }
-.ctrl-btn.preheat{ background:linear-gradient(180deg,#fbbf24,#d97706); }
-.ctrl-btn.process{ background:linear-gradient(180deg,#60a5fa,#2563eb); }
-.ctrl-btn.stop{ flex:1; background:linear-gradient(180deg,#f87171,#dc2626); }
+.ctrl-btn.preheat{ flex:1; background:linear-gradient(180deg,#fbbf24,#d97706); }
+.ctrl-btn.process{ flex:1; position:relative; background:linear-gradient(180deg,#60a5fa,#2563eb); }
+/* Durdur, diğer butonlar gibi "iddialı" durmasın diye daha naif/sade tutuldu — düz,
+   soluk bir zemin ve ince kenarlık, parlak degrade/gölge yok. */
+.ctrl-btn.stop{
+  flex:1; background:#2a1d1f; color:#e2a5aa;
+  border:1px solid #4a2b30;
+  box-shadow:none;
+}
 
 /* ---- Mod göstergesi — konturun tamamını izleyen ışık ("yılan") / sabit yeşil ----
    Dairesel conic-gradient + dairesel maske dikdörtgen butonda köşelerde blob gibi

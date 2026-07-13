@@ -1168,101 +1168,6 @@ class FwUpdateConfirmModal {
 }
 
 // =====================================================================
-// SICAKLIK KARTI — tek, sabit ENDA kartı (dinamik sayım yok, hep 1 adet)
-// =====================================================================
-class TempGridUI {
-  constructor(gridEl, { onSettingsClick, onInfoClick }) {
-    this.grid = gridEl;
-    this.onSettingsClick = onSettingsClick;
-    this.onInfoClick = onInfoClick;
-    this.hasDecimal = true; // H28 sensör tipi bilinene kadar varsayılan
-    this._renderCard();
-  }
-
-  // Sensör tipi "ondalıklı" mı değil mi öğrenilince (H28) çağrılır.
-  setDecimalMode(hasDecimal) {
-    this.hasDecimal = hasDecimal;
-  }
-
-  _renderCard() {
-    this.grid.innerHTML = `
-      <div class="temp-card">
-        <span class="temp-card-label">EUP1222</span>
-
-        <div class="temp-body">
-          <span class="temp-value" id="temp1Value">--.-</span>
-        </div>
-
-        <div class="footer-line">
-          <span class="temp-set-value" id="target1Value">--.-</span>
-          <span class="line"></span>
-          <div class="temp-actions">
-            <div class="conn-badge" id="endaLed1">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polygon points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"/>
-              </svg>
-            </div>
-            <button class="temp-info-btn" aria-label="Bilgi">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"/>
-                <line x1="12" y1="16" x2="12" y2="12"/>
-                <line x1="12" y1="8" x2="12.01" y2="8"/>
-              </svg>
-            </button>
-            <button class="temp-settings-btn" aria-label="Parametreler">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="3"/>
-                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-              </svg>
-            </button>
-          </div>
-        </div>
-      </div>`;
-
-    this.grid.querySelector('.temp-settings-btn').addEventListener('click', () => this.onSettingsClick(1));
-    this.grid.querySelector('.temp-info-btn').addEventListener('click', () => this.onInfoClick(1));
-  }
-
-  update(temps) {
-    const t = temps[0];
-    if (!t) return; // veri gelmediyse kart "--.-" placeholder'ıyla kalır
-
-    const decimals = this.hasDecimal ? 1 : 0;
-
-    const tempEl = document.getElementById('temp1Value');
-    tempEl.textContent = t.current.toFixed(decimals);
-    this._fitValueText(tempEl);
-
-    const targetEl = document.getElementById('target1Value');
-    targetEl.textContent = t.target.toFixed(decimals);
-
-    document.getElementById('endaLed1').classList.toggle('on', !!t.connected);
-  }
-
-  // BLE bağlantısı kesilince çağrılır — update([]) aksine burada değerler
-  // gerçekten "--.-" placeholder'ına döner (eski veri ekranda kalmaz).
-  reset() {
-    const tempEl = document.getElementById('temp1Value');
-    const targetEl = document.getElementById('target1Value');
-    if (tempEl) tempEl.textContent = '--.-';
-    if (targetEl) targetEl.textContent = '--.-';
-    const led = document.getElementById('endaLed1');
-    if (led) led.classList.remove('on');
-  }
-
-  // Değer (rakam sayısı) uzayınca kapsayıcı taşarsa, sığana kadar yazı tipini küçültür.
-  _fitValueText(valueEl) {
-    const container = valueEl.parentElement;
-    valueEl.style.fontSize = '';
-    let size = parseFloat(getComputedStyle(valueEl).fontSize);
-    while (container.scrollWidth > container.clientWidth && size > 10) {
-      size -= 1;
-      valueEl.style.fontSize = size + 'px';
-    }
-  }
-}
-
-// =====================================================================
 // BİLGİ POPUP — seçili ENDA'nın detaylarını gösterir
 // =====================================================================
 class InfoPopup {
@@ -1318,33 +1223,13 @@ class InfoPopup {
 }
 
 // =====================================================================
-// FAZ ROZETİ — BEKLEMEDE / ÖN ISITMA / PROSES / DURDURULDU
-// =====================================================================
-class PhaseBadge {
-  static LABELS = {
-    0: ['BEKLEMEDE', null],
-    1: ['ÖN ISITMA', 'preheat'],
-    2: ['PROSES', 'process'],
-    3: ['DURDURULDU', 'stopped'],
-  };
-
-  constructor(badgeEl) {
-    this.badge = badgeEl;
-  }
-
-  update(fazKodu) {
-    this.badge.classList.remove('preheat', 'process', 'stopped');
-    const [label, cls] = PhaseBadge.LABELS[fazKodu] || ['BİLİNMİYOR', null];
-    this.badge.textContent = label;
-    if (cls) this.badge.classList.add(cls);
-  }
-}
-
-// =====================================================================
-// PROSES EKRANI — Proses fazında ana ekranın yerini alır: aktif adım,
-// hedef sıcaklık ve kalan süreyi gösterir.
+// PROSES/DURUM EKRANI — anasayfanın kalıcı parçası: BEKLEMEDE/ÖN ISITMA'da
+// yer tutucu (pasif) gösterir, PROSES'te aktif adım/hedef sıcaklık/kalan süreyi
+// gösterir. Artık ayrı bir ekran değil — tek anasayfanın faza göre değişen kısmı.
 // =====================================================================
 class ProcessScreen {
+  static PHASE_LABELS = { 0: 'BEKLEME MODU', 1: 'ÖN ISITMA' };
+
   // ESP'den gelen kalan süre BLE gecikmesi/jitter yüzünden düzensiz aralıklarla
   // geliyor — her paketi doğrudan ekrana yazmak geri sayımı "titretiyor".
   // Bunun yerine: adım başına süreyi bir kez alıp kendi setInterval'ımızla
@@ -1353,10 +1238,8 @@ class ProcessScreen {
   static DRIFT_CHECK_INTERVAL_MS = 5000;
   static DRIFT_TOLERANCE_SECONDS = 4;
 
-  constructor(cardEl, normalCardEl, els) {
-    this.card = cardEl;
-    this.normalCard = normalCardEl;
-    this.els = els; // { stepLabel, currentTemp, targetTemp, targetTolerance, remaining }
+  constructor(els) {
+    this.els = els; // { stepLabel, targetRow, targetTemp, targetTolerance, remainingWrap, remaining }
     this.decimals = 1;
     this._stepNo = null;
     this._localRemaining = null;
@@ -1368,21 +1251,41 @@ class ProcessScreen {
     this.decimals = hasDecimal ? 1 : 0;
   }
 
-  show() {
-    this.normalCard.style.display = 'none';
-    this.card.style.display = 'flex';
+  // ENDA'dan her STATUS_SICAKLIK_SET geldiğinde çağrılır — faz ne olursa olsun
+  // anlık sıcaklık her zaman canlı gösterilir (bekleme/ön ısıtmada da).
+  updateCurrentTemp(current) {
+    this.els.currentTemp.textContent = current.toFixed(this.decimals);
   }
 
-  hide() {
-    this.card.style.display = 'none';
-    this.normalCard.style.display = 'flex';
+  // BLE bağlantısı kesilince çağrılır — gerçek "0" değil, "--.-" yer tutucusuna döner.
+  resetCurrentTemp() {
+    this.els.currentTemp.textContent = '--.-';
+  }
+
+  // BEKLEMEDE (0) ya da ÖN ISITMA (1) fazına geçilince (ya da bağlantı kesilince) çağrılır.
+  // currentTarget: ENDA'nın o anki SET (hedef) değeri (STATUS_SICAKLIK_SET'ten) — adım
+  // kavramı olmadığı için tolerans yok (±--), Kalan Süre ise anlamsız olduğu için gizlenir.
+  showIdleOrPreheat(phase, currentTarget) {
     this._stopCountdown();
     this._stepNo = null;
     this._localRemaining = null;
+    this.els.stepLabel.textContent = ProcessScreen.PHASE_LABELS[phase] || 'BEKLEME MODU';
+    this.updateIdleTarget(currentTarget);
+    this.els.remaining.textContent = '--:--';
+    this.els.remainingWrap.style.display = 'none';
   }
 
-  updateCurrentTemp(current) {
-    this.els.currentTemp.textContent = current.toFixed(this.decimals);
+  // BEKLEMEDE/ÖN ISITMA fazındayken ESP'den her STATUS_SICAKLIK_SET geldiğinde çağrılır —
+  // hedef sıcaklık alanı her zaman ENDA'nın o anki gerçek SET değerini gösterir.
+  updateIdleTarget(currentTarget) {
+    if (currentTarget != null) {
+      this.els.targetRow.classList.remove('passive');
+      this.els.targetTemp.textContent = `${currentTarget.toFixed(this.decimals)}°C`;
+    } else {
+      this.els.targetRow.classList.add('passive');
+      this.els.targetTemp.textContent = '--.-°C';
+    }
+    if (this.els.targetTolerance) this.els.targetTolerance.textContent = '±--';
   }
 
   // configuredDuration: Ayarlar'dan bilinen (kullanıcının o adım için girdiği) tam
@@ -1391,6 +1294,8 @@ class ProcessScreen {
   // tam geçiş anında henüz kendi sayacını sıfırlamamış olabiliyor). Ardından normal
   // periyodik drift kontrolü ESP'nin gerçek değeriyle karşılaştırıp düzeltmeye devam eder.
   updateStep({ stepNo, totalSteps, remainingSeconds, targetTemp, tolerance, configuredDuration }) {
+    this.els.targetRow.classList.remove('passive');
+    this.els.remainingWrap.style.display = '';
     this.els.stepLabel.textContent = `ADIM ${stepNo} / ${totalSteps}`;
     this.els.targetTemp.textContent = `${targetTemp.toFixed(this.decimals)}°C`;
     if (this.els.targetTolerance && tolerance !== undefined) {
@@ -2101,23 +2006,21 @@ class WeldmacApp {
       }
     );
 
-    this.phaseBadge = new PhaseBadge(document.getElementById('phaseBadge'));
-
     this.currentPhase = 0;
     this.preheatBtn = document.getElementById('btnPreheat');
     this.processBtn = document.getElementById('btnProcess');
+    this.stopBtn = document.getElementById('btnStop');
+    this.startButtonsWrap = document.getElementById('startButtonsWrap');
 
-    this.processScreen = new ProcessScreen(
-      document.getElementById('processCard'),
-      document.getElementById('normalControlCard'),
-      {
-        stepLabel: document.getElementById('processStepLabel'),
-        currentTemp: document.getElementById('processCurrentTemp'),
-        targetTemp: document.getElementById('processTargetTemp'),
-        targetTolerance: document.getElementById('processTargetTolerance'),
-        remaining: document.getElementById('processRemainingTime'),
-      }
-    );
+    this.processScreen = new ProcessScreen({
+      stepLabel: document.getElementById('processStepLabel'),
+      currentTemp: document.getElementById('processCurrentTemp'),
+      targetRow: document.getElementById('processTargetRow'),
+      targetTemp: document.getElementById('processTargetTemp'),
+      targetTolerance: document.getElementById('processTargetTolerance'),
+      remainingWrap: document.getElementById('processRemainingWrap'),
+      remaining: document.getElementById('processRemainingTime'),
+    });
 
     this.safetyIoUI = new SafetyIoUI();
 
@@ -2197,12 +2100,26 @@ class WeldmacApp {
       this._writeParam(el);
     });
 
-    this.tempGrid = new TempGridUI(document.getElementById('tempGrid'), {
-      onSettingsClick: (endaIndex) => this._openSettingsPanel(endaIndex),
-      onInfoClick: (endaIndex) => {
-        this.infoPopup.open(endaIndex, this.lastTemps);
-        this.ble.requestEndaBaglanti();
-      },
+    document.getElementById('tempSettingsBtn').addEventListener('click', () => this._openSettingsPanel(1));
+    document.getElementById('tempInfoBtn').addEventListener('click', () => {
+      this.infoPopup.open(1, this.lastTemps);
+      this.ble.requestEndaBaglanti();
+    });
+
+    // Bilgi/ayarlar kutucukları varsayılan gizli — ok tıklanınca açılır, dışarıya
+    // tıklanınca (ya da tekrar oka basılınca) kapanır.
+    const tempActionsToggle = document.getElementById('tempActionsToggle');
+    const tempActionsGroup = document.getElementById('tempActionsGroup');
+    tempActionsToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      tempActionsGroup.classList.toggle('show');
+      tempActionsToggle.classList.toggle('open');
+    });
+    document.addEventListener('click', (e) => {
+      if (!tempActionsGroup.classList.contains('show')) return;
+      if (tempActionsGroup.contains(e.target) || tempActionsToggle.contains(e.target)) return;
+      tempActionsGroup.classList.remove('show');
+      tempActionsToggle.classList.remove('open');
     });
 
     this.logsUI = new LogsUI(
@@ -2298,7 +2215,6 @@ class WeldmacApp {
     document.getElementById('btnPreheat').addEventListener('click', () => this.ble.sendEmir(BleLink.CMD_PREHEAT_START));
     document.getElementById('btnProcess').addEventListener('click', () => this.ble.sendEmir(BleLink.CMD_PROCESS_START));
     document.getElementById('btnStop').addEventListener('click', () => this.ble.sendEmir(BleLink.CMD_STOP));
-    document.getElementById('btnProcessStop').addEventListener('click', () => this.ble.sendEmir(BleLink.CMD_STOP));
 
     document.getElementById('logClearHistoryBtn').addEventListener('click', (e) => {
       e.target.disabled = true;
@@ -2323,26 +2239,28 @@ class WeldmacApp {
         }
         this.lastTemps = temps;
         this._stopSicaklikSetRetry(); // veri geldi, artık sormaya gerek yok
-        this.tempGrid.update(temps);
+        if (temps[0]) {
+          this.processScreen.updateCurrentTemp(temps[0].current);
+          // Proses fazında hedef sıcaklığı STATUS_ADIM_DURUMU (adım bazlı) belirliyor;
+          // diğer fazlarda ENDA'nın o anki SET değeri burada gösteriliyor.
+          if (this.currentPhase !== 2) this.processScreen.updateIdleTarget(temps[0].target);
+        }
         this.infoPopup.refresh(temps);
         this._updateModeButtons();
-        if (temps[0]) this.processScreen.updateCurrentTemp(temps[0].current);
       } else if (frame.id === BleLink.STATUS_FAZ_DEGISTI) {
         this.currentPhase = frame.payload[0];
-        this.phaseBadge.update(this.currentPhase);
         this._updateModeButtons();
-        this._updateProcessScreenVisibility();
+        this._updateProcessSection();
       } else if (frame.id === BleLink.STATUS_ADIM_DURUMU) {
         this._stopAdimDurumuRetry(); // veri geldi, artık sormaya gerek yok
         // Öz-iyileşme: adım durumu verisi sadece ENDA gerçekten PROSES'teyken gelir.
         // Bağlantı kopup yeniden kurulunca arada STATUS_FAZ_DEGISTI kaçırılmış olabilir
         // ve currentPhase yanlışlıkla PROSES değil kalabilir — bu veri geldiğinde
-        // düzeltiyoruz, böylece proses ekranı (Anasayfa'daysak hemen görünür) doğru gösterilir.
+        // düzeltiyoruz, böylece proses bilgisi (Anasayfa'daysak hemen görünür) doğru gösterilir.
         if (this.currentPhase !== 2) {
           this.currentPhase = 2;
-          this.phaseBadge.update(this.currentPhase);
           this._updateModeButtons();
-          this._updateProcessScreenVisibility();
+          this._updateProcessSection();
         }
         // payload (8 byte): [adım_no(1B), toplam_adım(1B), kalan_süre_low(1B), kalan_süre_high(1B),
         //   hedef_sicaklik_low(1B), hedef_sicaklik_high(1B), tolerans_low(1B), tolerans_high(1B)]
@@ -2582,7 +2500,6 @@ class WeldmacApp {
     const isDecimal = label.includes('ondalıklı');
     if (isDecimal !== this.tempHasDecimal) {
       this.tempHasDecimal = isDecimal;
-      this.tempGrid.setDecimalMode(isDecimal);
       this.settingsUI.setTempDecimalMode(isDecimal);
       this.processScreen.setDecimalMode(isDecimal);
       if (this.ble.connected) this.ble.requestSicaklikSet(); // ölçek değişti, veriyi doğru birimle tazele
@@ -2676,10 +2593,9 @@ class WeldmacApp {
     this._expectedLogCount = null;
     this._receivedParamKeys.clear();
 
-    this.tempGrid.reset();
-    this.phaseBadge.update(0);
+    this.processScreen.resetCurrentTemp();
     this._updateModeButtons();
-    this.processScreen.hide();
+    this.processScreen.showIdleOrPreheat(0, null);
     this.safetyIoUI.reset();
     this.logsUI.showLoading();
     this.logsUI.resetNavBadge();
@@ -2699,11 +2615,17 @@ class WeldmacApp {
   // Ön Isıtma / Proses butonlarının çerçevesini günceller:
   // mod aktif ve hedef sıcaklığa ulaşılmamışsa "yılan" animasyonu,
   // mod aktif ve hedef sıcaklığa ulaşılmışsa sabit yeşil, aksi halde düz.
+  // Ayrıca: BEKLEMEDE iken sadece Ön Isıtma/Proses butonları, bir mod aktifken
+  // (Ön Isıtma ya da Proses) sadece Durdur butonu görünür.
   _updateModeButtons() {
     this.preheatBtn.classList.remove('mode-seeking', 'mode-reached');
     this.processBtn.classList.remove('mode-seeking', 'mode-reached');
 
-    if (this.currentPhase !== 1 && this.currentPhase !== 2) return;
+    const modeActive = this.currentPhase === 1 || this.currentPhase === 2;
+    this.startButtonsWrap.style.display = modeActive ? 'none' : 'flex';
+    this.stopBtn.style.display = modeActive ? 'flex' : 'none';
+
+    if (!modeActive) return;
 
     const reached = this.lastTemps.length > 0 &&
       this.lastTemps.every(t => Math.abs(t.current - t.target) <= WeldmacApp.TEMP_REACHED_TOLERANCE_C);
@@ -2712,14 +2634,15 @@ class WeldmacApp {
     activeBtn.classList.add(reached ? 'mode-reached' : 'mode-seeking');
   }
 
-  // Proses fazındayken ana ekranın yerini Proses ekranı alır, diğer fazlarda normal ekran görünür.
-  _updateProcessScreenVisibility() {
+  // Proses fazındayken adım/hedef/kalan süre bilgisi ESP'den istenip gösterilir,
+  // diğer fazlarda (BEKLEMEDE/ÖN ISITMA) bu bölüm yer tutucu/pasif hâle döner.
+  _updateProcessSection() {
     if (this.currentPhase === 2) {
-      this.processScreen.show();
       this._requestAdimDurumuWithRetry();
     } else {
-      this.processScreen.hide();
       this._stopAdimDurumuRetry();
+      const currentTarget = this.lastTemps[0] ? this.lastTemps[0].target : null;
+      this.processScreen.showIdleOrPreheat(this.currentPhase, currentTarget);
     }
   }
 
@@ -2727,15 +2650,16 @@ class WeldmacApp {
   _exposeTestHelpers() {
     window.testTemps = (temps) => {
       this.lastTemps = temps;
-      this.tempGrid.update(temps);
+      if (temps[0]) {
+        this.processScreen.updateCurrentTemp(temps[0].current);
+        if (this.currentPhase !== 2) this.processScreen.updateIdleTarget(temps[0].target);
+      }
       this._updateModeButtons();
-      if (temps[0]) this.processScreen.updateCurrentTemp(temps[0].current);
     };
     window.testPhase = (fazKodu) => {
       this.currentPhase = fazKodu;
-      this.phaseBadge.update(fazKodu);
       this._updateModeButtons();
-      this._updateProcessScreenVisibility();
+      this._updateProcessSection();
     };
     // örnek: testAdimDurumu(1, 2, 754, 160.0, 5) -> Adım 1/2, kalan 12:34, hedef 160.0°C ±5
     // configuredDuration verirsen (ör. testAdimDurumu(2, 2, 0, 200, 5, 90)) yeni adıma
