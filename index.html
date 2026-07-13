@@ -9,7 +9,7 @@
     --bg: #0f1115;
     --text: #e6e8eb;
     --muted: #8a8f98;
-    --accent: #3b82f6;
+    --accent: #b92834;
     --danger: #ef4444;
     --safe: #6b7280; /* bağlantı yokken nötr/güvenli renk */
     --border: #262b33;
@@ -29,25 +29,19 @@
     align-items: center; justify-content: center;
     padding: 24px; text-align: center;
   }
+  .logo-mark { width: 52px; height: auto; margin-bottom: 18px; }
   .logo { font-size: 26px; font-weight: 700; margin-bottom: 4px; letter-spacing: 0.02em; }
   .logo span { color: var(--accent); }
-  .subtitle { color: var(--muted); font-size: 13px; margin-bottom: 28px; }
-  .device-list {
-    display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;
-    margin-bottom: 32px;
-  }
-  .device-chip {
-    font-size: 12px; font-weight: 600; letter-spacing: 0.02em;
-    color: var(--muted); border: 1px solid var(--border);
-    border-radius: 999px; padding: 6px 14px;
-  }
+  .subtitle { color: var(--muted); font-size: 13px; margin-bottom: 40px; }
   .connect-btn {
     width: 100%; max-width: 320px;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
     padding: 18px 24px; font-size: 16px; font-weight: 600;
     border: none; border-radius: 14px;
     background: var(--accent); color: white;
     cursor: pointer; transition: transform 0.1s ease;
   }
+  .connect-btn svg { width: 18px; height: 18px; flex-shrink: 0; }
   .connect-btn:active { transform: scale(0.98); }
   .connect-btn:disabled { background: var(--safe); cursor: not-allowed; }
   .status { margin-top: 24px; font-size: 13px; color: var(--muted); min-height: 18px; }
@@ -64,12 +58,16 @@
 </head>
 <body>
   <div class="wrap">
+    <img class="logo-mark" src="./assets/redlift-mark.png" alt="REDLIFT">
     <div class="logo">REDLIFT<span>-MCI</span></div>
     <div class="subtitle">Kontrol panelini başlatmak için cihaza bağlanın</div>
 
-    <div class="device-list" id="deviceList"></div>
-
-    <button id="connectBtn" class="connect-btn">Cihaza Bağlan</button>
+    <button id="connectBtn" class="connect-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6.5 6.5 17.5 17.5 12 23V1l5.5 5.5L6.5 17.5"/>
+      </svg>
+      Cihaza Bağlan
+    </button>
 
     <div id="status" class="status"></div>
   </div>
@@ -86,11 +84,6 @@
 
   const connectBtn = document.getElementById('connectBtn');
   const statusEl = document.getElementById('status');
-  const deviceListEl = document.getElementById('deviceList');
-
-  deviceListEl.innerHTML = DEVICE_ROUTES
-    .map(r => '<span class="device-chip">' + r.prefix + '</span>')
-    .join('');
 
   function setStatus(html, type) {
     statusEl.innerHTML = html;
