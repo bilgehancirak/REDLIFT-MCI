@@ -1,3 +1,17 @@
+/* REDLIFT kurumsal kimlik paleti — kök sitedeki (bilgehancirak.github.io/REDLIFT-MCI)
+   ile birebir aynı değişken adları/değerleri. */
+:root{
+  --bg:#0f1115;
+  --text:#e6e8eb;
+  --muted:#8a8f98;
+  --accent:#b92834;
+  --accent-light:#d5424f;
+  --accent-dark:#8a1f28;
+  --danger:#ef4444;
+  --safe:#6b7280;
+  --border:#262b33;
+}
+
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{
   height:100%; width:100%;
@@ -5,7 +19,7 @@ html,body{
 }
 body{
   font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
-  background:#f1f5f9;color:#0f172a;
+  background:var(--bg);color:var(--text);
   height:100dvh; width:100vw;
   max-width:480px; margin:0 auto;
   display:flex; flex-direction:column;
@@ -32,6 +46,7 @@ body{
   cursor:pointer; flex-shrink:0;
 }
 .home-btn:active{ transform:scale(.93); }
+.home-btn-logo{ width:16px; height:auto; display:block; }
 
 .conn-status-box{
   width:36px; height:36px; border-radius:9px;
@@ -105,7 +120,7 @@ body.ble-disconnected .connection-overlay{ display:flex; }
   width:64px; height:64px; border-radius:50%;
   background:#1e293b; border:1px solid #334155;
   display:flex; align-items:center; justify-content:center;
-  color:#3b82f6; margin-bottom:14px;
+  color:var(--accent); margin-bottom:14px;
 }
 .connection-icon svg{ width:30px; height:30px; }
 .connection-title{
@@ -119,7 +134,7 @@ body.ble-disconnected .connection-overlay{ display:flex; }
 .connection-scan-btn{
   width:100%;
   display:flex; align-items:center; justify-content:center; gap:8px;
-  background:linear-gradient(180deg,#60a5fa,#2563eb); border:none; color:#fff;
+  background:linear-gradient(180deg,var(--accent-light),var(--accent-dark)); border:none; color:#fff;
   font-family:'Space Grotesk',sans-serif; font-size:13px; font-weight:700;
   padding:13px; border-radius:10px; cursor:pointer;
 }
@@ -141,10 +156,10 @@ body.ble-disconnected .connection-overlay{ display:flex; }
   background:#0f172a; border:.5px solid #263140; border-radius:8px;
   padding:10px 12px; cursor:pointer;
 }
-.connection-known-item:active{ border-color:#3b82f6; }
+.connection-known-item:active{ border-color:var(--accent); }
 .connection-known-icon{
   width:28px; height:28px; flex-shrink:0; border-radius:7px;
-  background:#1e293b; color:#3b82f6;
+  background:#1e293b; color:var(--accent);
   display:flex; align-items:center; justify-content:center;
 }
 .connection-known-icon svg{ width:15px; height:15px; }
@@ -185,7 +200,7 @@ body.ble-disconnected .connection-overlay{ display:flex; }
   font-family:'Space Grotesk',sans-serif;
   font-size:9.5px; font-weight:700; letter-spacing:.03em;
 }
-.nav-tab.active{ color:#3b82f6; background:rgba(59,130,246,.12); }
+.nav-tab.active{ color:var(--accent); background:rgba(185,40,52,.14); }
 .nav-tab:active{ transform:scale(.95); }
 
 /* Log sekmesindeki durum baloncuğu: kırmızı(yanıp söner)=aktif arıza,
@@ -264,11 +279,11 @@ body.ble-disconnected .connection-overlay{ display:flex; }
 .spinner-ring{
   position:absolute; inset:0;
   border-radius:50%;
-  background:conic-gradient(from 0deg, transparent 0deg, #1d4ed8 90deg, #67e8f9 200deg, #f59e0b 300deg, transparent 360deg);
+  background:conic-gradient(from 0deg, transparent 0deg, var(--accent) 90deg, #67e8f9 200deg, #f59e0b 300deg, transparent 360deg);
   -webkit-mask:radial-gradient(farthest-side, transparent calc(100% - 6px), #000 calc(100% - 6px));
   mask:radial-gradient(farthest-side, transparent calc(100% - 6px), #000 calc(100% - 6px));
   animation:spin 1.1s linear infinite;
-  filter:drop-shadow(0 0 10px rgba(59,130,246,.45));
+  filter:drop-shadow(0 0 10px rgba(185,40,52,.45));
 }
 .spinner-icon{
   position:relative;
@@ -308,7 +323,7 @@ body.ble-disconnected .connection-overlay{ display:flex; }
   position:absolute; top:0; left:-40%;
   height:100%; width:40%;
   border-radius:2px;
-  background:linear-gradient(90deg, transparent, #3b82f6, #67e8f9, transparent);
+  background:linear-gradient(90deg, transparent, var(--accent), #67e8f9, transparent);
   animation:loadingBarSlide 1.3s ease-in-out infinite;
 }
 @keyframes loadingBarSlide{
@@ -457,7 +472,7 @@ body.ble-disconnected .connection-overlay{ display:flex; }
 .fw-status.available{ background:rgba(245,158,11,.12); color:#fbbf24; }
 .fw-status.error{ background:rgba(239,68,68,.12); color:#f87171; }
 
-.fw-update-btn{ background:linear-gradient(180deg,#60a5fa,#2563eb); }
+.fw-update-btn{ background:linear-gradient(180deg,var(--accent-light),var(--accent-dark)); }
 
 .fw-updating{
   flex-direction:column; gap:10px;
@@ -474,7 +489,7 @@ body.ble-disconnected .connection-overlay{ display:flex; }
   fill:none; stroke:#1e293b; stroke-width:12;
 }
 .fw-progress-ring-fill{
-  fill:none; stroke:#3b82f6; stroke-width:12; stroke-linecap:round;
+  fill:none; stroke:var(--accent); stroke-width:12; stroke-linecap:round;
   transition:stroke-dashoffset .25s linear;
 }
 .fw-progress-bytes{
@@ -483,6 +498,15 @@ body.ble-disconnected .connection-overlay{ display:flex; }
 }
 
 /* ================= KONTROL SAYFASI ================= */
+/* Anasayfa (kontrol + proses kartları): çevreleyen panel arka planı/kenarlığı/gölgesi
+   kaldırıldı — ENDA sıcaklık kartı ve butonlar doğrudan sayfa arka planı üzerinde durur.
+   Diğer sayfalardaki (.card kullanan) paneller etkilenmez. */
+.control-card, .process-card{
+  background:none; border:none; box-shadow:none;
+}
+.control-card::before, .process-card::before{
+  content:none;
+}
 .control-card{
   flex:1; display:flex; flex-direction:column; gap:16px;
 }
@@ -566,7 +590,7 @@ body.ble-disconnected .connection-overlay{ display:flex; }
   position:relative;
   width:100%;
   container-type:inline-size;
-  background:#050505;
+  background:#f3efe9;
   border-radius:14px;
   display:flex;
   flex-direction:column;
@@ -576,46 +600,35 @@ body.ble-disconnected .connection-overlay{ display:flex; }
 }
 
 .temp-card .conn-badge{
-  position:absolute; top:8px; left:8px;
-  background:#151d29; border:1px solid #263140; border-radius:5px;
-  width:20px; height:20px;
+  background:#151d29; border:1px solid #263140; border-radius:7px;
+  width:9cqw; height:9cqw; min-width:26px; min-height:26px;
   display:flex; align-items:center; justify-content:center;
-  color:#4a1616;
+  color:#4a1616; flex-shrink:0;
 }
 .temp-card .conn-badge.on{ color:#22c55e; }
-.temp-card .conn-badge svg{ width:12px; height:12px; }
+.temp-card .conn-badge svg{ width:60%; height:60%; }
 
-.temp-card .temp-header{
-  display:flex; align-items:center; justify-content:center; gap:8px;
-  width:100%; margin-top:6cqw;
-}
-.temp-card .temp-header .line{ flex:1; height:1px; }
-.temp-card .temp-header .line.left{ background:linear-gradient(90deg,transparent,#4b5563); }
-.temp-card .temp-header .line.right{ background:linear-gradient(90deg,#4b5563,transparent); }
-.temp-card .temp-label{
+.temp-card .temp-card-label{
+  position:absolute; top:8px; right:11px;
   font-family:'JetBrains Mono',monospace;
-  font-size:9cqw; font-weight:700; color:#f1f5f9; letter-spacing:.1em;
+  font-size:9px; font-weight:700; color:#a49c8f; letter-spacing:.08em;
 }
 
 .temp-card .temp-body{
-  flex:1; display:flex; align-items:center; justify-content:center; gap:2cqw; width:100%;
-}
-.temp-card .thermo-icon{
-  width:16cqw; height:16cqw; color:#f97316;
-  filter:drop-shadow(0 0 4px rgba(249,115,22,.6));
-  flex-shrink:0;
+  flex:1; display:flex; align-items:center; justify-content:center; width:100%;
+  margin-top:6cqw;
 }
 .temp-card .temp-value{
   font-family:'JetBrains Mono',monospace;
   font-size:27cqw; font-weight:700;
-  background:linear-gradient(180deg,#67e8f9,#0ea5e9);
+  background:linear-gradient(180deg,var(--accent-light),var(--accent-dark));
   -webkit-background-clip:text; background-clip:text; color:transparent;
-  filter:drop-shadow(0 0 6px rgba(14,165,233,.5));
+  filter:drop-shadow(0 0 4px rgba(185,40,52,.35));
   line-height:1;
 }
 .temp-card .temp-value::after{
   content:'°C'; font-size:.4em;
-  background:none; -webkit-text-fill-color:#0ea5e9; color:#0ea5e9;
+  background:none; -webkit-text-fill-color:var(--accent-dark); color:var(--accent-dark);
   filter:none;
 }
 .temp-card .temp-value.no-unit::after{ content:''; }
@@ -627,8 +640,15 @@ body.ble-disconnected .connection-overlay{ display:flex; }
 }
 .temp-card .footer-line .line{
   flex:1; height:1px;
-  background:#334155;
+  background:#c9c1b6;
 }
+/* SET değeri — footer-line'ın solunda, sadece sayı (ikincil bir bilgi) */
+.temp-card .temp-set-value{
+  font-family:'JetBrains Mono',monospace;
+  font-size:14px; font-weight:700; color:#8a8175; flex-shrink:0; white-space:nowrap;
+}
+/* ENDA bağlantı rozeti + Bilgi + Ayarlar ikonları yan yana */
+.temp-actions{ display:flex; gap:6px; flex-shrink:0; }
 .temp-settings-btn, .temp-info-btn{
   background:#151d29; border:1px solid #263140; border-radius:7px;
   color:#64748b; cursor:pointer;
@@ -812,7 +832,7 @@ body.ble-disconnected .connection-overlay{ display:flex; }
 .settings-overlay{
   display:none;
   position:fixed; inset:0;
-  background:#f1f5f9;
+  background:var(--bg);
   z-index:200;
   flex-direction:column;
   max-width:480px; margin:0 auto;
@@ -925,7 +945,7 @@ body.ble-disconnected .connection-overlay{ display:flex; }
   color:#94a3b8; text-align:center; padding:6px;
 }
 .self-tune-status.active{ color:#22d3ee; }
-.self-tune-btn{ background:linear-gradient(180deg,#60a5fa,#2563eb); }
+.self-tune-btn{ background:linear-gradient(180deg,var(--accent-light),var(--accent-dark)); }
 
 /* ---- Emniyet & Sistem Girişleri (Sayfa 3) ---- */
 .io-row{
