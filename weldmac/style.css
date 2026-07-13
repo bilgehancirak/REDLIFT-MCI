@@ -69,13 +69,6 @@ body{
 .rxtx-led.flash{ background:#3b82f6; }
 .rxtx-led.rx.flash{ background:#22d3ee; }
 
-.conn-fallback-btn{
-  background:#3b82f6;color:#fff;border:none;
-  padding:5px 10px;border-radius:7px;font-size:11px;cursor:pointer;
-  display:none; margin-right:6px;
-}
-.conn-fallback-btn.show{display:inline-block}
-
 /* ================= YATAY KAYDIRMA (pager) ================= */
 .pager{
   flex:1;
@@ -86,6 +79,80 @@ body{
   -webkit-overflow-scrolling:touch;
 }
 .pager::-webkit-scrollbar{ display:none; }
+
+/* BLE bağlantısı kesilince: pager ve alt navigasyon tamamen gizlenir, yerini
+   aşağıdaki Bağlantı Sayfası (.connection-overlay) alır — topbar (LED, RX/TX,
+   "Bağlan" butonu) her zaman görünür kalır. */
+body.ble-disconnected .pager,
+body.ble-disconnected .bottom-nav{
+  display:none;
+}
+
+/* ================= BAĞLANTI SAYFASI ================= */
+.connection-overlay{
+  display:none;
+  flex:1;
+  flex-direction:column; align-items:center; justify-content:center;
+  padding:24px;
+}
+body.ble-disconnected .connection-overlay{ display:flex; }
+
+.connection-content{
+  width:100%; max-width:360px;
+  display:flex; flex-direction:column; align-items:center;
+}
+.connection-icon{
+  width:64px; height:64px; border-radius:50%;
+  background:#1e293b; border:1px solid #334155;
+  display:flex; align-items:center; justify-content:center;
+  color:#3b82f6; margin-bottom:14px;
+}
+.connection-icon svg{ width:30px; height:30px; }
+.connection-title{
+  font-family:'Space Grotesk',sans-serif; font-size:16px; font-weight:700;
+  color:#e2e8f0; text-align:center;
+}
+.connection-subtitle{
+  font-size:12.5px; color:#64748b; text-align:center;
+  margin-top:6px; margin-bottom:20px;
+}
+.connection-scan-btn{
+  width:100%;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  background:linear-gradient(180deg,#60a5fa,#2563eb); border:none; color:#fff;
+  font-family:'Space Grotesk',sans-serif; font-size:13px; font-weight:700;
+  padding:13px; border-radius:10px; cursor:pointer;
+}
+.connection-scan-btn svg{ width:16px; height:16px; }
+.connection-scan-btn:active{ transform:scale(.97); }
+
+.connection-known-box{
+  width:100%; margin-top:22px;
+  background:#151d29; border:1px solid #263140; border-radius:12px;
+  padding:12px;
+}
+.connection-known-title{
+  font-family:'Space Grotesk',sans-serif; font-size:10px; font-weight:700; color:#64748b;
+  text-transform:uppercase; letter-spacing:.1em; margin-bottom:8px;
+}
+.connection-known-list{ display:flex; flex-direction:column; gap:6px; }
+.connection-known-item{
+  display:flex; align-items:center; gap:10px;
+  background:#0f172a; border:.5px solid #263140; border-radius:8px;
+  padding:10px 12px; cursor:pointer;
+}
+.connection-known-item:active{ border-color:#3b82f6; }
+.connection-known-icon{
+  width:28px; height:28px; flex-shrink:0; border-radius:7px;
+  background:#1e293b; color:#3b82f6;
+  display:flex; align-items:center; justify-content:center;
+}
+.connection-known-icon svg{ width:15px; height:15px; }
+.connection-known-name{
+  flex:1; font-size:12.5px; color:#e2e8f0; font-weight:600;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.connection-known-arrow{ color:#475569; flex-shrink:0; }
 .page{
   flex:0 0 100%;
   width:100%;
@@ -97,19 +164,57 @@ body{
   gap:8px;
 }
 
-/* ================= DOTS (sabit, alt) ================= */
-.dots{
+/* ================= ALT NAVİGASYON (sabit) ================= */
+.bottom-nav{
   flex-shrink:0;
-  display:flex; align-items:center; justify-content:center;
-  gap:8px;
-  padding:10px 0 14px;
+  display:flex; gap:4px;
+  padding:8px 8px calc(8px + env(safe-area-inset-bottom));
+  background:#0f172a; border-top:.5px solid #1e293b;
 }
-.dot{
-  width:7px; height:7px; border-radius:50%;
-  background:#cbd5e1; border:none; cursor:pointer; padding:0;
-  transition:all .2s;
+.nav-tab{
+  flex:1;
+  display:flex; flex-direction:column; align-items:center; gap:3px;
+  background:none; border:none; cursor:pointer;
+  padding:6px 2px; border-radius:9px;
+  color:#64748b;
+  transition:color .15s, background-color .15s;
 }
-.dot.active{ background:#3b82f6; width:20px; border-radius:4px; }
+.nav-tab-icon{ width:20px; height:20px; }
+.nav-tab-icon-wrap{ position:relative; display:inline-flex; }
+.nav-tab-label{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:9.5px; font-weight:700; letter-spacing:.03em;
+}
+.nav-tab.active{ color:#3b82f6; background:rgba(59,130,246,.12); }
+.nav-tab:active{ transform:scale(.95); }
+
+/* Log sekmesindeki durum baloncuğu: kırmızı(yanıp söner)=aktif arıza,
+   sarı(sayı)=sadece geçmiş var, yeşil=hiç arıza yok */
+.nav-tab-badge{
+  display:none;
+  position:absolute; top:-3px; right:-8px;
+  align-items:center; justify-content:center;
+  border-radius:20px;
+  font-family:'Space Grotesk',sans-serif; font-size:9px; font-weight:700;
+  line-height:1;
+}
+.nav-tab-badge.show{ display:flex; }
+.nav-tab-badge.state-active{
+  width:9px; height:9px; min-width:9px;
+  background:#ef4444;
+  animation:navBadgeBlink 1s step-start infinite;
+}
+.nav-tab-badge.state-history{
+  min-width:15px; height:15px; padding:0 4px;
+  background:#f59e0b; color:#1a1205;
+}
+.nav-tab-badge.state-clear{
+  width:9px; height:9px; min-width:9px;
+  background:#22c55e;
+}
+@keyframes navBadgeBlink{
+  50%{ opacity:.2; }
+}
 
 /* ================= Kartlar (ortak stiller) ================= */
 .card{
@@ -186,6 +291,12 @@ body{
   color:#94a3b8;
 }
 
+.loading-progress{
+  font-family:'JetBrains Mono',monospace;
+  font-size:13px; font-weight:700; color:#67e8f9;
+  margin-top:-6px;
+}
+
 .loading-bar{
   width:140px; height:4px; border-radius:2px;
   background:#1e293b;
@@ -215,7 +326,9 @@ body{
   flex:1; background:#1e293b; border:.5px solid #334155; color:#94a3b8;
   font-family:'Space Grotesk',sans-serif; font-size:11px; font-weight:700;
   letter-spacing:.04em; padding:10px 4px; border-radius:8px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; gap:5px;
 }
+.logs-tab-icon{ width:14px; height:14px; flex-shrink:0; }
 .logs-tab.active{
   background:#f59e0b; border-color:#f59e0b; color:#1a1205;
 }
@@ -223,18 +336,41 @@ body{
 .logs-panel{
   flex:1; display:flex; flex-direction:column; overflow-y:auto;
 }
+.logs-empty{ flex-direction:column; gap:10px; }
+.logs-empty-icon{ width:30px; height:30px; color:#334155; }
 .logs-list{
   flex:1;
   display:flex; flex-direction:column; gap:8px;
 }
 .log-entry{
-  background:#0f172a; border:.5px solid #263140; border-radius:8px;
-  padding:10px 12px;
+  background:#0f172a; border:.5px solid #263140; border-left:3px solid #263140; border-radius:8px;
+  padding:10px 12px; cursor:pointer;
   display:flex; flex-direction:column; gap:6px;
+  transition:border-color .15s;
 }
+.log-entry:active{ border-color:#f59e0b; }
+/* Kalıcı arıza = kırmızı, geçici arıza = sarı sol çerçeve — tip rozetinin yerini alır */
+.log-entry.type-permanent{ border-left-color:#f87171; background:linear-gradient(90deg, rgba(239,68,68,.06), transparent 45%), #0f172a; }
+.log-entry.type-temporary{ border-left-color:#fbbf24; background:linear-gradient(90deg, rgba(245,158,11,.06), transparent 45%), #0f172a; }
 .log-entry-header{
   display:flex; align-items:center; gap:8px;
 }
+.log-icon{
+  width:24px; height:24px; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  border-radius:7px;
+}
+.log-icon svg{ width:14px; height:14px; }
+.log-icon.active{ background:rgba(239,68,68,.12); color:#f87171; }
+.log-icon.cleared{ background:rgba(34,197,94,.12); color:#22c55e; }
+
+.log-reset-btn{
+  background:#1e293b; border:.5px solid #f87171; color:#f87171;
+  font-family:'Space Grotesk',sans-serif; font-size:9px; font-weight:700;
+  letter-spacing:.04em; text-transform:uppercase;
+  padding:4px 8px; border-radius:20px; cursor:pointer; flex-shrink:0;
+}
+.log-reset-btn:active{ background:#f87171; color:#1a0505; }
 .log-code{
   font-family:'JetBrains Mono',monospace; font-size:12px; font-weight:700;
   color:#f1f5f9;
@@ -244,16 +380,45 @@ body{
   font-size:9px; font-weight:700; letter-spacing:.05em; text-transform:uppercase;
   padding:3px 8px; border-radius:20px;
 }
-.log-badge.temporary{ background:rgba(245,158,11,.15); color:#fbbf24; }
-.log-badge.permanent{ background:rgba(239,68,68,.15); color:#f87171; }
 .log-badge.active{ background:rgba(239,68,68,.15); color:#f87171; margin-left:auto; }
-.log-badge.cleared{ background:rgba(34,197,94,.15); color:#22c55e; margin-left:auto; }
-.log-message{
-  font-size:12px; color:#cbd5e1; line-height:1.4;
+
+.log-state-label{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:9px; font-weight:700; letter-spacing:.05em; text-transform:uppercase;
+  padding:3px 8px; border-radius:20px; margin-left:auto;
 }
-.log-meta{
+.log-state-label.ongoing{ background:rgba(239,68,68,.15); color:#f87171; }
+.log-state-label.resolved{ background:rgba(245,158,11,.15); color:#fbbf24; }
+
+.log-times{
+  display:flex; flex-direction:column; gap:4px;
+  padding-top:4px; border-top:.5px solid #1e293b;
+}
+.log-time-row{
+  display:flex; align-items:center; justify-content:space-between; gap:8px;
   font-family:'JetBrains Mono',monospace; font-size:9.5px; color:#64748b;
 }
+.log-time-col{ display:flex; align-items:center; gap:5px; }
+.log-time-col.cleared{ color:#22c55e; }
+.log-time-dot{
+  width:6px; height:6px; border-radius:50%; flex-shrink:0;
+}
+.log-time-dot.active{ background:#f87171; }
+.log-time-dot.cleared{ background:#22c55e; }
+
+/* Arıza detay mesajında (LogInfoModal) zaman listesi ilk öğe — üst çizgiye gerek yok */
+.log-info-times{ padding-top:0; border-top:none; font-size:11px; }
+.log-info-times .log-time-row{ font-size:11px; color:#94a3b8; }
+#logInfoDetailSection{ display:flex; flex-direction:column; gap:8px; }
+
+.log-clear-history-btn{
+  margin-top:4px;
+  background:#1e293b; border:.5px solid #334155; color:#94a3b8;
+  font-family:'Space Grotesk',sans-serif; font-size:11px; font-weight:700;
+  letter-spacing:.04em; padding:10px; border-radius:8px; cursor:pointer;
+}
+.log-clear-history-btn:active{ border-color:#f87171; color:#f87171; }
+.log-clear-history-btn:disabled{ opacity:.6; }
 
 /* ================= YAZILIM GÜNCELLEME (Sayfa 4) ================= */
 .fw-card{
@@ -294,18 +459,27 @@ body{
 
 .fw-update-btn{ background:linear-gradient(180deg,#60a5fa,#2563eb); }
 
-.fw-progress-wrap{
-  display:flex; align-items:center; gap:10px;
+.fw-updating{
+  flex-direction:column; gap:10px;
 }
-.fw-progress-bar{
-  flex:1; height:8px; background:#1e293b; border-radius:4px; overflow:hidden;
+.fw-progress-percent{
+  font-family:'Space Grotesk',sans-serif; font-size:22px; font-weight:800;
+  color:#67e8f9; letter-spacing:.02em;
 }
-.fw-progress-fill{
-  height:100%; width:0%; background:linear-gradient(90deg,#3b82f6,#60a5fa);
-  transition:width .2s;
+.fw-progress-circle{
+  position:relative; width:176px; height:176px;
 }
-.fw-progress-text{
-  font-family:'JetBrains Mono',monospace; font-size:11px; color:#94a3b8; width:34px; text-align:right;
+.fw-progress-ring{ transform:rotate(-90deg); }
+.fw-progress-ring-track{
+  fill:none; stroke:#1e293b; stroke-width:12;
+}
+.fw-progress-ring-fill{
+  fill:none; stroke:#3b82f6; stroke-width:12; stroke-linecap:round;
+  transition:stroke-dashoffset .25s linear;
+}
+.fw-progress-bytes{
+  position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:700; color:#f1f5f9;
 }
 
 /* ================= KONTROL SAYFASI ================= */
@@ -313,30 +487,92 @@ body{
   flex:1; display:flex; flex-direction:column; gap:16px;
 }
 
+/* ================= PROSES EKRANI — Proses fazında normal ekranın yerini alır ================= */
+.process-card{
+  flex:1; display:flex; flex-direction:column; align-items:center; gap:10px;
+  container-type:inline-size;
+}
+.process-step-header{
+  display:flex; align-items:center; justify-content:center; gap:8px; width:100%;
+}
+.process-step-header .line{ flex:1; height:1px; }
+.process-step-header .line.left{ background:linear-gradient(90deg,transparent,#4b5563); }
+.process-step-header .line.right{ background:linear-gradient(90deg,#4b5563,transparent); }
+.process-step-label{
+  font-family:'JetBrains Mono',monospace;
+  font-size:13px; font-weight:700; color:#f1f5f9; letter-spacing:.1em;
+}
+
+.process-body{
+  flex:1; display:flex; align-items:center; justify-content:center; gap:10px; width:100%;
+}
+.process-body .thermo-icon{
+  width:15cqw; height:15cqw; color:#f97316;
+  filter:drop-shadow(0 0 4px rgba(249,115,22,.6));
+  flex-shrink:0;
+}
+.process-temp-value{
+  font-family:'JetBrains Mono',monospace;
+  font-size:22cqw; font-weight:700;
+  background:linear-gradient(180deg,#67e8f9,#0ea5e9);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  filter:drop-shadow(0 0 6px rgba(14,165,233,.5));
+  line-height:1;
+}
+.process-temp-value::after{
+  content:'°C'; font-size:.4em;
+  background:none; -webkit-text-fill-color:#0ea5e9; color:#0ea5e9;
+  filter:none;
+}
+
+.process-target-row{
+  display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%;
+  background:#151d29; border:1px solid #263140; border-radius:8px;
+  padding:9px 12px;
+}
+.process-target-row .k{
+  font-family:'Space Grotesk',sans-serif; font-size:10px; font-weight:700;
+  color:#64748b; text-transform:uppercase; letter-spacing:.08em;
+}
+.process-target-value{
+  font-family:'JetBrains Mono',monospace; font-size:14px; font-weight:700; color:#e2e8f0;
+}
+.process-target-tolerance{
+  font-family:'JetBrains Mono',monospace; font-size:10.5px; font-weight:700;
+  color:#94a3b8; background:#1e293b; border:.5px solid #334155;
+  border-radius:20px; padding:3px 8px; flex-shrink:0; white-space:nowrap;
+}
+
+.process-remaining{
+  display:flex; flex-direction:column; align-items:center; gap:2px; width:100%;
+}
+.process-remaining-label{
+  font-family:'Space Grotesk',sans-serif; font-size:10px; font-weight:700;
+  color:#64748b; text-transform:uppercase; letter-spacing:.15em;
+}
+.process-remaining-value{
+  font-family:'JetBrains Mono',monospace; font-size:15cqw; font-weight:700;
+  color:#22d3ee;
+  filter:drop-shadow(0 0 6px rgba(34,211,238,.5));
+}
+
+.process-stop-btn{ width:100%; }
+
 .temp-grid{
   display:grid; grid-template-columns:1fr; gap:10px;
-}
-.temp-grid.cols-2{ grid-template-columns:1fr 1fr; }
-
-@keyframes borderGlow{
-  0%,100%{ box-shadow:0 0 8px 1px rgba(239,68,68,.55), inset 0 0 14px rgba(239,68,68,.08); border-color:#ef4444; }
-  50%{ box-shadow:0 0 16px 3px rgba(249,115,22,.65), inset 0 0 18px rgba(249,115,22,.12); border-color:#f97316; }
 }
 
 .temp-card{
   position:relative;
-  aspect-ratio:3/4;
   width:100%;
   container-type:inline-size;
   background:#050505;
-  border:2px solid #ef4444;
   border-radius:14px;
   display:flex;
   flex-direction:column;
   align-items:center;
   box-sizing:border-box;
   padding:10px 8px;
-  animation:borderGlow 3s ease-in-out infinite;
 }
 
 .temp-card .conn-badge{
@@ -382,32 +618,16 @@ body{
   background:none; -webkit-text-fill-color:#0ea5e9; color:#0ea5e9;
   filter:none;
 }
+.temp-card .temp-value.no-unit::after{ content:''; }
 
-.temp-card .divider{
-  width:100%; height:1px;
-  background:linear-gradient(90deg,transparent,#374151,transparent);
-  margin-bottom:6cqw;
-}
-
-.temp-card .set-row{
-  display:flex; align-items:baseline; justify-content:flex-start;
+.temp-card .footer-line{
+  display:flex; align-items:center; gap:8px;
   width:100%;
-  gap:6px;
-  margin-bottom:6cqw;
-  padding-left:2cqw;
+  margin-top:6cqw;
 }
-.temp-card .set-label{
-  font-family:'JetBrains Mono',monospace;
-  font-size:8cqw; font-weight:700; color:#94a3b8; letter-spacing:.06em;
-}
-.temp-card .set-value{
-  font-family:'JetBrains Mono',monospace;
-  font-size:9cqw; font-weight:700; color:#e2e8f0;
-}
-
-.temp-card-footer{
-  position:absolute; bottom:8px; right:8px;
-  display:flex; align-items:center; gap:6px;
+.temp-card .footer-line .line{
+  flex:1; height:1px;
+  background:#334155;
 }
 .temp-settings-btn, .temp-info-btn{
   background:#151d29; border:1px solid #263140; border-radius:7px;
@@ -462,8 +682,43 @@ body{
   font-size:12px; color:#e2e8f0; line-height:1.4;
 }
 
+.log-info-checklist{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  font-size:11.5px; color:#cbd5e1; line-height:1.5;
+  margin:0; padding-left:18px;
+}
+.log-info-checklist li{ margin-bottom:2px; }
+
+.log-detail-loading{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  font-size:12px; color:#64748b; text-align:center; padding:8px 0;
+}
+
+.log-solution-btn{
+  align-self:flex-start;
+  background:#1e293b; border:.5px solid #334155; color:#e2e8f0;
+  font-family:'Space Grotesk',sans-serif; font-size:11px; font-weight:700;
+  letter-spacing:.04em; padding:8px 14px; border-radius:8px; cursor:pointer;
+}
+.log-solution-btn:active{ transform:scale(.96); }
+.log-solution-btn:disabled{ opacity:.6; }
+
+.reset-confirm-actions{
+  display:flex; gap:8px; margin-top:4px;
+}
+.reset-confirm-cancel, .reset-confirm-ok{
+  flex:1;
+  font-family:'Space Grotesk',sans-serif; font-size:11px; font-weight:700;
+  letter-spacing:.04em; padding:10px; border-radius:8px; cursor:pointer;
+}
+.reset-confirm-cancel{ background:#1e293b; border:.5px solid #334155; color:#94a3b8; }
+.reset-confirm-ok{ background:linear-gradient(180deg,#f87171,#dc2626); border:none; color:#1a0505; }
+.reset-confirm-cancel:active, .reset-confirm-ok:active{ transform:scale(.96); }
+
 /* Parametre bilgi mesajı, ENDA ayarlar overlay'inin (z-index:200) üzerinde açılmalı */
 #paramInfoOverlay{ z-index:300; }
+/* Resetleme onayı da diğer overlay'lerin üzerinde açılmalı */
+#resetConfirmOverlay{ z-index:300; }
 
 .phase-badge{
   align-self:center; background:#0a0f1a; border:1px solid #263140;
@@ -636,10 +891,90 @@ body{
   font-family:'JetBrains Mono',monospace; font-size:12px; font-weight:700;
   color:#22d3ee; flex-shrink:0;
 }
+.param-check{
+  color:#22c55e; font-family:'Space Grotesk',sans-serif; font-size:14px; font-weight:700;
+  width:14px; flex-shrink:0; text-align:center;
+  opacity:0; transition:opacity .2s;
+}
+.param-check.show{ opacity:1; }
+
+/* Adım hedef sıcaklığının sağındaki ±tolerans rozeti */
+.param-tolerance{
+  font-family:'JetBrains Mono',monospace; font-size:10.5px; font-weight:700;
+  color:#94a3b8; background:#1e293b; border:.5px solid #334155;
+  border-radius:20px; padding:3px 8px; flex-shrink:0; white-space:nowrap;
+}
 
 .step-selector-row{
   display:flex; align-items:center; justify-content:space-between;
   background:#151d29; border:1px solid #334155; border-radius:8px;
   padding:9px 10px; margin-bottom:8px;
 }
- 
+
+/* ---- Kategori kutuları (Genel / PID sekmeleri) ---- */
+.param-card{
+  display:flex; flex-direction:column; gap:6px;
+  background:#151d29; border:1px solid #263140; border-radius:10px;
+  padding:10px; margin-bottom:10px;
+}
+.param-card .section-header{ margin:0 0 2px; }
+
+.self-tune-card{ align-items:stretch; }
+.self-tune-status{
+  font-family:'JetBrains Mono',monospace; font-size:12px; font-weight:700;
+  color:#94a3b8; text-align:center; padding:6px;
+}
+.self-tune-status.active{ color:#22d3ee; }
+.self-tune-btn{ background:linear-gradient(180deg,#60a5fa,#2563eb); }
+
+/* ---- Emniyet & Sistem Girişleri (Sayfa 3) ---- */
+.io-row{
+  display:flex; align-items:center; gap:10px;
+  background:#0f172a; border:.5px solid #263140; border-radius:8px;
+  padding:9px 10px;
+}
+.io-label{ font-size:11.5px; color:#cbd5e1; flex:1; }
+.io-badge{
+  font-family:'Space Grotesk',sans-serif; font-size:10px; font-weight:700;
+  letter-spacing:.06em; text-transform:uppercase;
+  padding:4px 10px; border-radius:20px; flex-shrink:0;
+}
+.io-badge.ok{ background:rgba(34,197,94,.15); color:#22c55e; }
+.io-badge.fault{ background:rgba(239,68,68,.15); color:#f87171; }
+.io-badge.active{ background:rgba(34,211,238,.15); color:#22d3ee; }
+.io-badge.inactive{ background:rgba(100,116,139,.15); color:#64748b; }
+
+.io-icon{
+  width:28px; height:28px; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  background:#151d29; border:1px solid #263140; border-radius:7px;
+  color:#64748b;
+  transition:color .2s, border-color .2s, background .2s;
+}
+.io-icon svg{ width:15px; height:15px; }
+.io-icon.ok{ color:#22c55e; border-color:#166534; background:rgba(34,197,94,.08); }
+.io-icon.fault{ color:#f87171; border-color:#7f1d1d; background:rgba(239,68,68,.08); }
+.io-icon.active{ color:#22d3ee; border-color:#155e75; background:rgba(34,211,238,.08); }
+.io-icon.inactive{ color:#64748b; }
+
+/* ---- Faz Girişleri: şebeke/güç göstergesi ---- */
+.phase-power-grid{
+  display:flex; gap:10px;
+}
+.phase-indicator{
+  flex:1; display:flex; flex-direction:column; align-items:center; gap:6px;
+  background:#0f172a; border:1px solid #263140; border-radius:10px;
+  padding:14px 8px;
+  color:#334155;
+  transition:color .25s, border-color .25s;
+}
+.phase-indicator svg{ width:24px; height:24px; }
+.phase-indicator .phase-label{
+  font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700;
+  letter-spacing:.05em; color:inherit;
+}
+.phase-indicator.on{
+  color:#f59e0b; border-color:#92400e;
+  filter:drop-shadow(0 0 6px rgba(245,158,11,.5));
+}
+.phase-indicator.off{ color:#334155; filter:none; }
