@@ -18,7 +18,6 @@
     <div class="topbar-title">HWM</div>
   </div>
   <div style="display:flex; align-items:center; gap:8px;">
-    <button class="conn-fallback-btn" id="connFallbackBtn">Bağlan</button>
     <div class="rxtx-box" title="RX / TX">
       <div class="rxtx-row"><span class="rxtx-label">TX</span><span class="rxtx-led" id="txLed"></span></div>
       <div class="rxtx-row"><span class="rxtx-label">RX</span><span class="rxtx-led rx" id="rxLed"></span></div>
@@ -40,14 +39,14 @@
 
   <!-- SAYFA 1: KONTROL -->
   <div class="page" id="page-0">
-    <div class="card control-card">
+    <div class="card control-card" id="normalControlCard">
       <div class="card-title">Sıcaklık</div>
       <div class="temp-grid" id="tempGrid"></div>
 
       <div class="info-overlay" id="infoOverlay">
         <div class="info-popup">
           <div class="info-popup-header">
-            <span class="info-popup-title" id="infoPopupTitle">ENDA 1 BILGI</span>
+            <span class="info-popup-title" id="infoPopupTitle">EUP1222 BİLGİ</span>
             <button class="info-popup-close" id="closeInfoPopup" aria-label="Kapat">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="18" y1="6" x2="6" y2="18"/>
@@ -84,6 +83,42 @@
         </button>
       </div>
     </div>
+
+    <!-- PROSES EKRANI — Proses fazında normal ekranın yerini alır -->
+    <div class="card process-card" id="processCard" style="display:none;">
+      <div class="phase-badge process">PROSES</div>
+
+      <div class="process-step-header">
+        <span class="line left"></span>
+        <span class="process-step-label" id="processStepLabel">ADIM -- / --</span>
+        <span class="line right"></span>
+      </div>
+
+      <div class="process-body">
+        <svg class="thermo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"/>
+        </svg>
+        <span class="process-temp-value" id="processCurrentTemp">--.-</span>
+      </div>
+
+      <div class="process-target-row">
+        <span class="k">Adım Hedef Sıcaklığı</span>
+        <span class="process-target-value" id="processTargetTemp">--.-°C</span>
+        <span class="process-target-tolerance" id="processTargetTolerance">±--</span>
+      </div>
+
+      <div class="process-remaining">
+        <span class="process-remaining-label">Kalan Süre</span>
+        <span class="process-remaining-value" id="processRemainingTime">--:--</span>
+      </div>
+
+      <button class="ctrl-btn stop process-stop-btn" id="btnProcessStop">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="5" y="5" width="14" height="14" rx="2"/>
+        </svg>
+        DURDUR
+      </button>
+    </div>
   </div>
 
   <!-- SAYFA 2: ARIZA KAYITLARI -->
@@ -95,42 +130,121 @@
         <div class="spinner-wrap">
           <div class="spinner-ring"></div>
           <svg class="spinner-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"/>
+            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
           </svg>
         </div>
         <span class="loading-text">Kayıtlar Alınıyor</span>
+        <span class="loading-progress" id="logsLoadingProgress">0 / 0</span>
         <div class="loading-bar"></div>
+      </div>
+
+      <div class="placeholder-card fw-error" id="logsError" style="display:none;">
+        <span id="logsErrorText">Kayıtlar alınamadı.</span>
+        <button class="fw-retry-btn" id="logsRetryBtn">Tekrar Dene</button>
       </div>
 
       <div class="logs-content" id="logsContent" style="display:none;">
         <div class="logs-tabs">
-          <button class="logs-tab active" data-logs-tab="active">Aktif</button>
-          <button class="logs-tab" data-logs-tab="permanent">Kalıcı</button>
-          <button class="logs-tab" data-logs-tab="history">Geçmiş</button>
+          <button class="logs-tab active" data-logs-tab="active">
+            <svg class="logs-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            Aktif
+          </button>
+          <button class="logs-tab" data-logs-tab="history">
+            <svg class="logs-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l4 2"/></svg>
+            Geçmiş
+          </button>
         </div>
 
         <div class="logs-panel" id="logsPanel-active">
-          <div class="placeholder-card" id="logsEmpty-active" style="display:none;">Aktif arıza bulunmuyor.</div>
+          <div class="placeholder-card logs-empty" id="logsEmpty-active" style="display:none;">
+            <svg class="logs-empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="8 12 11 15 16 9"/></svg>
+            <span>Aktif arıza bulunmuyor.</span>
+          </div>
           <div class="logs-list" id="logsList-active" style="display:none;"></div>
         </div>
 
-        <div class="logs-panel" id="logsPanel-permanent" style="display:none;">
-          <div class="placeholder-card" id="logsEmpty-permanent" style="display:none;">Kalıcı arıza bulunmuyor.</div>
-          <div class="logs-list" id="logsList-permanent" style="display:none;"></div>
-        </div>
-
         <div class="logs-panel" id="logsPanel-history" style="display:none;">
-          <div class="placeholder-card" id="logsEmpty-history" style="display:none;">Geçmiş kayıt bulunmuyor.</div>
+          <div class="placeholder-card logs-empty" id="logsEmpty-history" style="display:none;">
+            <svg class="logs-empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l4 2"/></svg>
+            <span>Geçmiş kayıt bulunmuyor.</span>
+          </div>
           <div class="logs-list" id="logsList-history" style="display:none;"></div>
+          <button class="log-clear-history-btn" id="logClearHistoryBtn" style="display:none;">Tüm Geçmişi Sil</button>
         </div>
       </div>
     </div>
   </div>
 
   <!-- SAYFA 3: AYARLAR -->
+  <!-- SAYFA 3: EMNİYET & SİSTEM GİRİŞLERİ -->
   <div class="page" id="page-2">
-    <div class="card placeholder-card">
-      Ayarlar — yakında
+    <div class="card control-card">
+      <div class="card-title">Emniyet &amp; Sistem Girişleri</div>
+
+      <div class="param-card phase-power-card">
+        <div class="section-header">Faz Girişleri (Şebeke)</div>
+        <div class="phase-power-grid">
+          <div class="phase-indicator" id="ioFaz1">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <span class="phase-label">L1</span>
+          </div>
+          <div class="phase-indicator" id="ioFaz2">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <span class="phase-label">L2</span>
+          </div>
+          <div class="phase-indicator" id="ioFaz3">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <span class="phase-label">L3</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="param-card">
+        <div class="section-header">Emniyet Girişleri</div>
+        <div class="io-row">
+          <span class="io-icon" id="ioIconFazKoruma"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+          <span class="io-label">Faz Koruma</span>
+          <span class="io-badge" id="ioFazKoruma">--</span>
+        </div>
+        <div class="io-row">
+          <span class="io-icon" id="ioIconTermik"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"/></svg></span>
+          <span class="io-label">Termik</span>
+          <span class="io-badge" id="ioTermik">--</span>
+        </div>
+        <div class="io-row">
+          <span class="io-icon" id="ioIconSoftStarter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>
+          <span class="io-label">Soft Starter</span>
+          <span class="io-badge" id="ioSoftStarter">--</span>
+        </div>
+        <div class="io-row">
+          <span class="io-icon" id="ioIconBasinc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><line x1="12" y1="13" x2="15.5" y2="9.5"/><line x1="12" y1="4" x2="12" y2="5.5"/></svg></span>
+          <span class="io-label">Basınç Şalteri</span>
+          <span class="io-badge" id="ioBasinc">--</span>
+        </div>
+      </div>
+
+      <div class="param-card">
+        <div class="section-header">Pozisyon Girişleri</div>
+        <div class="io-row">
+          <span class="io-icon" id="ioIconSelenoidYukari"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg></span>
+          <span class="io-label">Selenoid Yukarı</span>
+          <span class="io-badge" id="ioSelenoidYukari">--</span>
+        </div>
+        <div class="io-row">
+          <span class="io-icon" id="ioIconSelenoidAsagi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg></span>
+          <span class="io-label">Selenoid Aşağı</span>
+          <span class="io-badge" id="ioSelenoidAsagi">--</span>
+        </div>
+      </div>
+
+      <div class="param-card">
+        <div class="section-header">Sistem Girişleri</div>
+        <div class="io-row">
+          <span class="io-icon" id="ioIconChiller"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="19.07" y2="4.93"/></svg></span>
+          <span class="io-label">Chiller</span>
+          <span class="io-badge" id="ioChiller">--</span>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -157,19 +271,15 @@
         <button class="fw-retry-btn" id="fwRetryBtn">Tekrar Dene</button>
       </div>
 
-      <div class="placeholder-card hero-loading" id="fwUpdating" style="display:none;">
-        <div class="spinner-wrap">
-          <div class="spinner-ring"></div>
-          <svg class="spinner-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="7 10 12 15 17 10"/>
-            <line x1="12" y1="15" x2="12" y2="3"/>
+      <div class="placeholder-card fw-updating" id="fwUpdating" style="display:none;">
+        <span class="loading-text" id="fwUpdatingLabel">Güncelleniyor</span>
+        <span class="fw-progress-percent" id="fwProgressPercent">%0</span>
+        <div class="fw-progress-circle">
+          <svg class="fw-progress-ring" width="176" height="176" viewBox="0 0 176 176">
+            <circle class="fw-progress-ring-track" cx="88" cy="88" r="78"/>
+            <circle class="fw-progress-ring-fill" id="fwProgressRingFill" cx="88" cy="88" r="78"/>
           </svg>
-        </div>
-        <span class="loading-text">Güncelleniyor</span>
-        <div class="fw-progress-wrap">
-          <div class="fw-progress-bar"><div class="fw-progress-fill" id="fwProgressFill"></div></div>
-          <span class="fw-progress-text" id="fwProgressText">0%</span>
+          <span class="fw-progress-bytes" id="fwProgressBytes">0 / 0 KB</span>
         </div>
       </div>
 
@@ -200,18 +310,69 @@
 
 </div>
 
-<!-- ================= DOTS ================= -->
-<div class="dots" id="dots">
-  <button class="dot active" data-page="0"></button>
-  <button class="dot" data-page="1"></button>
-  <button class="dot" data-page="2"></button>
-  <button class="dot" data-page="3"></button>
+<!-- ================= BAĞLANTI SAYFASI (BLE bağlı değilken pager'ın yerini alır) ================= -->
+<div class="connection-overlay" id="connectionOverlay">
+  <div class="connection-content">
+    <div class="connection-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"/>
+      </svg>
+    </div>
+    <div class="connection-title">Bir REDLIFT Cihazına Bağlanın</div>
+    <div class="connection-subtitle">Cihazın açık ve yakınında olduğundan emin olun.</div>
+
+    <button class="connection-scan-btn" id="connectionScanBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"/>
+      </svg>
+      Yeni Cihaz Ara
+    </button>
+
+    <div class="connection-known-box" id="connectionKnownBox" style="display:none;">
+      <div class="connection-known-title">Kayıtlı Cihazlar</div>
+      <div class="connection-known-list" id="connectionKnownList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= ALT NAVİGASYON ================= -->
+<div class="bottom-nav" id="bottomNav">
+  <button class="nav-tab active" data-page="0">
+    <svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+      <polyline points="9 22 9 12 15 12 15 22"/>
+    </svg>
+    <span class="nav-tab-label">Anasayfa</span>
+  </button>
+  <button class="nav-tab" data-page="1">
+    <span class="nav-tab-icon-wrap">
+      <svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+      </svg>
+      <span class="nav-tab-badge" id="logNavBadge"></span>
+    </span>
+    <span class="nav-tab-label">Log</span>
+  </button>
+  <button class="nav-tab" data-page="2">
+    <svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+    </svg>
+    <span class="nav-tab-label">Status</span>
+  </button>
+  <button class="nav-tab" data-page="3">
+    <svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+      <polyline points="7 10 12 15 17 10"/>
+      <line x1="12" y1="15" x2="12" y2="3"/>
+    </svg>
+    <span class="nav-tab-label">Update</span>
+  </button>
 </div>
 
 <!-- ================= ENDA PARAMETRELERİ (tam ekran overlay, dişli butonuyla açılır) ================= -->
 <div class="settings-overlay" id="settingsOverlay">
   <div class="settings-overlay-header">
-    <span class="settings-overlay-title" id="settingsOverlayTitle">ENDA 1 PARAMETRELERİ</span>
+    <span class="settings-overlay-title" id="settingsOverlayTitle">EUP1222 PARAMETRELERİ</span>
     <button class="settings-overlay-close" id="closeSettingsOverlay" aria-label="Kapat">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <line x1="18" y1="6" x2="6" y2="18"/>
@@ -220,28 +381,57 @@
     </button>
   </div>
 
-  <div class="settings-overlay-body">
+  <div class="placeholder-card hero-loading" id="settingsLoading">
+    <div class="spinner-wrap">
+      <div class="spinner-ring"></div>
+      <svg class="spinner-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+    </div>
+    <span class="loading-text">Parametreler Alınıyor</span>
+    <span class="loading-progress" id="settingsLoadingProgress">0 / 0</span>
+    <div class="loading-bar"></div>
+  </div>
+
+  <div class="placeholder-card fw-error" id="settingsError" style="display:none;">
+    <span id="settingsErrorText">Parametreler alınamadı.</span>
+    <button class="fw-retry-btn" id="settingsRetryBtn">Tekrar Dene</button>
+  </div>
+
+  <div class="settings-overlay-body" id="settingsOverlayBody" style="display:none;">
     <div class="settings-tabs">
-      <button class="settings-tab active" data-tab="temel">Temel</button>
+      <button class="settings-tab active" data-tab="general">Genel</button>
+      <button class="settings-tab" data-tab="pid">PID &amp; Self Tune</button>
       <button class="settings-tab" data-tab="readonly">Salt Okunur</button>
-      <button class="settings-tab" data-tab="all">Tüm Parametreler</button>
     </div>
 
-    <div class="settings-panel" id="panel-temel"></div>
+    <div class="settings-panel" id="panel-general">
+      <div id="categoryCardsContainer"></div>
 
-    <div class="settings-panel" id="panel-readonly" style="display:none;"></div>
+      <div class="param-card">
+        <div class="section-header">Profil Ayarları</div>
+        <div id="profileMetaContainer"></div>
+      </div>
 
-    <div class="settings-panel" id="panel-all" style="display:none;">
       <div class="step-selector-row">
         <span class="param-label">Profil Adımı</span>
         <select class="param-select" id="stepSelector"></select>
       </div>
       <div id="stepFieldsContainer"></div>
-      <div class="section-header">Profil Kontrol Bitleri</div>
-      <div id="profileControlContainer"></div>
-      <div class="section-header">Diğer Tüm Parametreler</div>
-      <div id="allParamsContainer"></div>
     </div>
+
+    <div class="settings-panel" id="panel-pid" style="display:none;">
+      <div id="pidCardContainer"></div>
+
+      <div class="param-card self-tune-card">
+        <div class="section-header">Self Tune</div>
+        <div class="self-tune-status" id="selfTuneStatus">Durum: --</div>
+        <button class="ctrl-btn self-tune-btn" id="selfTuneBtn">Self Tune Başlat</button>
+      </div>
+    </div>
+
+    <div class="settings-panel" id="panel-readonly" style="display:none;"></div>
   </div>
 </div>
 
@@ -258,6 +448,65 @@
       </button>
     </div>
     <div class="info-popup-body" id="paramInfoBody"></div>
+  </div>
+</div>
+
+<!-- ================= ARIZA DETAY MESAJI ================= -->
+<div class="info-overlay" id="logInfoOverlay">
+  <div class="info-popup">
+    <div class="info-popup-header">
+      <span class="info-popup-title" id="logInfoTitle">ERR-FAZ1</span>
+      <button class="info-popup-close" id="closeLogInfo" aria-label="Kapat">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="info-popup-body" id="logInfoBody"></div>
+  </div>
+</div>
+
+<!-- ================= ARIZA RESETLEME ONAYI ================= -->
+<div class="info-overlay" id="resetConfirmOverlay">
+  <div class="info-popup">
+    <div class="info-popup-header">
+      <span class="info-popup-title">Resetleme Onayı</span>
+      <button class="info-popup-close" id="closeResetConfirm" aria-label="Kapat">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="info-popup-body">
+      <div class="param-info-desc">Sistemdeki bu ekipmanı kontrol ettim ve bir sorun olmadığını onaylıyorum.</div>
+      <div class="reset-confirm-actions">
+        <button class="reset-confirm-cancel" id="resetConfirmCancel">Vazgeç</button>
+        <button class="reset-confirm-ok" id="resetConfirmOk">Onayla</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="info-overlay" id="fwUpdateConfirmOverlay">
+  <div class="info-popup">
+    <div class="info-popup-header">
+      <span class="info-popup-title">Güncelleme Onayı</span>
+      <button class="info-popup-close" id="closeFwUpdateConfirm" aria-label="Kapat">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="info-popup-body">
+      <div class="param-info-desc">Yazılımı güncellemek istiyor musunuz? Güncelleme sırasında bağlantının kopmamasına dikkat edin — kopma durumlarında cihazda kalıcı hatalar oluşabilir.</div>
+      <div class="reset-confirm-actions">
+        <button class="reset-confirm-cancel" id="fwUpdateConfirmCancel">Vazgeç</button>
+        <button class="reset-confirm-ok" id="fwUpdateConfirmOk">Güncelle</button>
+      </div>
+    </div>
   </div>
 </div>
 
