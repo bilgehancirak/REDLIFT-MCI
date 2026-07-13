@@ -7,6 +7,8 @@
 <style>
   :root {
     --bg: #0f1115;
+    --panel: #161a20;
+    --border: #262b33;
     --text: #e6e8eb;
     --muted: #8a8f98;
     --accent: #3b82f6;
@@ -21,15 +23,35 @@
     color: var(--text);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   }
-  .wrap {
+  .stage {
     height: 100dvh;
+    display: flex; align-items: center; justify-content: center;
+    padding: 16px;
+  }
+  .panel {
+    width: min(100%, 960px);
+    aspect-ratio: 16 / 9;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.35);
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
     padding: 24px; text-align: center;
+    overflow: auto;
   }
-  .logo { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .logo { font-size: 26px; font-weight: 700; margin-bottom: 4px; letter-spacing: 0.02em; }
   .logo span { color: var(--accent); }
-  .subtitle { color: var(--muted); font-size: 13px; margin-bottom: 40px; }
+  .subtitle { color: var(--muted); font-size: 13px; margin-bottom: 28px; }
+  .device-list {
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;
+    margin-bottom: 32px;
+  }
+  .device-chip {
+    font-size: 12px; font-weight: 600; letter-spacing: 0.02em;
+    color: var(--muted); border: 1px solid var(--border);
+    border-radius: 999px; padding: 6px 14px;
+  }
   .connect-btn {
     width: 100%; max-width: 320px;
     padding: 18px 24px; font-size: 16px; font-weight: 600;
@@ -52,25 +74,37 @@
 </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="logo">REDLIFT<span>-MCI</span></div>
-    <div class="subtitle">Kontrol panelini başlatmak için cihaza bağlanın</div>
+  <div class="stage">
+    <div class="panel">
+      <div class="logo">REDLIFT<span>-MCI</span></div>
+      <div class="subtitle">Kontrol panelini başlatmak için cihaza bağlanın</div>
 
-    <button id="connectBtn" class="connect-btn">REDLIFT Cihazına Bağlan</button>
+      <div class="device-list" id="deviceList"></div>
 
-    <div id="status" class="status"></div>
+      <button id="connectBtn" class="connect-btn">Cihaza Bağlan</button>
+
+      <div id="status" class="status"></div>
+    </div>
   </div>
 
 <script>
   // Cihaz adı hangi ön ekle başlıyorsa o klasöre yönlendirilir.
   // Klasör yollarını kendi repo yapına göre güncelle.
+  const BASE_URL = 'https://bilgehancirak.github.io/REDLIFT-MCI';
   const DEVICE_ROUTES = [
-    { prefix: 'BILAB-DSPM',   path: './DSPM/index.html' },
-    { prefix: 'REDLIFT-WELD', path: './WELDMAC/index.html' },
+    { prefix: 'BILAB-DSPM',   path: BASE_URL + '/DSPM' },
+    { prefix: 'REDLIFT-WELD', path: BASE_URL + '/weldmac' },
+    { prefix: 'REDLIFT-ENC',  path: BASE_URL + '/enc' },
+    { prefix: 'REDLIFT-ACU',  path: BASE_URL + '/acu' },
   ];
 
   const connectBtn = document.getElementById('connectBtn');
   const statusEl = document.getElementById('status');
+  const deviceListEl = document.getElementById('deviceList');
+
+  deviceListEl.innerHTML = DEVICE_ROUTES
+    .map(r => '<span class="device-chip">' + r.prefix + '</span>')
+    .join('');
 
   function setStatus(html, type) {
     statusEl.innerHTML = html;
