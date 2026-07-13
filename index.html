@@ -7,38 +7,27 @@
 <style>
   :root {
     --bg: #0f1115;
-    --panel: #161a20;
-    --border: #262b33;
     --text: #e6e8eb;
     --muted: #8a8f98;
     --accent: #3b82f6;
     --danger: #ef4444;
     --safe: #6b7280; /* bağlantı yokken nötr/güvenli renk */
+    --border: #262b33;
   }
   * { box-sizing: border-box; }
   html, body {
     margin: 0; padding: 0;
-    height: 100dvh;
+    width: 100%; height: 100%;
+    min-height: 100dvh;
     background: var(--bg);
     color: var(--text);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   }
-  .stage {
-    height: 100dvh;
-    display: flex; align-items: center; justify-content: center;
-    padding: 16px;
-  }
-  .panel {
-    width: min(100%, 960px);
-    aspect-ratio: 16 / 9;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+  .wrap {
+    min-height: 100dvh;
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
     padding: 24px; text-align: center;
-    overflow: auto;
   }
   .logo { font-size: 26px; font-weight: 700; margin-bottom: 4px; letter-spacing: 0.02em; }
   .logo span { color: var(--accent); }
@@ -74,22 +63,19 @@
 </style>
 </head>
 <body>
-  <div class="stage">
-    <div class="panel">
-      <div class="logo">REDLIFT<span>-MCI</span></div>
-      <div class="subtitle">Kontrol panelini başlatmak için cihaza bağlanın</div>
+  <div class="wrap">
+    <div class="logo">REDLIFT<span>-MCI</span></div>
+    <div class="subtitle">Kontrol panelini başlatmak için cihaza bağlanın</div>
 
-      <div class="device-list" id="deviceList"></div>
+    <div class="device-list" id="deviceList"></div>
 
-      <button id="connectBtn" class="connect-btn">Cihaza Bağlan</button>
+    <button id="connectBtn" class="connect-btn">Cihaza Bağlan</button>
 
-      <div id="status" class="status"></div>
-    </div>
+    <div id="status" class="status"></div>
   </div>
 
 <script>
   // Cihaz adı hangi ön ekle başlıyorsa o klasöre yönlendirilir.
-  // Klasör yollarını kendi repo yapına göre güncelle.
   const BASE_URL = 'https://bilgehancirak.github.io/REDLIFT-MCI';
   const DEVICE_ROUTES = [
     { prefix: 'BILAB-DSPM',   path: BASE_URL + '/DSPM' },
