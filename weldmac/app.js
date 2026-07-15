@@ -156,6 +156,7 @@ class BleLink {
   static STATUS_ADIM_DURUMU = 0x0003; // Proses/profil çalışırken periyodik gönderilir
   static STATUS_GIRISLER    = 0x0004; // Emniyet/faz/pozisyon/sistem girişleri, periyodik
   static STATUS_ARIZA_DEGISTI = 0x0005; // bir arızanın status biti değişince anlık gönderilir (heartbeat'siz, 2x gönderilir)
+  static STATUS_CANLI_IZLEME  = 0x0006; // sadece ISTEK_CANLI_IZLEME_BASLA ile DURDUR arasında periyodik gönderilir (I0-I5, I100-I102)
 
   // ===== İSTEK ID'leri (TYPE_ISTEK ile gönderilir) =====
   static ISTEK_SICAKLIK_SET      = 0x0001;
@@ -167,6 +168,8 @@ class BleLink {
   static ISTEK_ARIZA_DETAY        = 0x0007; // bir kayda tıklanınca açıklaması istenir
   static ISTEK_ARIZA_COZUM        = 0x0008; // "Nasıl Çözerim?" basılınca çözüm/kontrol listesi istenir
   static ISTEK_YAZILIM_SURUMU     = 0x0009; // Yazılım Güncelleme sayfası açılınca cihazdaki sürüm istenir
+  static ISTEK_CANLI_IZLEME_BASLA  = 0x000A; // "Canlı İzle" paneli açılınca gönderilir — ESP STATUS_CANLI_IZLEME'yi periyodik göndermeye başlar
+  static ISTEK_CANLI_IZLEME_DURDUR = 0x000B; // panel kapanınca gönderilir — ESP'nin gereksiz yere yayın yapmasını (BLE/CPU yükünü) önler
 
   // ===== YANIT ID'leri (TYPE_YANIT ile gelir) =====
   static YANIT_ENDA_BAGLANTI       = 0x0001;
@@ -395,6 +398,17 @@ class BleLink {
     return this._send(BleLink.TYPE_ISTEK, BleLink.ISTEK_YAZILIM_SURUMU);
   }
 
+  // "Canlı İzle" paneli açılınca/kapanınca çağrılır — ESP'nin STATUS_CANLI_IZLEME
+  // yayınını sadece panel açıkken yapmasını sağlar (gereksiz sürekli yayın ESP'ye
+  // fazladan yük bindirmesin diye).
+  requestCanliIzlemeBasla() {
+    return this._send(BleLink.TYPE_ISTEK, BleLink.ISTEK_CANLI_IZLEME_BASLA);
+  }
+
+  requestCanliIzlemeDurdur() {
+    return this._send(BleLink.TYPE_ISTEK, BleLink.ISTEK_CANLI_IZLEME_DURDUR);
+  }
+
   // OTA'yı başlatır — ESP'ye toplam firmware boyutunu bildirir.
   startOta(totalSize) {
     const bytes = [
@@ -479,103 +493,256 @@ class BleLink {
 // =====================================================================
 
 // ---- HOLDING REGISTERS: temel/sistem parametreleri (profil adımları hariç) ----
+// `range`: sayısal input'lara yazılan değerin gönderilmeden önce kontrol edildiği
+// sınır. `min`/`max` sabitse doğrudan sayı, başka bir register'a bağlıysa (ör. H0
+// için H2/H3) `minRef`/`maxRef` o register'ın adresini taşır — canlı sınır,
+// SettingsUI önbelleğindeki (ekranda gösterilen, ölçeklenmiş) son bilinen değerden
+// okunur (bkz. resolveRangeBounds). Seçim (options) alanlarına range eklenmedi;
+// <select> zaten sadece geçerli seçenekleri sunuyor.
 const HOLDING_BASE = [
-  { addr:0x0000, param:'H0',  tr:'Kontrol çıkışı sıcaklık set değeri',            unit:'°C', def:400 },
-  { addr:0x0001, param:'H1',  tr:'Kontrol çıkışı 2. sıcaklık set değeri',         unit:'°C', def:500 },
-  { addr:0x0002, param:'H2',  tr:'Kontrol çıkışı minimum set değeri limiti',      unit:'°C', def:-30 },
-  { addr:0x0003, param:'H3',  tr:'Kontrol çıkışı maksimum set değeri limiti',     unit:'°C', def:600 },
-  { addr:0x0004, param:'H4',  tr:'Oransal bant (Pb) — %0.0 ise On-Off kontrol',   unit:'%',  def:4.0, decimals:1 },
-  { addr:0x0005, param:'H5',  tr:'Histerisiz değeri',                            unit:'°C', def:2 },
-  { addr:0x0006, param:'H6',  tr:'İntegral zamanı',                              unit:'dk', def:4.0, decimals:1 },
-  { addr:0x0007, param:'H7',  tr:'Türev zamanı',                                 unit:'dk', def:1.00, decimals:2 },
-  { addr:0x0008, param:'H8',  tr:'Kontrol periyodu',                             unit:'sn', def:1 },
-  { addr:0x0009, param:'H9',  tr:'Set değerindeki enerji yüzdesi',               unit:'%',  def:0 },
-  { addr:0x000A, param:'H10', tr:'Sensör hatasında kontrol enerji yüzdesi',      unit:'%',  def:0 },
-  { addr:0x000B, param:'H11', tr:'Soft-start zamanı',                            unit:'dk', def:0 },
-  { addr:0x000C, param:'H12', tr:'Alarm1 sıcaklık set değeri',                   unit:'°C', def:500 },
-  { addr:0x000D, param:'H13', tr:'Alarm1 minimum set değeri limiti',             unit:'°C', def:-30 },
-  { addr:0x000E, param:'H14', tr:'Alarm1 maksimum set değeri limiti',            unit:'°C', def:600 },
-  { addr:0x000F, param:'H15', tr:'Alarm1 oransal bant',                          unit:'%',  def:0.0, decimals:1 },
-  { addr:0x0010, param:'H16', tr:'Alarm1 histerisiz değeri',                     unit:'°C', def:2 },
-  { addr:0x0011, param:'H17', tr:'Alarm1 integral zamanı',                       unit:'dk', def:0.0, decimals:1 },
-  { addr:0x0012, param:'H18', tr:'Alarm1 türev zamanı',                         unit:'dk', def:0.00, decimals:2 },
-  { addr:0x0013, param:'H19', tr:'Alarm1 periyod zamanı',                        unit:'sn', def:1 },
-  { addr:0x0014, param:'H20', tr:'Alarm1 set değerindeki enerji yüzdesi',        unit:'%',  def:0 },
-  { addr:0x0015, param:'H21', tr:'Sensör hatasında Alarm1 enerji yüzdesi',       unit:'%',  def:0 },
-  { addr:0x0016, param:'H22', tr:'Alarm1 tipi (0:Bağımsız 1:Sapma 2:Band 3:Band-sonrası 4:Bağımsız soğutma 5:Bağıl soğutma)', unit:'', def:0 },
-  { addr:0x0017, param:'H23', tr:'Alarm2 sıcaklık set değeri',                   unit:'°C', def:500 },
-  { addr:0x0018, param:'H24', tr:'Alarm2 minimum set değeri limiti',             unit:'°C', def:-30 },
-  { addr:0x0019, param:'H25', tr:'Alarm2 maksimum set değeri limiti',            unit:'°C', def:600 },
-  { addr:0x001A, param:'H26', tr:'Alarm2 histerisiz değeri',                     unit:'°C', def:2 },
-  { addr:0x001B, param:'H27', tr:'Alarm2 tipi (0:Bağımsız 1:Sapma 2:Band 3:Band-sonrası)', unit:'', def:0 },
+  { addr:0x0000, param:'H0',  tr:'Kontrol çıkışı sıcaklık set değeri',            unit:'°C', def:400, range:{ minRef:0x0002, maxRef:0x0003 },
+    info:'Cihazın birincil çalışma sıcaklığı hedefi. Proses ekranındaki "Hedef Sıcaklık" bu değerden okunur/yazılır.',
+    notes:['H2 ile H3 arasında olmalıdır.', 'Termostat modunda (C132=0) ve C7=0 iken aktif set değeridir; C7=1 ise H1 kullanılır. Profil modunda (C132=1) ise aktif adımın hedef sıcaklığı geçerlidir, H0 dikkate alınmaz.'] },
+  { addr:0x0001, param:'H1',  tr:'Kontrol çıkışı 2. sıcaklık set değeri',         unit:'°C', def:500, range:{ minRef:0x0002, maxRef:0x0003 },
+    info:'İkinci bir sıcaklık set noktası — D1/D2 girişi "H0/H1 set seçimi" (H40/H41=1) olarak ayarlanmışsa dış kontaktan hızlıca H0 ile bu değer arasında geçiş yapılabilir.',
+    notes:['H2 ile H3 arasında olmalıdır.', 'Sadece C7=1 iken (ya da ilgili dijital giriş ON iken) aktif set değeri olur; profil modunda etkisizdir.'] },
+  { addr:0x0002, param:'H2',  tr:'Kontrol çıkışı minimum set değeri limiti',      unit:'°C', def:-30,
+    info:'Tüm sıcaklık set değerlerinin (H0, H1, H12, H23, profil adımları, H102) alabileceği en düşük değeri sınırlar.',
+    notes:['H3\'ten küçük olmalıdır.', 'Seçilen sensör tipinin (H28) fiziksel ölçüm aralığının altında olmamalıdır.'] },
+  { addr:0x0003, param:'H3',  tr:'Kontrol çıkışı maksimum set değeri limiti',     unit:'°C', def:600,
+    info:'Tüm sıcaklık set değerlerinin alabileceği en yüksek değeri sınırlar.',
+    notes:['H2\'den büyük olmalıdır.', 'Seçilen sensör tipinin (H28) fiziksel ölçüm aralığını aşmamalıdır.'] },
+  { addr:0x0004, param:'H4',  tr:'Oransal bant (Pb) — %0.0 ise On-Off kontrol',   unit:'%',  def:4.0, decimals:1, range:{ min:0, max:100 },
+    info:'PID kontrolündeki oransal bant genişliği — bant ne kadar dar olursa çıkış set değerine o kadar keskin tepki verir.',
+    notes:['%0.0 girilirse kontrol biçimi On-Off\'a döner; bu durumda H5 (histerisiz) belirleyici olur.'] },
+  { addr:0x0005, param:'H5',  tr:'Histerisiz değeri',                            unit:'°C', def:2, range:{ min:1, max:50 },
+    info:'On-Off kontrol modunda (H4=0) çıkışın açma/kapama arasındaki fark payı — röle/SSR\'nin gereksiz sık anahtarlanmasını (çırpınma) önler.' },
+  { addr:0x0006, param:'H6',  tr:'İntegral zamanı',                              unit:'dk', def:4.0, decimals:1, range:{ min:0, max:100 },
+    info:'PID\'in integral (I) bileşeni — set değerine yakınken kalan küçük, kalıcı sapmayı zamanla sıfırlar.',
+    notes:['0 girilirse integral etkisi devre dışı kalır (sadece P veya PD kontrol).'] },
+  { addr:0x0007, param:'H7',  tr:'Türev zamanı',                                 unit:'dk', def:1.00, decimals:2, range:{ min:0, max:25 },
+    info:'PID\'in türev (D) bileşeni — ani sıcaklık değişimlerine erken tepki vererek aşmayı (overshoot) azaltır.',
+    notes:['0 girilirse türev etkisi devre dışı kalır.'] },
+  { addr:0x0008, param:'H8',  tr:'Kontrol periyodu',                             unit:'sn', def:1, range:{ min:1, max:125 },
+    info:'Röle/SSR çıkışının PID gücüne göre açık/kapalı oranını uyguladığı döngü süresi.',
+    notes:['SSR çıkışlarda kısa (1-2sn) tutulabilir; röle çıkışlarında röle ömrünü korumak için daha uzun tutulması önerilir.'] },
+  { addr:0x0009, param:'H9',  tr:'Set değerindeki enerji yüzdesi',               unit:'%',  def:0, range:{ min:0, max:100 },
+    info:'Sıcaklık set değerine tam ulaşıldığında çıkışın vereceği taban güç yüzdesi (feed-forward) — sürekli ısı kaybını dengelemek için kullanılır.' },
+  { addr:0x000A, param:'H10', tr:'Sensör hatasında kontrol enerji yüzdesi',      unit:'%',  def:0, range:{ min:0, max:100 },
+    info:'Sensör arızası (I2≠0) tespit edildiğinde çıkışın sabit olarak vereceği güç yüzdesi — prosesin tamamen durmasını önleyen "güvenli" bir taban güç belirlemede kullanılır.',
+    notes:['Sadece C9=0 iken kullanılır; C9=1 ise bunun yerine arıza anındaki son oransal çıkış değeri korunur.'] },
+  { addr:0x000B, param:'H11', tr:'Soft-start zamanı',                            unit:'dk', def:0, range:{ min:0, max:250 },
+    info:'Cihaza ilk enerji verildiğinde çıkış gücünün 0\'dan hedefe kaç dakikada yükseleceği — ani ısınmayı ve akım sıçramasını yumuşatır.',
+    notes:['0 = soft-start kapalı, enerji verilince güç doğrudan hesaplanan PID değerine atlar.'] },
+  { addr:0x000C, param:'H12', tr:'Alarm1 sıcaklık set değeri',                   unit:'°C', def:500, range:{ minRef:0x000D, maxRef:0x000E },
+    info:'A1 röle çıkışının alarm (H22=0..3) ya da PID soğutma kontrolü (H22=4/5) referans sıcaklığı.',
+    notes:['H13 ile H14 arasında olmalıdır.', 'C137=1 ise bu değer yerine H135 ile her profil adımında ayrı A1 kontrolü yapılır.'] },
+  { addr:0x000D, param:'H13', tr:'Alarm1 minimum set değeri limiti',             unit:'°C', def:-30,
+    info:'H12\'nin alabileceği en düşük değeri sınırlar.', notes:['H14\'ten küçük olmalıdır.'] },
+  { addr:0x000E, param:'H14', tr:'Alarm1 maksimum set değeri limiti',            unit:'°C', def:600,
+    info:'H12\'nin alabileceği en yüksek değeri sınırlar.', notes:['H13\'ten büyük olmalıdır.'] },
+  { addr:0x000F, param:'H15', tr:'Alarm1 oransal bant',                          unit:'%',  def:0.0, decimals:1, range:{ min:0, max:100 },
+    info:'A1 çıkışı PID soğutma kontrolü olarak kullanıldığında (H22=4 veya 5) oransal bant değeri.',
+    notes:['Sadece H22=4 veya 5 iken anlamlıdır; alarm modlarında (H22=0..3) etkisizdir.'] },
+  { addr:0x0010, param:'H16', tr:'Alarm1 histerisiz değeri',                     unit:'°C', def:2, range:{ min:1, max:50 },
+    info:'A1 çıkışının açma/kapama sınırındaki histerisiz payı — titremeyi önler.' },
+  { addr:0x0011, param:'H17', tr:'Alarm1 integral zamanı',                       unit:'dk', def:0.0, decimals:1, range:{ min:0, max:100 },
+    info:'A1 çıkışı PID soğutma kontrolü olarak kullanıldığında (H22=4 veya 5) integral zamanı.',
+    notes:['Sadece H22=4 veya 5 iken anlamlıdır.'] },
+  { addr:0x0012, param:'H18', tr:'Alarm1 türev zamanı',                         unit:'dk', def:0.00, decimals:2, range:{ min:0, max:25 },
+    info:'A1 çıkışı PID soğutma kontrolü olarak kullanıldığında (H22=4 veya 5) türev zamanı.',
+    notes:['Sadece H22=4 veya 5 iken anlamlıdır.'] },
+  { addr:0x0013, param:'H19', tr:'Alarm1 periyod zamanı',                        unit:'sn', def:1, range:{ min:1, max:250 },
+    info:'A1 çıkışının (H22=4/5 soğutma modunda) PID döngü periyodu — H8\'in A1 karşılığı.' },
+  { addr:0x0014, param:'H20', tr:'Alarm1 set değerindeki enerji yüzdesi',        unit:'%',  def:0, range:{ min:0, max:100 },
+    info:'H22=4/5 iken set değerine ulaşıldığında A1 çıkışının vereceği taban güç yüzdesi — H9\'un A1 karşılığı.' },
+  { addr:0x0015, param:'H21', tr:'Sensör hatasında Alarm1 enerji yüzdesi',       unit:'%',  def:0, range:{ min:0, max:100 },
+    info:'H22=4/5 iken sensör arızası durumunda A1 çıkışının sabit vereceği güç yüzdesi — H10\'un A1 karşılığı.' },
+  { addr:0x0016, param:'H22', tr:'Alarm1 tipi (0:Bağımsız 1:Sapma 2:Band 3:Band-sonrası 4:Bağımsız soğutma 5:Bağıl soğutma)', unit:'', def:0,
+    info:'A1 röle çıkışının davranış biçimini seçer: 0-3 alarm modları, 4-5 ise A1\'i PID soğutma çıkışına dönüştürür.',
+    notes:['4 veya 5 seçilirse H15/H17/H18/H19/H20/H21 devreye girer; 0-3 seçiliyse bunlar etkisizdir.'] },
+  { addr:0x0017, param:'H23', tr:'Alarm2 sıcaklık set değeri',                   unit:'°C', def:500, range:{ minRef:0x0018, maxRef:0x0019 },
+    info:'C/A2 röle çıkışının Alarm2 olarak kullanıldığındaki referans sıcaklığı.',
+    notes:['H24 ile H25 arasında olmalıdır.', 'C/A2 fiziksel çıkışının Alarm2 işlevi görmesi için H32 kontrol çıkışı olarak SSR/ANL seçilmiş (yani C/A2 boşta) olmalıdır.'] },
+  { addr:0x0018, param:'H24', tr:'Alarm2 minimum set değeri limiti',             unit:'°C', def:-30,
+    info:'H23\'ün alabileceği en düşük değeri sınırlar.', notes:['H25\'ten küçük olmalıdır.'] },
+  { addr:0x0019, param:'H25', tr:'Alarm2 maksimum set değeri limiti',            unit:'°C', def:600,
+    info:'H23\'ün alabileceği en yüksek değeri sınırlar.', notes:['H24\'ten büyük olmalıdır.'] },
+  { addr:0x001A, param:'H26', tr:'Alarm2 histerisiz değeri',                     unit:'°C', def:2, range:{ min:1, max:50 },
+    info:'C/A2 çıkışının açma/kapama sınırındaki histerisiz payı.' },
+  { addr:0x001B, param:'H27', tr:'Alarm2 tipi (0:Bağımsız 1:Sapma 2:Band 3:Band-sonrası)', unit:'', def:0,
+    info:'C/A2 röle çıkışının Alarm2 olarak davranış biçimini belirler.',
+    notes:['C138=1 ise bu değer yerine H136 ile her profil adımında ayrı C/A2 kontrolü yapılır.'] },
   { addr:0x001C, param:'H28', tr:'Giriş (sensör) tipi', unit:'', def:3,
-    options:['PT100 ondalıklı','PT100','J ondalıklı','J','K ondalıklı','K','L ondalıklı','L','T ondalıklı','T','S','R','0-20mA','4-20mA','0-10V','2-10V','0-25mV','0-50mV'] },
-  { addr:0x001D, param:'H29', tr:'Isıtma hata kontrol zamanı (0=kapalı)',        unit:'sn', def:60 },
+    options:['PT100 ondalıklı','PT100','J ondalıklı','J','K ondalıklı','K','L ondalıklı','L','T ondalıklı','T','S','R','0-20mA','4-20mA','0-10V','2-10V','0-25mV','0-50mV'],
+    info:'Bağlı sensörün tipi. Cihazın ölçüm skalasını ve gösterge hassasiyetini belirler — "ondalıklı" seçenekler bir ondalık basamak gösterir.',
+    notes:['Değiştirildiğinde H2/H3/H12/H13/H23/H24/H25/profil adımı gibi tüm sıcaklık set/limit değerleri yeni skalaya göre yeniden kontrol edilmelidir.', 'mA/V tiplerinden biri (0-20mA…0-50mV) seçilirse H45/H46/H47 devreye girer, aksi halde bu üç alanın bir karşılığı yoktur (Sensör Girişi sekmesinde otomatik gizlenirler).'] },
+  { addr:0x001D, param:'H29', tr:'Isıtma hata kontrol zamanı (0=kapalı)',        unit:'sn', def:60, range:{ min:0, max:1000 },
+    info:'Kontrol çıkışı ısıtıyor olmasına rağmen bu süre içinde sıcaklık artmazsa "ısıtma yapılamıyor" hatası (D5) üretilir — rezistans/kontaktör arızasını erken tespit etmek için kullanılır.',
+    notes:['0 girilirse bu kontrol tamamen kapalıdır, D5 hatası hiç üretilmez.'] },
   { addr:0x001E, param:'H30', tr:'Modbus haberleşme hızı', unit:'', def:2,
-    options:['2400 bps','4800 bps','9600 bps','19200 bps','38400 bps','57200 bps','115200 bps'] },
-  { addr:0x001F, param:'H31', tr:'Sayısal filtre katsayısı (1=devre dışı)',      unit:'',   def:20 },
+    options:['2400 bps','4800 bps','9600 bps','19200 bps','38400 bps','57200 bps','115200 bps'],
+    info:'RS485/Modbus baud hızı — ESP32 ile ENDA arasındaki seri haberleşmenin hızı.',
+    notes:['ESP32 tarafındaki UART baud rate ile birebir aynı olmalıdır; uyuşmazsa bağlantı tamamen kesilir.'] },
+  { addr:0x001F, param:'H31', tr:'Sayısal filtre katsayısı (1=devre dışı)',      unit:'',   def:20, range:{ min:1, max:200 },
+    info:'Ölçülen sıcaklığın gösterge/kontrol öncesi yumuşatılma derecesi. Değer arttıkça gösterge daha kararlı ama tepki daha yavaş olur.',
+    notes:['1 = filtre devre dışı, ham (anlık) değer kullanılır.'] },
   { addr:0x0020, param:'H32', tr:'Kontrol çıkışı seçimi', unit:'', def:0,
-    options:['C/A2 (Röle)','SSR','SSR/ANL 0-20mA','SSR/ANL 4-20mA'] },
-  { addr:0x0021, param:'H33', tr:'Analog çıkış minimum yüzde',                   unit:'%',  def:0 },
-  { addr:0x0022, param:'H34', tr:'Analog çıkış maksimum yüzde',                  unit:'%',  def:100 },
-  { addr:0x0023, param:'H35', tr:'Offset değeri',                                unit:'',   def:0 },
-  { addr:0x0027, param:'H39', tr:'Manuel kontrol çıkış yüzdesi',                 unit:'%',  def:50 },
+    options:['C/A2 (Röle)','SSR','SSR/ANL 0-20mA','SSR/ANL 4-20mA'],
+    info:'Ana kontrol çıkışının fiziksel biçimini seçer: C/A2 röle, SSR, ya da SSR/ANL üzerinden analog akım çıkışı.',
+    notes:['0 dışında bir değer seçilirse C/A2 artık kontrol için kullanılmaz, Alarm2 (H23-H27) olarak serbest kalır.', 'Retransmisyon çıkışının (H42) ayarlanabilmesi için bu değer 0 (C/A2 röle) olmalıdır.'] },
+  { addr:0x0021, param:'H33', tr:'Analog çıkış minimum yüzde',                   unit:'%',  def:0, range:{ min:0, max:100 },
+    info:'H32 analog seçiliyken (2 veya 3), %0 kontrol gücüne karşılık gelecek fiziksel çıkış yüzdesi.',
+    notes:['Sadece H32=2 veya 3 (SSR/ANL analog çıkış) iken anlamlıdır.'] },
+  { addr:0x0022, param:'H34', tr:'Analog çıkış maksimum yüzde',                  unit:'%',  def:100, range:{ min:0, max:100 },
+    info:'H32 analog seçiliyken, %100 kontrol gücüne karşılık gelecek fiziksel çıkış yüzdesi.',
+    notes:['H33\'ten büyük olmalıdır.', 'Sadece H32=2 veya 3 iken anlamlıdır.'] },
+  { addr:0x0023, param:'H35', tr:'Offset değeri',                                unit:'',   def:0, range:{ min:-100, max:100 },
+    info:'Ölçülen sıcaklığa eklenen sabit düzeltme payı — sensör/kablo kaynaklı sistematik sapmayı (kalibrasyon farkını) telafi etmek için kullanılır.' },
+  { addr:0x0027, param:'H39', tr:'Manuel kontrol çıkış yüzdesi',                 unit:'%',  def:50, range:{ min:0, max:100 },
+    info:'C8 (Manuel kontrol biti) açıldığında, PID\'i bypass ederek çıkışa doğrudan uygulanacak sabit güç yüzdesi. Ölçüm/test amaçlı elle çıkış vermek için kullanılır.',
+    notes:['Sadece C8=1 iken etkilidir; C8=0 ise normal otomatik PID kontrolü geçerlidir.'] },
   { addr:0x0028, param:'H40', tr:'D1 dijital giriş kontrol modu', unit:'', def:0,
-    options:['Kullanılmaz','H0/H1 set seçimi','Auto/Manuel','Termostat/Gösterge','Profil start/stop','Hold off/on'] },
+    options:['Kullanılmaz','H0/H1 set seçimi','Auto/Manuel','Termostat/Gösterge','Profil start/stop','Hold off/on'],
+    info:'D1 kuru kontak girişine bağlı fiziksel butonun/anahtarın hangi işlevi tetikleyeceğini belirler.' },
   { addr:0x0029, param:'H41', tr:'D2 dijital giriş kontrol modu', unit:'', def:0,
-    options:['Kullanılmaz','H0/H2 set seçimi','Auto/Manuel','Termostat/Gösterge','Profil start/stop','Hold off/on'] },
+    options:['Kullanılmaz','H0/H2 set seçimi','Auto/Manuel','Termostat/Gösterge','Profil start/stop','Hold off/on'],
+    info:'D2 kuru kontak girişine bağlı fiziksel butonun/anahtarın hangi işlevi tetikleyeceğini belirler.' },
   { addr:0x002A, param:'H42', tr:'Retransmisyon çıkışı modu (H32=0 olmalı)', unit:'', def:0,
-    options:['Kapalı','0-20mA','4-20mA'] },
-  { addr:0x002B, param:'H43', tr:'Retransmisyon alt skala değeri',               unit:'',   def:-30 },
-  { addr:0x002C, param:'H44', tr:'Retransmisyon üst skala değeri',               unit:'',   def:600 },
+    options:['Kapalı','0-20mA','4-20mA'],
+    info:'ANL/SSR çıkışını, kontrol çıkışı olarak değil, ölçülen sıcaklığı analog akıma çevirip dışarı ileten bir "retransmisyon" çıkışına dönüştürür (ör. bir PLC\'ye veya harici göstergeye sıcaklık aktarmak için).',
+    notes:['Ayarlanabilmesi için H32=0 (C/A2 röle) olmalıdır — ANL/SSR fiziksel çıkışı aynı anda hem kontrol hem retransmisyon olamaz.'] },
+  { addr:0x002B, param:'H43', tr:'Retransmisyon alt skala değeri',               unit:'',   def:-30,
+    info:'Retransmisyon aktifken (H42≠0) çıkışın alt ucuna (0mA/4mA) karşılık gelecek sıcaklık değeri.',
+    notes:['H44\'ten küçük olmalıdır.', 'Sadece H42≠0 iken anlamlıdır.'] },
+  { addr:0x002C, param:'H44', tr:'Retransmisyon üst skala değeri',               unit:'',   def:600,
+    info:'Retransmisyon aktifken çıkışın üst ucuna (20mA) karşılık gelecek sıcaklık değeri.',
+    notes:['H43\'ten büyük olmalıdır.', 'Sadece H42≠0 iken anlamlıdır.'] },
   { addr:0x002D, param:'H45', tr:'mA/V girişi ondalık nokta ayarı', unit:'', def:0,
-    options:['Kapalı','0.0','0.00','0.000'] },
-  { addr:0x002E, param:'H46', tr:'mA/V girişi kullanıcı alt skala',              unit:'',   def:-1999 },
-  { addr:0x002F, param:'H47', tr:'mA/V girişi kullanıcı üst skala',              unit:'',   def:2000 },
-  { addr:0x0030, param:'H48', tr:'Modbus cihaz adresi',                          unit:'',   def:1 },
-  { addr:0x0034, param:'H52', tr:'RS485 sinyal kaybında çıkış-off zamanı (C11=1 gerekli)', unit:'sn', def:2 },
-  { addr:0x0064, param:'H100', tr:'Profil zaman bazı', unit:'', def:0, options:['saniye','dakika'] },
-  { addr:0x0065, param:'H101', tr:'Maksimum adım sayısı (0=timer/termostat modu)', unit:'', def:8 },
-  { addr:0x0066, param:'H102', tr:'Adım sonu sıcaklık farkı toleransı',          unit:'°C', def:5 },
-  { addr:0x0087, param:'H135', tr:'Termostat modunda adım zaman değeri',        unit:'sn', def:30 },
+    options:['Kapalı','0.0','0.00','0.000'],
+    info:'H28 mA/V tiplerinden biriyken ölçüm göstergesinin kaç ondalık basamakla gösterileceğini belirler.',
+    notes:['Sadece H28, mA/V giriş tiplerinden biri (0-20mA, 4-20mA, 0-10V, 2-10V, 0-25mV, 0-50mV) iken anlamlıdır.'] },
+  { addr:0x002E, param:'H46', tr:'mA/V girişi kullanıcı alt skala',              unit:'',   def:-1999, range:{ min:-10000, max:10000 },
+    info:'mA/V giriş tiplerinde, sensörün fiziksel alt sınırının hangi mühendislik değerine karşılık geleceğini belirler (ör. 4-20mA bir basınç sensörünü 0-10 bar olarak ölçeklemek için).',
+    notes:['Sadece H28, mA/V giriş tiplerinden biri iken anlamlıdır.', 'H47\'den küçük olmalıdır.'] },
+  { addr:0x002F, param:'H47', tr:'mA/V girişi kullanıcı üst skala',              unit:'',   def:2000, range:{ min:-10000, max:10000 },
+    info:'mA/V giriş tiplerinde sensörün fiziksel üst sınırının karşılık geleceği mühendislik değeri.',
+    notes:['Sadece H28, mA/V giriş tiplerinden biri iken anlamlıdır.', 'H46\'dan büyük olmalıdır.'] },
+  { addr:0x0030, param:'H48', tr:'Modbus cihaz adresi',                          unit:'',   def:1, range:{ min:1, max:247 },
+    info:'ENDA cihazının RS485/Modbus slave adresi.',
+    notes:['ESP32 tarafındaki yapılandırılmış Modbus adresiyle birebir aynı olmalıdır, aksi halde haberleşme tamamen kesilir.'] },
+  { addr:0x0034, param:'H52', tr:'RS485 sinyal kaybında çıkış-off zamanı (C11=1 gerekli)', unit:'sn', def:2, range:{ min:2, max:9999 },
+    info:'RS485 hattı kesildiğinde bu süre sonunda tüm kontrol çıkışları güvenlik amacıyla otomatik kapatılır.',
+    notes:['Çalışması için C11=1 (RS485 kopma hatası kontrolü açık) olmalıdır; C11=0 ise bu süre hiç dikkate alınmaz.'] },
+  { addr:0x0064, param:'H100', tr:'Profil zaman bazı', unit:'', def:0, options:['saniye','dakika'],
+    info:'16 adımlık profildeki tüm "Adım zaman değeri" alanlarının (H104, H106, …) birimini belirler.' },
+  { addr:0x0065, param:'H101', tr:'Maksimum adım sayısı (0=timer/termostat modu)', unit:'', def:8, range:{ min:0, max:16 },
+    info:'Profilde kaç adımın kullanılacağını belirler; Proses sekmesindeki adım seçici bu değere göre sınırlanır.',
+    notes:['0 seçilirse profil tamamen devre dışı kalır, cihaz her zaman basit timer/termostat modunda çalışır (H135 kullanılır), C132\'nin değeri önemsizleşir.'] },
+  { addr:0x0066, param:'H102', tr:'Adım sonu sıcaklık farkı toleransı',          unit:'°C', def:5, range:{ min:0, maxRef:0x0003 },
+    info:'Bir adımın süresi dolduğunda, ölçülen sıcaklık hedeften bu değerden fazla uzaktaysa cihaz beklemeye devam eder; fark bu değere düşünce bir sonraki adıma geçilir.',
+    notes:['0 ile H3 arasında olmalıdır.', 'Elle düzenlenmesi önerilmez — ESP32 her adım aktifleşince bu register\'ı o adımın kendi tolerans ayarıyla (Proses sekmesindeki adım toleransı) otomatik günceller.'] },
+  { addr:0x0087, param:'H135', tr:'Termostat modunda adım zaman değeri',        unit:'sn', def:30, range:{ min:0, max:9999 },
+    info:'Profil kullanılmadığında (H101=0 veya C132=0) cihazın basit bir zamanlayıcı gibi çalıştığı süre.',
+    notes:['Sadece termostat modunda (C132=0) anlamlıdır; profil modunda (C132=1) adımların kendi süreleri (H104, H106, …) kullanılır.', 'C137=1 ise A1 çıkışının her profil adımındaki durumu için de bu register kullanılır.'] },
 ];
 
 // ---- HOLDING REGISTERS: 16 adımlık profil (H103..H134 örüntüsü) ----
 function getProfileStepRegs(step) { // step: 1..16
   const base = 0x0067 + (step - 1) * 2; // H103 + (step-1)*2
   return {
-    target: { addr: base,     param: `H${103 + (step-1)*2}`, tr: `${step}. Adım hedef sıcaklık`, unit:'°C' },
-    time:   { addr: base + 1, param: `H${104 + (step-1)*2}`, tr: `${step}. Adım zaman değeri`,    unit:'sn' },
+    target: { addr: base,     param: `H${103 + (step-1)*2}`, tr: `${step}. Adım hedef sıcaklık`, unit:'°C', range:{ minRef:0x0002, maxRef:0x0003 },
+      info:`Profildeki ${step}. adımın hedef sıcaklığı — cihaz bu adım aktifken sıcaklığı bu değere getirmeye çalışır.`,
+      notes:['H2 ile H3 arasında olmalıdır.'] },
+    time:   { addr: base + 1, param: `H${104 + (step-1)*2}`, tr: `${step}. Adım zaman değeri`,    unit:'sn', range:{ min:0, max:9999 },
+      info:`Profildeki ${step}. adımın süresi (H100'e göre saniye ya da gün). Hedef sıcaklığa bu süre içinde ulaşılamazsa H102 toleransı devreye girer ve süre uzayabilir.` },
+  };
+}
+
+// Bir `range` tanımını (bkz. HOLDING_BASE) somut sayılara çözer. Sabit sınır
+// (min/max) doğrudan döner; başka bir register'a bağlıysa (minRef/maxRef) o
+// register'ın SettingsUI önbelleğindeki — yoksa HOLDING_BASE'deki varsayılan —
+// canlı değeri okunur. Böylece ör. H0'ın izin verilen aralığı, kullanıcı H2/H3'ü
+// değiştirdikçe otomatik güncellenmiş olur.
+function resolveRangeBounds(range, settingsUI) {
+  if (!range) return null;
+  const resolveBound = (fixedValue, ref, extreme) => {
+    if (ref !== undefined) {
+      const refParam = HOLDING_BASE.find(p => p.addr === ref);
+      const num = Number(settingsUI._cachedValue(ref, false, refParam?.def));
+      return Number.isNaN(num) ? extreme : num;
+    }
+    return fixedValue !== undefined ? fixedValue : extreme;
+  };
+  return {
+    min: resolveBound(range.min, range.minRef, -Infinity),
+    max: resolveBound(range.max, range.maxRef, Infinity),
   };
 }
 
 // ---- COIL REGISTERS: temel/sistem bitleri ----
 const COIL_BASE = [
-  { addr:0x0000, param:'C0',  tr:'Alarm2 durumu', options:['Set altında aktif','Set üstünde aktif'] },
-  { addr:0x0001, param:'C1',  tr:'Prob arızasında Alarm2 konumu', options:['Off','On'] },
-  { addr:0x0002, param:'C2',  tr:'Alarm1 durumu', options:['Set altında aktif','Set üstünde aktif'] },
-  { addr:0x0003, param:'C3',  tr:'Prob arızasında Alarm1 konumu', options:['Off','On'] },
-  { addr:0x0004, param:'C4',  tr:'Kontrol çıkışı konfigürasyonu', options:['Isıtma','Soğutma'] },
-  { addr:0x0005, param:'C5',  tr:'Sıcaklık birimi', options:['°C','°F'] },
-  { addr:0x0006, param:'C6',  tr:'Kontrol çıkışlarının durumu', options:['Gösterge modu (kapalı)','Aktif'] },
-  { addr:0x0007, param:'C7',  tr:'2. sıcaklık set değerine göre kontrol', options:['H0 kullan','H1 kullan'] },
-  { addr:0x0008, param:'C8',  tr:'Manuel kontrol biti', options:['Otomatik','Manuel (H39 yüzdesi)'] },
-  { addr:0x0009, param:'C9',  tr:'Prob hatasında kontrol biçimi', options:['H10 % oranı','Son oransal değer'] },
-  { addr:0x000A, param:'C10', tr:'Self tune kontrolü', options:['Durdur','Başlat'] },
-  { addr:0x000B, param:'C11', tr:'RS485 bağlantı kopma hatası kontrolü', options:['Kapalı','Açık'] },
-  { addr:0x0084, param:'C132', tr:'Kontrol modu seçimi', options:['Termostat modu','Profil kontrol modu'] },
-  { addr:0x0085, param:'C133', tr:'Profil start/stop', options:['Durdur (1. adıma dön)','Start'] },
-  { addr:0x0086, param:'C134', tr:'Profil hold', options:['Çalışmayı sürdür','Hold (beklet)'] },
-  { addr:0x0087, param:'C135', tr:'Profil bitince davranış', options:['Kontrolü bitir','Son set değeriyle devam et'] },
-  { addr:0x0088, param:'C136', tr:'Enerji kesilmesinde davranış', options:['1. adıma dön','Kaldığı yerden devam et'] },
-  { addr:0x0089, param:'C137', tr:'A1 çıkış kontrol kaynağı', options:['H22 parametresi','Her adımda (H135)'] },
-  { addr:0x008A, param:'C138', tr:'A2 çıkış kontrol kaynağı', options:['H27 parametresi','Her adımda (H136)'] },
+  { addr:0x0000, param:'C0',  tr:'Alarm2 durumu', options:['Set altında aktif','Set üstünde aktif'],
+    info:'C/A2 çıkışı Alarm2 olarak kullanıldığında (H32 ile C/A2 kontrol dışı bırakıldığında) alarmın H23 set değerinin altında mı üstünde mi aktif olacağını belirler.' },
+  { addr:0x0001, param:'C1',  tr:'Prob arızasında Alarm2 konumu', options:['Off','On'],
+    info:'Sensör arızası (I2≠0) tespit edildiğinde Alarm2 (C/A2) çıkışının güvenlik amacıyla alacağı sabit konum.' },
+  { addr:0x0002, param:'C2',  tr:'Alarm1 durumu', options:['Set altında aktif','Set üstünde aktif'],
+    info:'A1 çıkışının H12 set değerinin altında mı üstünde mi aktif olacağını belirler.',
+    notes:['Sadece H22=0..3 (alarm modları) iken anlamlıdır; H22=4/5 (soğutma kontrolü) iken etkisizdir.'] },
+  { addr:0x0003, param:'C3',  tr:'Prob arızasında Alarm1 konumu', options:['Off','On'],
+    info:'Sensör arızası tespit edildiğinde A1 çıkışının güvenlik amacıyla alacağı sabit konum.' },
+  { addr:0x0004, param:'C4',  tr:'Kontrol çıkışı konfigürasyonu', options:['Isıtma','Soğutma'],
+    info:'Ana kontrol çıkışının ısıtma mı soğutma mı yapacağını belirler.',
+    notes:['REDLIFT-WELD projesinde tipik kullanım ısıtmadır (0); Soğutma (1) sadece farklı bir proses ihtiyacı varsa değiştirilmelidir.'] },
+  { addr:0x0005, param:'C5',  tr:'Sıcaklık birimi', options:['°C','°F'],
+    info:'Cihazın iç gösterge/register birimi.',
+    notes:['°F\'a çevirmek uygulamadaki tüm sıcaklık gösterimlerini/set değerlerini etkiler — REDLIFT-WELD arayüzü °C varsayımıyla tasarlandı, değiştirilmesi önerilmez.'] },
+  { addr:0x0006, param:'C6',  tr:'Kontrol çıkışlarının durumu', options:['Gösterge modu (kapalı)','Aktif'],
+    info:'Cihazın gerçek kontrol mü yaptığını yoksa sadece izleme (gösterge) modunda mı olduğunu belirler.',
+    notes:['0 (Gösterge modu) yapılırsa tüm kontrol çıkışları kapanır ve proses tamamen durur — sadece ölçüm/test amaçlı kullanılmalıdır.'] },
+  { addr:0x0007, param:'C7',  tr:'2. sıcaklık set değerine göre kontrol', options:['H0 kullan','H1 kullan'],
+    info:'Aktif sıcaklık set değeri olarak H0 mı H1 mi kullanılacağını seçer.',
+    notes:['Sadece termostat modunda (C132=0) geçerlidir; profil modunda (C132=1) aktif adımın hedef sıcaklığı kullanılır ve bu coil etkisizdir.'] },
+  { addr:0x0008, param:'C8',  tr:'Manuel kontrol biti', options:['Otomatik','Manuel (H39 yüzdesi)'],
+    info:'1 yapıldığında PID/otomatik kontrol devre dışı kalır, çıkış doğrudan H39\'daki sabit güç yüzdesine göre verilir.',
+    notes:['Manuel modda alarm ve limit kontrolleri çalışmaya devam eder, sadece çıkış gücü elle belirlenir — normal proses sırasında açık bırakılmamalıdır.'] },
+  { addr:0x0009, param:'C9',  tr:'Prob hatasında kontrol biçimi', options:['H10 % oranı','Son oransal değer'],
+    info:'Sensör arızasında çıkışın H10\'daki sabit yüzdeye mi, yoksa arıza anındaki son oransal çıkış değerine mi göre devam edeceğini belirler.' },
+  { addr:0x000A, param:'C10', tr:'Self tune kontrolü', options:['Durdur','Başlat'],
+    info:'PID parametrelerinin (H4, H6, H7, H9) otomatik hesaplanmasını başlatır/durdurur. Sistem ilk kurulumda PID parametreleri bilinmiyorsa kullanılmalıdır (bkz. PID sekmesindeki "Self Tune Başlat" butonu).',
+    notes:['Self tune sürerken H4/H6/H7/H9 elle değiştirilmemelidir — hesaplama bitince cihaz bu değerleri kendisi günceller.'] },
+  { addr:0x000B, param:'C11', tr:'RS485 bağlantı kopma hatası kontrolü', options:['Kapalı','Açık'],
+    info:'Açıldığında, RS485/Modbus hattı H52 saniye boyunca sessiz kalırsa cihaz tüm çıkışları güvenlik amacıyla otomatik kapatır.',
+    notes:['Bu kontrolün gerçek anlamda işe yaraması için H52 (kapatma süresi) de mantıklı bir değere ayarlanmalıdır.'] },
+  { addr:0x0084, param:'C132', tr:'Kontrol modu seçimi', options:['Termostat modu','Profil kontrol modu'],
+    info:'Cihazın basit set-değer/termostat moduyla mı, yoksa 16 adımlık profille mi çalışacağını seçer. REDLIFT-WELD\'in "PROSES" başlatma akışı bu coile bağlıdır.',
+    notes:['1 (profil modu) iken H0/H1/C7 etkisizdir, aktif set değeri o an çalışan adımdan gelir.', 'H101=0 ise bu coil\'in değeri önemsizdir, cihaz her zaman termostat modunda davranır.'] },
+  { addr:0x0085, param:'C133', tr:'Profil start/stop', options:['Durdur (1. adıma dön)','Start'],
+    info:'Profili başlatır (1) ya da durdurup ilk adıma döndürür (0). REDLIFT-WELD\'de "PROSES" butonuna basılınca bu coil 1, "DURDUR" basılınca 0 yapılır.',
+    notes:['Sadece C132=1 (profil modu) iken anlamlıdır.'] },
+  { addr:0x0086, param:'C134', tr:'Profil hold', options:['Çalışmayı sürdür','Hold (beklet)'],
+    info:'Profili bulunduğu adımda/sürede dondurur (1) ya da normal akışına devam ettirir (0) — tam durdurup baştan başlatan C133\'ten farklı olarak aynı noktadan devam edilebilir.' },
+  { addr:0x0087, param:'C135', tr:'Profil bitince davranış', options:['Kontrolü bitir','Son set değeriyle devam et'],
+    info:'Son adım tamamlandığında kontrol çıkışlarının tamamen kapatılıp kapatılmayacağını (0), yoksa son set değeriyle kontrole devam edilip edilmeyeceğini (1) belirler.' },
+  { addr:0x0088, param:'C136', tr:'Enerji kesilmesinde davranış', options:['1. adıma dön','Kaldığı yerden devam et'],
+    info:'24V besleme kesilip geri geldiğinde profilin 1. adıma mı döneceğini, yoksa (sıcaklık uygun aralıktaysa) kaldığı yerden mi devam edeceğini belirler.',
+    notes:['Beklenmeyen elektrik kesintilerinde prosesin güvenliği/tekrarlanabilirliği açısından önemlidir.'] },
+  { addr:0x0089, param:'C137', tr:'A1 çıkış kontrol kaynağı', options:['H22 parametresi','Her adımda (H135)'],
+    info:'A1 röle çıkışının normal alarm mantığıyla (H22\'ye göre) mı, yoksa profildeki her adımın kendi A1 coilleriyle (C100-C115) mi kontrol edileceğini seçer.',
+    notes:['1 yapılırsa H22\'deki alarm tipi ayarı A1 çıkışı için etkisiz kalır.'] },
+  { addr:0x008A, param:'C138', tr:'A2 çıkış kontrol kaynağı', options:['H27 parametresi','Her adımda (H136)'],
+    info:'C/A2 çıkışının normal alarm mantığıyla (H27\'ye göre) mı, yoksa profildeki her adımın kendi C/A2 coilleriyle (C116-C131) mi kontrol edileceğini seçer.',
+    notes:['1 yapılırsa H27\'deki alarm tipi ayarı C/A2 çıkışı için etkisiz kalır.'] },
 ];
 
 function getProfileStepCoils(step) { // step: 1..16
   return {
-    a1:  { addr: 0x0064 + (step - 1), param: `C${100 + (step-1)}`, tr: `${step}. Adım A1 alarm çıkışı`, options:['Kapalı','Açık'] },
-    ca2: { addr: 0x0074 + (step - 1), param: `C${116 + (step-1)}`, tr: `${step}. Adım C/A2 alarm çıkışı`, options:['Kapalı','Açık'] },
+    a1:  { addr: 0x0064 + (step - 1), param: `C${100 + (step-1)}`, tr: `${step}. Adım A1 alarm çıkışı`, options:['Kapalı','Açık'],
+      info:`Profildeki ${step}. adım aktifken A1 röle çıkışının açık mı kapalı mı olacağını belirler (ör. bir soğutma vanası ya da ikincil ısıtıcıyı sadece belirli adımlarda tetiklemek için).`,
+      notes:['Sadece C137=1 iken etkilidir; C137=0 ise A1 çıkışı H22\'ye göre normal alarm/soğutma mantığıyla kontrol edilir.'] },
+    ca2: { addr: 0x0074 + (step - 1), param: `C${116 + (step-1)}`, tr: `${step}. Adım C/A2 alarm çıkışı`, options:['Kapalı','Açık'],
+      info:`Profildeki ${step}. adım aktifken C/A2 çıkışının açık mı kapalı mı olacağını belirler.`,
+      notes:['Sadece C138=1 iken etkilidir; C138=0 ise C/A2 çıkışı H27\'ye göre normal alarm mantığıyla kontrol edilir.'] },
   };
 }
 
@@ -585,13 +752,19 @@ function getProfileStepCoils(step) { // step: 1..16
 // göre günceller. Karışıklık olmasın diye gerçek ENDA haritasından (en fazla
 // ~0x8A) açıkça ayrı, 0x0100'den başlayan bir adres bölgesi kullanılıyor.
 function getProfileStepTolerance(step) { // step: 1..16 — Holding, sanal
-  return { addr: 0x0100 + (step - 1), param: `H102STP${step}`, tr: `${step}. Adım sıcaklık toleransı`, unit: '°C', def: 5 };
+  return {
+    addr: 0x0100 + (step - 1), param: `H102STP${step}`, tr: `${step}. Adım sıcaklık toleransı`, unit: '°C', def: 5,
+    info:`Profildeki ${step}. adımda hedef sıcaklığa "ulaşılmış" sayılması için izin verilen sapma. Adım aktifleşince ESP32 bu değeri gerçek ENDA H102 register'ına yazar.`,
+    notes:['Bu bir ENDA Modbus register\'ı değil, ESP32\'nin kendi hafızasında tuttuğu bir ayardır.'],
+  };
 }
 
 function getProfileStepCriteria(step) { // step: 1..16 — Coil, sanal
   return {
     addr: 0x0100 + (step - 1), param: `STPKRT${step}`, tr: `${step}. Adım geçiş kriteri`,
     options: ['Adım Başlayınca Değiştir', 'Sıcaklık Değerine Ulaşınca Değiştir'],
+    info:`Profildeki ${step}. adımdan bir sonrakine geçiş kriteri: süre dolunca doğrudan geç, ya da hedef sıcaklığa ulaşılınca (adım toleransı içine girince) geç.`,
+    notes:['Bu bir ENDA Modbus register\'ı değil, ESP32\'nin kendi hafızasında tuttuğu bir ayardır.'],
   };
 }
 
@@ -619,16 +792,33 @@ function buildExpectedParamKeys() {
 const EXPECTED_PARAM_KEYS = buildExpectedParamKeys();
 
 // ---- INPUT REGISTERS (salt okunur) ----
+// Ayarlar panelinde gösterilmiyor — bunlar parametre değil, canlı izleme verisi.
+// "Canlı İzle" ekranında (bkz. LiveMonitorUI) kullanılıyor; STATUS_CANLI_IZLEME
+// ile periyodik gelen ham değerler burada tanımlı `options`/`info` ile
+// biçimlendirilip gösteriliyor.
 const INPUT_REGS = [
-  { addr:0x0000, param:'I0',   tr:'Ölçülen sıcaklık', unit:'°C' },
-  { addr:0x0001, param:'I1',   tr:'Analog çıkış yüzdesi', unit:'%' },
-  { addr:0x0002, param:'I2',   tr:'Ölçme hata kodu (0:Yok 1:Kısa devre 2:Alt skala 3:Üst skala 4:Kopuk 5:Kalibrasyon)', unit:'' },
-  { addr:0x0003, param:'I3',   tr:'Self tune durum kodu', unit:'' },
-  { addr:0x0004, param:'I4',   tr:'Aktif sıcaklık set değeri', unit:'°C' },
-  { addr:0x0005, param:'I5',   tr:'Aktif ondalık nokta değeri', unit:'' },
-  { addr:0x0064, param:'I100', tr:'Aktif adım numarası', unit:'' },
-  { addr:0x0065, param:'I101', tr:'Aktif adımın kalan zamanı', unit:'sn' },
-  { addr:0x0066, param:'I102', tr:'Aktif adımın hedef sıcaklığı', unit:'°C' },
+  { addr:0x0000, param:'I0',   tr:'Ölçülen sıcaklık', unit:'°C',
+    info:'Sensörden o an okunan gerçek sıcaklık değeri — Proses ekranındaki büyük sıcaklık göstergesiyle aynı kaynaktan gelir.' },
+  { addr:0x0001, param:'I1',   tr:'Analog çıkış yüzdesi', unit:'%',
+    info:'Kontrol çıkışının o anki güç oranı (H32 analog seçiliyken gerçek mA/V karşılığı, röle/SSR\'de PID\'in ürettiği güç yüzdesi).' },
+  { addr:0x0002, param:'I2',   tr:'Ölçme hata kodu', unit:'',
+    options:['Hata yok','Sensör kısa devre','Alt skala hatası','Üst skala hatası','Sensör kopuk','Kalibrasyon hatası'],
+    info:'Sensör/ölçüm devresinde o an bir arıza olup olmadığını ve tipini gösterir.',
+    notes:['0 dışında bir değer, H10/C9\'daki "sensör hatasında kontrol biçimi" davranışının o an devrede olduğu anlamına gelir.'] },
+  { addr:0x0003, param:'I3',   tr:'Self tune durum kodu', unit:'',
+    options:['Hata yok','Başlangıç sıcaklığı set değerinin %60\'ından yüksek','PID parametreleri hesaplanıyor','Power set parametresi hesaplanıyor'],
+    info:'C10 ile self tune başlatıldığında sürecin hangi aşamada olduğunu gösterir.' },
+  { addr:0x0004, param:'I4',   tr:'Aktif sıcaklık set değeri', unit:'°C',
+    info:'O an kontrolün hedeflediği gerçek set değeri — termostat modunda H0/H1\'den (C7\'ye göre), profil modunda aktif adımdan gelir.' },
+  { addr:0x0005, param:'I5',   tr:'Aktif ondalık nokta değeri', unit:'',
+    options:['Ondalık yok','0.0','0.00','0.000'],
+    info:'Cihazın gösterge/register değerlerini kaç ondalık basamakla yorumladığını gösterir — H28 sensör tipine göre otomatik belirlenir.' },
+  { addr:0x0064, param:'I100', tr:'Aktif adım numarası', unit:'',
+    info:'Profil modunda o an çalışmakta olan adımın numarası (1-16).' },
+  { addr:0x0065, param:'I101', tr:'Aktif adımın kalan zamanı', unit:'sn',
+    info:'Aktif adımın bitmesine kalan süre — Proses ekranındaki "Kalan Süre" göstergesiyle aynı kaynaktan gelir.' },
+  { addr:0x0066, param:'I102', tr:'Aktif adımın hedef sıcaklığı', unit:'°C',
+    info:'O an çalışan profil adımının hedef sıcaklığı.' },
 ];
 
 // ---- DISCRETE REGISTERS (salt okunur) ----
@@ -647,29 +837,80 @@ const DISCRETE_REGS = [
   { addr:0x0069, param:'D105', tr:'Adım zamanlayıcısı çalışıyor' },
 ];
 
-// ---- "Genel Parametreler" sekmesi kategori kutuları (PID hariç tüm ayarlar) ----
-const PARAM_CATEGORIES = [
-  { title: 'Set Sıcaklıkları',   holding: [0x0000, 0x0001, 0x0002, 0x0003],                                           coil: [0x0007] },
-  { title: 'Haberleşme',         holding: [0x001E, 0x0030, 0x0034],                                                    coil: [0x000B] },
-  { title: 'Sensör & Giriş',     holding: [0x001C, 0x001D, 0x001F, 0x0023, 0x002D, 0x002E, 0x002F],                    coil: [0x0005, 0x0009] },
-  { title: 'Çıkış & Kontrol',    holding: [0x0020, 0x0021, 0x0022, 0x0027, 0x002A, 0x002B, 0x002C],                    coil: [0x0004, 0x0006, 0x0008] },
-  { title: 'Dijital Girişler',   holding: [0x0028, 0x0029],                                                            coil: [] },
-  { title: 'Alarm 1',            holding: [0x000C, 0x000D, 0x000E, 0x000F, 0x0010, 0x0011, 0x0012, 0x0013, 0x0014, 0x0015, 0x0016], coil: [0x0002, 0x0003] },
-  { title: 'Alarm 2',            holding: [0x0017, 0x0018, 0x0019, 0x001A, 0x001B],                                    coil: [0x0000, 0x0001] },
+// ---- "Proses" sekmesi: SADECE H0/H1 (aktif set sıcaklıkları) ve profil
+// adımlarıyla doğrudan ilgili parametreler. Profil meta (H100/H101, bkz.
+// renderProfileMeta) ve adım alanlarının kendisi (bkz. renderStepFields) ayrı
+// render fonksiyonlarında zaten gösteriliyor, burada tekrarlanmıyor. Dijital
+// Girişler (H40/H41) buradan çıkarıldı — sadece "Tüm Parametreler" sekmesinde.
+// C7 (H0/H1 seçim biti) de çıkarıldı — aynı gerekçeyle sadece "Tüm Parametreler"de.
+const PROCESS_CATEGORIES = [
+  { title: 'Set Sıcaklıkları', holding: [0x0000, 0x0001] },
   // H102 (0x0066) burada YOK: artık adım başına ayrı bir sanal register olarak
   // yönetiliyor (bkz. getProfileStepTolerance) — ESP32 gerçek H102'yi adım
   // değişince otomatik güncellediği için elle düzenlenebilir global alan olarak
   // gösterilmiyor.
-  { title: 'Profil Kontrolü',    holding: [0x0087],                                                                    coil: [0x0084, 0x0085, 0x0086, 0x0087, 0x0088, 0x0089, 0x008A] },
 ];
 
-// ---- "PID & Self Tune" sekmesi ----
-const PID_CATEGORY = { title: 'PID Ayarları', holding: [0x0004, 0x0006, 0x0007, 0x0008, 0x0009, 0x000A, 0x000B] };
+// "Profil Kontrolü" kartı Proses sekmesinin en altında, adım alanlarının ve
+// fabrika sıfırlama butonunun altında ayrı render ediliyor (bkz. renderProcessTab).
+const PROFILE_CONTROL_CATEGORY = { title: 'Profil Kontrolü', holding: [0x0087], coil: [0x0084, 0x0085, 0x0086, 0x0087, 0x0088, 0x0089, 0x008A] };
+
+// ---- "Sensör Girişi" sekmesi: giriş tipi ve giriş sinyaliyle ilgili parametreler.
+// H2/H3 (kontrol çıkışı min/maks set limiti) buradan çıkarıldı — sadece
+// "Tüm Parametreler"de.
+const SENSOR_CATEGORIES = [
+  { title: 'Sensör Tipi',   holding: [0x001C], coil: [0x0005] },
+  { title: 'Giriş Sinyali', holding: [0x001F, 0x0023, 0x002D, 0x002E, 0x002F], coil: [0x0009] },
+];
+
+// H28 (Giriş tipi) seçenek indexlerinden hangileri mA/V analog giriş — bu tipler
+// seçiliyken H45 (ondalık nokta), H46/H47 (kullanıcı skala) alanları anlamlı olur;
+// termokupl/PT100 tiplerinde (ör. J) bu üç alanın bir karşılığı yok, o yüzden
+// Sensör Girişi sekmesinde gizleniyorlar (bkz. SettingsUI._updateSensorTypeVisibility).
+const ANALOG_INPUT_TYPE_INDICES = [12, 13, 14, 15, 16, 17]; // 0-20mA,4-20mA,0-10V,2-10V,0-25mV,0-50mV
+const SENSOR_TYPE_DEPENDENT_ADDRS = [0x002D, 0x002E, 0x002F]; // H45, H46, H47
+
+// ---- "PID" sekmesi: kontrol algoritması parametreleri (Self Tune kartı ayrı,
+// sabit HTML'de — bkz. renderPidTab) ----
+const PID_CATEGORY = { title: 'PID Ayarları', holding: [0x0004, 0x0005, 0x0006, 0x0007, 0x0008, 0x0009, 0x000A, 0x000B, 0x001D] };
+
+// ---- "Çıkış" sekmesi: fiziksel kontrol çıkışı (röle/SSR/analog) ayarları ----
+const OUTPUT_CATEGORY = { title: 'Çıkış Ayarları', holding: [0x0020, 0x0021, 0x0022, 0x0027, 0x002A, 0x002B, 0x002C], coil: [0x0004, 0x0006, 0x0008] };
+
+// ---- "Haberleşme" sekmesi ----
+const COMM_CATEGORY = { title: 'Haberleşme', holding: [0x001E, 0x0030, 0x0034], coil: [0x000B] };
+
+// ---- "Alarm" sekmesi: adım bazlı A1/C-A2 alarm coil'leri (C100-C131, bkz.
+// getProfileStepCoils) HARİÇ — sadece genel Alarm1/Alarm2 register'ları ----
+const ALARM_CATEGORIES = [
+  { title: 'Alarm 1', holding: [0x000C, 0x000D, 0x000E, 0x000F, 0x0010, 0x0011, 0x0012, 0x0013, 0x0014, 0x0015, 0x0016], coil: [0x0002, 0x0003] },
+  { title: 'Alarm 2', holding: [0x0017, 0x0018, 0x0019, 0x001A, 0x001B], coil: [0x0000, 0x0001] },
+];
+
 const SELF_TUNE_COIL_ADDR = 0x000A; // C10
 
 // H100 (zaman birimi) ve H101 (kaç adım kullanılacak) profil adımı seçicisinin
 // hemen üstünde, "profil geneli" ayarları olarak gösterilir.
 const PROFILE_META_ADDR = { timeBase: 0x0064, stepCount: 0x0065 };
+
+// Bir parametre satırının info (ⓘ) butonunu üretir — SettingsUI (Holding/Coil,
+// regType 0/1) ve LiveMonitorUI (Input, regType 3) ortak kullanıyor. Tıklanınca
+// WeldmacApp'teki delege edilmiş dinleyici data-info'yu çözüp ParamInfoModal'ı
+// doğrudan (ESP'ye sormadan, bkz. ParamInfoModal) açar.
+// regType: 0=Holding, 1=Coil, 3=Input.
+function renderParamInfoBtn(p, regType) {
+  const payload = encodeURIComponent(JSON.stringify({
+    param: p.param, addr: p.addr, regType, tr: p.tr, unit: p.unit, def: p.def, options: p.options,
+    info: p.info, notes: p.notes,
+  }));
+  return `<button class="param-info-btn" data-info="${payload}" aria-label="Parametre bilgisi">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/>
+      <line x1="12" y1="16" x2="12" y2="12"/>
+      <line x1="12" y1="8" x2="12.01" y2="8"/>
+    </svg>
+  </button>`;
+}
 
 // =====================================================================
 // AYARLAR SAYFASI — parametre/coil satırlarını render eder, sekme ve
@@ -685,9 +926,13 @@ class SettingsUI {
     this._bindStepSelector();
     this._bindTabs();
     this._bindSelfTune();
-    this.renderGeneralTab();
+    this.renderProcessTab();
+    this.renderSensorTab();
     this.renderPidTab();
-    this.renderReadonlyTab();
+    this.renderOutputTab();
+    this.renderCommTab();
+    this.renderAlarmTab();
+    this.renderAllParamsTab();
   }
 
   // extraHtml: satıra ekstra bir rozet eklemek için (ör. adım hedef sıcaklığının
@@ -700,33 +945,11 @@ class SettingsUI {
       : `<input class="param-input" type="number" data-addr="${p.addr}" data-coil="${!!isCoil}" value="${p.def ?? ''}" />`;
 
     return `<div class="param-row" data-row-addr="${p.addr}" data-row-coil="${!!isCoil}">
-      ${this._renderInfoBtn(p)}
+      ${renderParamInfoBtn(p, isCoil ? 1 : 0)}
       <span class="param-label">${p.tr}${p.unit ? ' (' + p.unit + ')' : ''}<span class="param-addr">${p.param} · 0x${p.addr.toString(16).toUpperCase().padStart(4,'0')}</span></span>
       ${inputHtml}
       ${extraHtml}
-      <span class="param-check">✓</span>
     </div>`;
-  }
-
-  renderReadonlyRow(p) {
-    return `<div class="param-row">
-      ${this._renderInfoBtn(p)}
-      <span class="param-label">${p.tr}${p.unit ? ' (' + p.unit + ')' : ''}<span class="param-addr">${p.param} · 0x${p.addr.toString(16).toUpperCase().padStart(4,'0')}</span></span>
-      <span class="param-value-readonly" id="ro-${p.param}">--</span>
-    </div>`;
-  }
-
-  _renderInfoBtn(p) {
-    const info = encodeURIComponent(JSON.stringify({
-      param: p.param, addr: p.addr, tr: p.tr, unit: p.unit, def: p.def, options: p.options,
-    }));
-    return `<button class="param-info-btn" data-info="${info}" aria-label="Parametre bilgisi">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="10"/>
-        <line x1="12" y1="16" x2="12" y2="12"/>
-        <line x1="12" y1="8" x2="12.01" y2="8"/>
-      </svg>
-    </button>`;
   }
 
   renderCategoryCard(category) {
@@ -746,11 +969,39 @@ class SettingsUI {
     </div>`;
   }
 
-  renderGeneralTab() {
+  renderProcessTab() {
     document.getElementById('categoryCardsContainer').innerHTML =
-      PARAM_CATEGORIES.map(cat => this.renderCategoryCard(cat)).join('');
+      PROCESS_CATEGORIES.map(cat => this.renderCategoryCard(cat)).join('');
     this.renderProfileMeta();
     this.renderStepFields(1);
+    document.getElementById('profileControlCardContainer').innerHTML =
+      this.renderCategoryCard(PROFILE_CONTROL_CATEGORY);
+  }
+
+  renderSensorTab() {
+    document.getElementById('sensorCardContainer').innerHTML =
+      SENSOR_CATEGORIES.map(cat => this.renderCategoryCard(cat)).join('');
+    const sensorTypeParam = HOLDING_BASE.find(p => p.addr === 0x001C);
+    this._updateSensorTypeVisibility(Number(this._cachedValue(0x001C, false, sensorTypeParam?.def ?? 0)));
+  }
+
+  // H28 (Giriş tipi) değişince, sadece mA/V tiplerinde (bkz. ANALOG_INPUT_TYPE_INDICES)
+  // anlamlı olan H45/H46/H47 satırlarını Sensör Girişi sekmesinde gösterir/gizler.
+  // "Tüm Parametreler" sekmesine kasıtlı olarak dokunulmuyor — o sekme her zaman
+  // ham/eksiksiz register listesini göstermeli.
+  _updateSensorTypeVisibility(rawIndex) {
+    const isAnalog = ANALOG_INPUT_TYPE_INDICES.includes(rawIndex);
+    const container = document.getElementById('sensorCardContainer');
+    if (!container) return;
+    SENSOR_TYPE_DEPENDENT_ADDRS.forEach(addr => {
+      const row = container.querySelector(`.param-row[data-row-addr="${addr}"][data-row-coil="false"]`);
+      if (row) row.style.display = isAnalog ? '' : 'none';
+    });
+  }
+
+  renderAlarmTab() {
+    document.getElementById('alarmCardContainer').innerHTML =
+      ALARM_CATEGORIES.map(cat => this.renderCategoryCard(cat)).join('');
   }
 
   // H100 (zaman birimi) + H101 (kaç adım kullanılacak) — adım seçicinin hemen üstünde.
@@ -768,11 +1019,52 @@ class SettingsUI {
     this._updateSelfTuneStatus(0);
   }
 
-  renderReadonlyTab() {
-    const inputRows = INPUT_REGS.map(p => this.renderReadonlyRow(p)).join('');
-    const discreteRows = DISCRETE_REGS.map(p => this.renderReadonlyRow(p)).join('');
-    document.getElementById('panel-readonly').innerHTML =
-      `<div class="section-header">Input Registers</div>${inputRows}<div class="section-header">Discrete Registers</div>${discreteRows}`;
+  renderOutputTab() {
+    document.getElementById('outputCardContainer').innerHTML = this.renderCategoryCard(OUTPUT_CATEGORY);
+  }
+
+  renderCommTab() {
+    document.getElementById('commCardContainer').innerHTML = this.renderCategoryCard(COMM_CATEGORY);
+  }
+
+  // "Tüm Parametreler" sekmesi — kategori kutuları YOK, adres sırasına göre düz liste.
+  // İki bölüm var: gerçek ENDA register'ları (Holding, sonra Coil) ve ESP'nin kendi
+  // NVS'sinde tuttuğu sanal adım parametreleri (H102STPn tolerans, STPKRTn kriteri).
+  // Aynı parametre başka sekmelerde de görünüyor olabilir — sorun değil, applyParamValue
+  // zaten querySelectorAll ile TÜM eşleşen alanları güncelliyor.
+  renderAllParamsTab() {
+    const holdingRows = HOLDING_BASE.map(p => this.renderParamRow(p, false)).join('');
+    const stepRegRows = [];
+    for (let step = 1; step <= 16; step++) {
+      const regs = getProfileStepRegs(step);
+      stepRegRows.push(this.renderParamRow({ ...regs.target, def: this._cachedValue(regs.target.addr, false, 200) }, false));
+      stepRegRows.push(this.renderParamRow({ ...regs.time, def: this._cachedValue(regs.time.addr, false, 60) }, false));
+    }
+
+    const coilRows = COIL_BASE.map(p => this.renderParamRow(p, true)).join('');
+    const stepCoilRows = [];
+    for (let step = 1; step <= 16; step++) {
+      const coils = getProfileStepCoils(step);
+      stepCoilRows.push(this.renderParamRow({ ...coils.a1, def: this._cachedValue(coils.a1.addr, true, 0) }, true));
+      stepCoilRows.push(this.renderParamRow({ ...coils.ca2, def: this._cachedValue(coils.ca2.addr, true, 0) }, true));
+    }
+
+    const virtualRows = [];
+    for (let step = 1; step <= 16; step++) {
+      const tolerance = getProfileStepTolerance(step);
+      const criteria = getProfileStepCriteria(step);
+      virtualRows.push(this.renderParamRow({ ...tolerance, def: this._cachedValue(tolerance.addr, false, tolerance.def) }, false));
+      virtualRows.push(this.renderParamRow({ ...criteria, def: this._cachedValue(criteria.addr, true, 0) }, true));
+    }
+
+    document.getElementById('allParamsContainer').innerHTML = `
+      <div class="section-header">ENDA Register'ları — Holding</div>
+      ${holdingRows}${stepRegRows.join('')}
+      <div class="section-header">ENDA Register'ları — Coil</div>
+      ${coilRows}${stepCoilRows.join('')}
+      <div class="section-header">ESP Sanal Parametreleri (Adım Bazlı)</div>
+      ${virtualRows.join('')}
+    `;
   }
 
   renderStepFields(step) {
@@ -828,9 +1120,9 @@ class SettingsUI {
       tab.addEventListener('click', () => {
         document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
         tab.classList.add('active');
-        document.getElementById('panel-general').style.display = tab.dataset.tab === 'general' ? 'flex' : 'none';
-        document.getElementById('panel-pid').style.display = tab.dataset.tab === 'pid' ? 'flex' : 'none';
-        document.getElementById('panel-readonly').style.display = tab.dataset.tab === 'readonly' ? 'flex' : 'none';
+        document.querySelectorAll('.settings-panel').forEach(panel => {
+          panel.style.display = panel.id === `panel-${tab.dataset.tab}` ? 'flex' : 'none';
+        });
       });
     });
   }
@@ -888,6 +1180,9 @@ class SettingsUI {
     if (!isCoil && addr === PROFILE_META_ADDR.stepCount) {
       this.setMaxStepCount(value);
     }
+    if (!isCoil && addr === 0x001C) {
+      this._updateSensorTypeVisibility(value); // H28 — sensör tipi
+    }
   }
 
   _cacheKey(addr, isCoil) {
@@ -933,13 +1228,48 @@ class SettingsUI {
     this.tempHasDecimal = hasDecimal;
   }
 
-  // Bir parametre yazma onayı gelince, o satırdaki ✓ işaretini 1 saniyeliğine gösterir.
+  // Bir parametre yazma onayı gelince, o alanın çerçevesini kısaca yeşile
+  // yakıp söndürür (bkz. @keyframes paramSavedFlash).
   showWriteConfirmation(addr, isCoil) {
-    document.querySelectorAll(`.param-row[data-row-addr="${addr}"][data-row-coil="${isCoil}"] .param-check`).forEach(el => {
-      el.classList.add('show');
-      clearTimeout(el._t);
-      el._t = setTimeout(() => el.classList.remove('show'), 1000);
+    document.querySelectorAll(`.param-input[data-addr="${addr}"][data-coil="${isCoil}"], .param-select[data-addr="${addr}"][data-coil="${isCoil}"]`).forEach(el => {
+      el.classList.remove('saved-flash');
+      void el.offsetWidth; // reflow — art arda aynı alana yazılırsa animasyonu yeniden tetikler
+      el.classList.add('saved-flash');
     });
+  }
+}
+
+// =====================================================================
+// DAİRESEL İLERLEME HALKASI — Log kayıtları, ENDA parametreleri ve yazılım
+// güncelleme (kontrol + gönderim) ekranlarının hepsinde kullanılan tek ortak
+// bileşen (bkz. .ring-progress-* stilleri).
+// =====================================================================
+class RingProgress {
+  constructor(ringFillEl, percentEl, countEl) {
+    this.ringFillEl = ringFillEl;
+    this.percentEl = percentEl;
+    this.countEl = countEl;
+    const r = ringFillEl.r.baseVal.value;
+    this.circumference = 2 * Math.PI * r;
+    this.ringFillEl.style.strokeDasharray = `${this.circumference}`;
+    this.setPercent(0);
+  }
+
+  setPercent(pct) {
+    const clamped = Math.min(100, Math.max(0, pct));
+    const offset = this.circumference * (1 - clamped / 100);
+    this.ringFillEl.style.strokeDashoffset = `${offset}`;
+    if (this.percentEl) this.percentEl.textContent = `%${Math.round(clamped)}`;
+  }
+
+  // received/total: halkanın içindeki "x / y" sayacını da günceller (Log/Ayarlar'daki kullanım).
+  set(received, total) {
+    this.setPercent(total > 0 ? (received / total) * 100 : 0);
+    if (this.countEl) this.countEl.textContent = `${received} / ${total}`;
+  }
+
+  setCount(text) {
+    if (this.countEl) this.countEl.textContent = text;
   }
 }
 
@@ -948,11 +1278,11 @@ class SettingsUI {
 // butonuna basılınca açılır
 // =====================================================================
 class SettingsOverlay {
-  constructor(overlayEl, titleEl, closeBtnEl, loadingEl, progressEl, errorEl, errorTextEl, retryBtnEl, bodyEl, onRetry) {
+  constructor(overlayEl, titleEl, closeBtnEl, loadingEl, ringFillEl, percentEl, progressEl, errorEl, errorTextEl, retryBtnEl, bodyEl, onRetry) {
     this.overlay = overlayEl;
     this.title = titleEl;
     this.loadingEl = loadingEl;
-    this.progressEl = progressEl;
+    this.ring = new RingProgress(ringFillEl, percentEl, progressEl);
     this.errorEl = errorEl;
     this.errorTextEl = errorTextEl;
     this.bodyEl = bodyEl;
@@ -970,9 +1300,9 @@ class SettingsOverlay {
     this.overlay.classList.add('show');
   }
 
-  // ESP'den her YANIT_PARAMETRE geldikçe çağrılır — "X / TOTAL" sayacını günceller.
+  // ESP'den her YANIT_PARAMETRE geldikçe çağrılır — halkayı ve "X / TOTAL" sayacını günceller.
   updateProgress(received, total) {
-    if (this.progressEl) this.progressEl.textContent = `${received} / ${total}`;
+    this.ring.set(received, total);
   }
 
   // YANIT_PARAMETRE_BITTI geldiğinde beklenen sayıya ulaşılamamışsa gösterilir.
@@ -1000,8 +1330,90 @@ class SettingsOverlay {
 }
 
 // =====================================================================
-// PARAMETRE BİLGİ MESAJI — parametre satırındaki info ikonuna basılınca
-// açıklama/birim/varsayılan/seçenekleri gösterir
+// CANLI İZLEME — Input register'larını (I0-I5, I100-I102) gerçek zamanlı gösterir.
+// Panel açılınca ISTEK_CANLI_IZLEME_BASLA gönderilir, bundan sonra ESP
+// STATUS_CANLI_IZLEME'yi periyodik yayınlar; panel kapanınca DURDUR gönderilip
+// yayın kesilir — böylece ESP sadece panel gerçekten açıkken bu veriyi üretir.
+// =====================================================================
+class LiveMonitorUI {
+  constructor(overlayEl, closeBtnEl, bodyEl, { onOpen, onClose }) {
+    this.overlay = overlayEl;
+    this.body = bodyEl;
+    this.onOpen = onOpen;
+    this.onClose = onClose;
+    this.decimals = 1; // H28 sensör tipi öğrenilene kadar varsayılan
+
+    closeBtnEl.addEventListener('click', () => this.close());
+    overlayEl.addEventListener('click', (e) => {
+      if (e.target === overlayEl) this.close();
+    });
+
+    this.body.innerHTML = INPUT_REGS.map(p => `<div class="param-row">
+      ${renderParamInfoBtn(p, 3)}
+      <span class="param-label">${p.tr}${p.unit ? ' (' + p.unit + ')' : ''}<span class="param-addr">${p.param} · 0x${p.addr.toString(16).toUpperCase().padStart(4,'0')}</span></span>
+      <span class="param-value-readonly" data-live-param="${p.param}">--</span>
+    </div>`).join('');
+  }
+
+  // H28 (Giriş/sensör tipi) değişince WeldmacApp._applySensorType tarafından
+  // çağrılır — ProcessScreen.setDecimalMode ile aynı desen.
+  setDecimalMode(hasDecimal) {
+    this.decimals = hasDecimal ? 1 : 0;
+  }
+
+  open() {
+    this.overlay.classList.add('show');
+    this.onOpen && this.onOpen();
+  }
+
+  close() {
+    this.overlay.classList.remove('show');
+    this.onClose && this.onClose();
+  }
+
+  // STATUS_CANLI_IZLEME geldikçe çağrılır — raw: ESP'den gelen ham (ölçeklenmemiş,
+  // imzalı) değerler: { i0, i1, i2, i3, i4, i5, i100, i101, i102 }.
+  update(raw) {
+    this._setValue('I0', this._formatTemp(raw.i0));
+    this._setValue('I1', (raw.i1 / 100).toFixed(2));
+    this._setValue('I2', this._optionLabel('I2', raw.i2));
+    this._setValue('I3', this._optionLabel('I3', raw.i3));
+    this._setValue('I4', this._formatTemp(raw.i4));
+    this._setValue('I5', this._optionLabel('I5', raw.i5));
+    this._setValue('I100', String(raw.i100));
+    this._setValue('I101', this._formatDuration(raw.i101));
+    this._setValue('I102', this._formatTemp(raw.i102));
+  }
+
+  _setValue(param, text) {
+    const el = this.body.querySelector(`[data-live-param="${param}"]`);
+    if (el) el.textContent = text;
+  }
+
+  _formatTemp(raw) {
+    return (raw / Math.pow(10, this.decimals)).toFixed(this.decimals);
+  }
+
+  _optionLabel(param, value) {
+    const p = INPUT_REGS.find(x => x.param === param);
+    return p?.options?.[value] ?? `#${value}`;
+  }
+
+  _formatDuration(totalSeconds) {
+    const m = Math.floor(totalSeconds / 60);
+    const s = totalSeconds % 60;
+    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  }
+}
+
+// =====================================================================
+// PARAMETRE BİLGİ MESAJI — parametre satırındaki info ikonuna basılınca açılır.
+// Açıklama ve uyarı notları artık ESP'den istenmiyor (eskiden ISTEK_PARAMETRE_DETAY
+// ile her tıklamada ESP'ye ayrı bir istek gidiyordu — cihaz üzerinde ~70 register
+// için metin tutmak/parçalayıp göndermek gereksiz yük oluşturuyordu). Bunun yerine
+// her parametrenin `info` (ne işe yarar) ve `notes` (koşullu uyarılar, ör. "H2 ile
+// H3 arasında olmalıdır") alanları doğrudan HOLDING_BASE/COIL_BASE'de (bkz.
+// app.js üstü) tanımlı — bu yüzden popup tamamen anlık ve yerel açılıyor.
 // =====================================================================
 class ParamInfoModal {
   constructor(overlayEl, titleEl, bodyEl, closeBtnEl) {
@@ -1026,8 +1438,13 @@ class ParamInfoModal {
     }
     if (data.options) rows.push(['Seçenekler', data.options.join(', ')]);
 
+    const descHtml = data.info ? `<div class="param-info-desc">${data.info}</div>` : '';
+    const warnHtml = data.notes?.length
+      ? `<div class="param-info-warnings">${data.notes.map(w => `<div class="param-info-warn">⚠ ${w}</div>`).join('')}</div>`
+      : '';
+
     this.body.innerHTML = `
-      <div class="param-info-desc">${data.tr}</div>
+      ${descHtml}${warnHtml}
       ${rows.map(([k, v]) => `<div class="info-popup-row"><span class="k">${k}</span><span class="v">${v}</span></div>`).join('')}
     `;
     this.overlay.classList.add('show');
@@ -1159,6 +1576,74 @@ class FwUpdateConfirmModal {
   }
 
   open() {
+    this.overlay.classList.add('show');
+  }
+
+  close() {
+    this.overlay.classList.remove('show');
+  }
+}
+
+// H36 (0x0024, "Fonksiyon kontrol parametresi") kasıtlı olarak HOLDING_BASE'e
+// eklenmedi — PDF bu register için "EndaLink uygulamasından değiştirilmemelidir!!"
+// uyarısı veriyor. Self-tune zaten C10 coil'i üzerinden yapılıyor; H36'nın tek
+// gerçek kullanım alanı bu iki fabrika-sıfırlama magic değeri, o yüzden serbest
+// düzenlenebilir bir alan yerine korumalı, onaylı bir buton çifti olarak sunuluyor.
+const FACTORY_RESET_CODES = { general: 23042, profile: 23043 }; // 5A02h / 5A03h
+const FACTORY_RESET_DESCRIPTIONS = {
+  general: 'Set sıcaklıkları, PID, alarm, sensör ve haberleşme ayarları (H0-H51, C0-C10) fabrika değerlerine dönecek. Bu işlem geri alınamaz.',
+  profile: 'Tüm profil adımları (H100-H137, C100-C138) fabrika değerlerine dönecek. Bu işlem geri alınamaz.',
+};
+
+class FactoryResetConfirmModal {
+  constructor(overlayEl, descEl, closeBtnEl, cancelBtnEl, okBtnEl, onConfirm) {
+    this.overlay = overlayEl;
+    this.desc = descEl;
+    this.kind = null;
+    this.onConfirm = onConfirm;
+
+    closeBtnEl.addEventListener('click', () => this.close());
+    cancelBtnEl.addEventListener('click', () => this.close());
+    overlayEl.addEventListener('click', (e) => {
+      if (e.target === overlayEl) this.close();
+    });
+    okBtnEl.addEventListener('click', () => {
+      const kind = this.kind;
+      this.close();
+      if (kind) this.onConfirm(kind);
+    });
+  }
+
+  open(kind) {
+    this.kind = kind;
+    this.desc.textContent = FACTORY_RESET_DESCRIPTIONS[kind] ?? '';
+    this.overlay.classList.add('show');
+  }
+
+  close() {
+    this.overlay.classList.remove('show');
+    this.kind = null;
+  }
+}
+
+// Genel amaçlı tek-butonlu uyarı kutusu — şu an sadece parametre aralık
+// doğrulaması (bkz. WeldmacApp._validateParamRange) tarafından kullanılıyor.
+class AlertModal {
+  constructor(overlayEl, titleEl, messageEl, closeBtnEl, okBtnEl) {
+    this.overlay = overlayEl;
+    this.title = titleEl;
+    this.message = messageEl;
+
+    closeBtnEl.addEventListener('click', () => this.close());
+    okBtnEl.addEventListener('click', () => this.close());
+    overlayEl.addEventListener('click', (e) => {
+      if (e.target === overlayEl) this.close();
+    });
+  }
+
+  open(title, message) {
+    this.title.textContent = title;
+    this.message.textContent = message;
     this.overlay.classList.add('show');
   }
 
@@ -1466,9 +1951,9 @@ class LogsUI {
     history: r => LogsUI._isHistorical(r),
   };
 
-  constructor(loadingEl, progressEl, errorEl, errorTextEl, retryBtnEl, contentEl, tabPanels, clearHistoryBtnEl, navBadgeEl, onRetry) {
+  constructor(loadingEl, ringFillEl, percentEl, progressEl, errorEl, errorTextEl, retryBtnEl, contentEl, tabPanels, clearHistoryBtnEl, navBadgeEl, onRetry) {
     this.loadingEl = loadingEl;
-    this.progressEl = progressEl;
+    this.ring = new RingProgress(ringFillEl, percentEl, progressEl);
     this.errorEl = errorEl;
     this.errorTextEl = errorTextEl;
     this.contentEl = contentEl;
@@ -1506,9 +1991,9 @@ class LogsUI {
     this.navBadge.textContent = '';
   }
 
-  // ESP'den her YANIT_ARIZA_KAYDI geldikçe çağrılır — "X / TOTAL" sayacını günceller.
+  // ESP'den her YANIT_ARIZA_KAYDI geldikçe çağrılır — halkayı ve "X / TOTAL" sayacını günceller.
   updateProgress(received, total) {
-    if (this.progressEl) this.progressEl.textContent = `${received} / ${total}`;
+    this.ring.set(received, total);
   }
 
   // YANIT_ARIZA_KAYITLARI_BITTI geldiğinde beklenen sayıya ulaşılamamışsa gösterilir.
@@ -1715,12 +2200,7 @@ class FirmwareUpdateUI {
     this._resolveOtaChunkAck = null;
     this._pendingBytes = null; // indirilip onay bekleyen firmware verisi
 
-    // İlerleme halkasının çevresini SVG'deki gerçek yarıçaptan hesapla (CSS/HTML'de
-    // yarıçap değişse bile burada elle senkron tutmaya gerek kalmasın).
-    const r = this.els.progressRingFillEl.r.baseVal.value;
-    this._ringCircumference = 2 * Math.PI * r;
-    this.els.progressRingFillEl.style.strokeDasharray = `${this._ringCircumference}`;
-    this.els.progressRingFillEl.style.strokeDashoffset = `${this._ringCircumference}`;
+    this.ring = new RingProgress(this.els.progressRingFillEl, this.els.progressPercentEl, this.els.progressBytesEl);
 
     this.els.updateBtn.addEventListener('click', () => this._downloadAndConfirm());
     this.els.retryBtn.addEventListener('click', () => this._checkVersions());
@@ -1865,11 +2345,8 @@ class FirmwareUpdateUI {
 
   // pct: yüzde (halkanın dolum oranı). sentBytes/totalBytes: merkezdeki "x / y KB" yazısı.
   _setProgress(pct, sentBytes, totalBytes) {
-    const offset = this._ringCircumference * (1 - pct / 100);
-    this.els.progressRingFillEl.style.strokeDashoffset = `${offset}`;
-    this.els.progressPercentEl.textContent = `%${pct}`;
-    this.els.progressBytesEl.textContent =
-      `${FirmwareUpdateUI._formatKB(sentBytes)} / ${FirmwareUpdateUI._formatKB(totalBytes)} KB`;
+    this.ring.setPercent(pct);
+    this.ring.setCount(`${FirmwareUpdateUI._formatKB(sentBytes)} / ${FirmwareUpdateUI._formatKB(totalBytes)} KB`);
   }
 
   // "GÜNCELLE" butonuna basılınca çağrılır. ÖNCE dosyayı indirir — ancak indirme
@@ -2031,6 +2508,16 @@ class WeldmacApp {
       document.getElementById('closeInfoPopup')
     );
 
+    this.liveMonitorUI = new LiveMonitorUI(
+      document.getElementById('liveMonitorOverlay'),
+      document.getElementById('closeLiveMonitor'),
+      document.getElementById('liveMonitorBody'),
+      {
+        onOpen: () => this.ble.requestCanliIzlemeBasla(),
+        onClose: () => this.ble.requestCanliIzlemeDurdur(),
+      }
+    );
+
     this.settingsUI = new SettingsUI();
 
     this.settingsOverlay = new SettingsOverlay(
@@ -2038,6 +2525,8 @@ class WeldmacApp {
       document.getElementById('settingsOverlayTitle'),
       document.getElementById('closeSettingsOverlay'),
       document.getElementById('settingsLoading'),
+      document.getElementById('settingsProgressRingFill'),
+      document.getElementById('settingsProgressPercent'),
       document.getElementById('settingsLoadingProgress'),
       document.getElementById('settingsError'),
       document.getElementById('settingsErrorText'),
@@ -2105,6 +2594,7 @@ class WeldmacApp {
       this.infoPopup.open(1, this.lastTemps);
       this.ble.requestEndaBaglanti();
     });
+    document.getElementById('tempLiveBtn').addEventListener('click', () => this.liveMonitorUI.open());
 
     // Bilgi/ayarlar kutucukları varsayılan gizli — ok tıklanınca açılır, dışarıya
     // tıklanınca (ya da tekrar oka basılınca) kapanır.
@@ -2124,6 +2614,8 @@ class WeldmacApp {
 
     this.logsUI = new LogsUI(
       document.getElementById('logsLoading'),
+      document.getElementById('logsProgressRingFill'),
+      document.getElementById('logsProgressPercent'),
       document.getElementById('logsLoadingProgress'),
       document.getElementById('logsError'),
       document.getElementById('logsErrorText'),
@@ -2195,6 +2687,21 @@ class WeldmacApp {
       document.getElementById('fwUpdateConfirmOk'),
       () => this.firmwareUpdateUI.startUpdate()
     );
+    this.factoryResetConfirmModal = new FactoryResetConfirmModal(
+      document.getElementById('factoryResetConfirmOverlay'),
+      document.getElementById('factoryResetConfirmDesc'),
+      document.getElementById('closeFactoryResetConfirm'),
+      document.getElementById('factoryResetConfirmCancel'),
+      document.getElementById('factoryResetConfirmOk'),
+      (kind) => this._sendFactoryReset(kind)
+    );
+    this.alertModal = new AlertModal(
+      document.getElementById('alertOverlay'),
+      document.getElementById('alertTitle'),
+      document.getElementById('alertMessage'),
+      document.getElementById('closeAlert'),
+      document.getElementById('alertOkBtn')
+    );
 
     this._bindGlobalUI();
     this._exposeTestHelpers();
@@ -2221,6 +2728,9 @@ class WeldmacApp {
       e.target.textContent = 'Siliniyor…';
       this.ble.clearArizaGecmisi();
     });
+
+    document.getElementById('factoryResetGeneralBtn').addEventListener('click', () => this.factoryResetConfirmModal.open('general'));
+    document.getElementById('factoryResetProfileBtn').addEventListener('click', () => this.factoryResetConfirmModal.open('profile'));
   }
 
   _handleFrame(frame) {
@@ -2327,6 +2837,15 @@ class WeldmacApp {
           this._skipNextLogsFetch = true;
           this.pager.goToPage(1);
         }
+      } else if (frame.id === BleLink.STATUS_CANLI_IZLEME) {
+        // Sadece Canlı İzle paneli açıkken gelir (bkz. LiveMonitorUI onOpen/onClose).
+        // payload (18 byte, 9 word LE, imzalı): I0,I1,I2,I3,I4,I5,I100,I101,I102
+        const p = frame.payload;
+        const word = (i) => (p[i] | (p[i + 1] << 8)) << 16 >> 16;
+        this.liveMonitorUI.update({
+          i0: word(0), i1: word(2), i2: word(4), i3: word(6), i4: word(8),
+          i5: word(10), i100: word(12), i101: word(14), i102: word(16),
+        });
       }
     } else if (frame.type === BleLink.TYPE_YANIT && frame.id === BleLink.YANIT_ENDA_BAGLANTI) {
       // payload: [sensör_tipi(1B), baud_rate(1B), modbus_adresi(1B)] — H28/H30/H48 register değerleri
@@ -2362,8 +2881,14 @@ class WeldmacApp {
       const [regType, addrLow, addrHigh, success] = frame.payload;
       const addr = addrLow | (addrHigh << 8);
       const isCoil = regType === 1;
-      if (success) this.settingsUI.showWriteConfirmation(addr, isCoil);
-      else console.warn('Parametre yazma başarısız:', { addr, isCoil });
+      if (!success) {
+        console.warn('Parametre yazma başarısız:', { addr, isCoil });
+      } else if (!isCoil && addr === 0x0024) {
+        // Fabrika sıfırlama komutu (H36) onaylandı — ayarlar paneli açıksa tazele.
+        if (this.settingsOverlay.overlay.classList.contains('show')) this._openSettingsPanel();
+      } else {
+        this.settingsUI.showWriteConfirmation(addr, isCoil);
+      }
     } else if (frame.type === BleLink.TYPE_YANIT && frame.id === BleLink.YANIT_ARIZA_KAYIT_SAYISI) {
       // payload: [sayi_low(1B), sayi_high(1B)]
       const [countLow, countHigh] = frame.payload;
@@ -2461,11 +2986,57 @@ class WeldmacApp {
     };
   }
 
-  // Bir parametre input/select'i değiştiğinde, ekrandaki (ölçeklenmiş) değeri
-  // Modbus'ın beklediği ham tam sayıya çevirip ESP'ye yazma isteği gönderir.
+  // Bir Holding register'ın tanımını (range dahil) bulur — hem HOLDING_BASE'deki
+  // sabit parametreler hem de profil adımlarının ürettiği H103..H134 register'ları
+  // (bkz. getProfileStepRegs) için çalışır.
+  _findHoldingDef(addr) {
+    const base = HOLDING_BASE.find(p => p.addr === addr);
+    if (base) return base;
+    if (addr >= 0x0067 && addr <= 0x0086) {
+      const stepIndex = Math.floor((addr - 0x0067) / 2) + 1;
+      const regs = getProfileStepRegs(stepIndex);
+      return addr === regs.target.addr ? regs.target : regs.time;
+    }
+    return null;
+  }
+
+  // Bir Holding değerinin (ekranda gösterilen, ölçeklenmiş metin hâli) izin
+  // verilen aralıkta olup olmadığını kontrol eder — bkz. HOLDING_BASE'deki `range`
+  // alanı ve resolveRangeBounds. Coil'ler zaten <select> ile sınırlı olduğundan
+  // kontrol edilmez.
+  _validateParamRange(addr, isCoil, displayValue) {
+    if (isCoil) return { valid: true };
+    const param = this._findHoldingDef(addr);
+    if (!param?.range) return { valid: true };
+    const num = parseFloat(displayValue);
+    if (Number.isNaN(num)) return { valid: true }; // NaN zaten _writeParam'da ayrıca engelleniyor
+
+    const bounds = resolveRangeBounds(param.range, this.settingsUI);
+    if (num < bounds.min || num > bounds.max) {
+      const fmt = (v) => (Number.isFinite(v) ? Number(v.toFixed(2)) : v);
+      return {
+        valid: false,
+        message: `${param.tr}, ${fmt(bounds.min)} ile ${fmt(bounds.max)} arasında olmalıdır.`,
+      };
+    }
+    return { valid: true };
+  }
+
+  // Bir parametre input/select'i değiştiğinde, önce izin verilen aralıkta mı diye
+  // kontrol eder (aralık dışıysa uyarı gösterip son bilinen değere döner), sonra
+  // ekrandaki (ölçeklenmiş) değeri Modbus'ın beklediği ham tam sayıya çevirip
+  // ESP'ye yazma isteği gönderir.
   _writeParam(el) {
     const addr = Number(el.dataset.addr);
     const isCoil = el.dataset.coil === 'true';
+
+    const validation = this._validateParamRange(addr, isCoil, el.value);
+    if (!validation.valid) {
+      this.alertModal.open('Geçersiz Değer', validation.message);
+      const param = this._findHoldingDef(addr);
+      el.value = this.settingsUI._cachedValue(addr, isCoil, param?.def ?? '');
+      return;
+    }
 
     let rawValue;
     if (isCoil) {
@@ -2497,11 +3068,14 @@ class WeldmacApp {
     const label = sensorTypeParam?.options[rawIndex];
     if (!label) return label;
 
+    this.settingsUI._updateSensorTypeVisibility(rawIndex);
+
     const isDecimal = label.includes('ondalıklı');
     if (isDecimal !== this.tempHasDecimal) {
       this.tempHasDecimal = isDecimal;
       this.settingsUI.setTempDecimalMode(isDecimal);
       this.processScreen.setDecimalMode(isDecimal);
+      this.liveMonitorUI.setDecimalMode(isDecimal);
       if (this.ble.connected) this.ble.requestSicaklikSet(); // ölçek değişti, veriyi doğru birimle tazele
     }
     return label;
@@ -2550,6 +3124,15 @@ class WeldmacApp {
     this.settingsOverlay.open(endaIndex);
     this.settingsOverlay.updateProgress(0, EXPECTED_PARAM_KEYS.size);
     this.ble.requestAllParams();
+  }
+
+  // Fabrika Ayarları onay modalından çağrılır — H36'ya (0x0024) ilgili magic değeri
+  // yazar. Sonucu YANIT_PARAMETRE_YAZILDI ile gelir (bkz. _handleFrame), oradan
+  // ayarlar paneli açıksa otomatik tazelenir.
+  _sendFactoryReset(kind) {
+    const code = FACTORY_RESET_CODES[kind];
+    if (code === undefined) return;
+    this.ble.writeParam(0x0024, false, code);
   }
 
   // Pager başka bir sayfaya geçince çağrılır — Arıza Kayıtları (index 1) ve Yazılım
@@ -2602,6 +3185,7 @@ class WeldmacApp {
 
     this.settingsOverlay.close();
     this.infoPopup.close();
+    this.liveMonitorUI.close();
     this.paramInfoModal.close();
     this.logInfoModal.close();
     this.resetConfirmModal.close();

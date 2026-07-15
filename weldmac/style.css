@@ -262,70 +262,17 @@ body.ble-disconnected .connection-overlay{ display:flex; }
 .logs-card{
   flex:1; display:flex; flex-direction:column;
 }
-/* ---- Genel "hero" yükleniyor bloğu — gradyan halka + ikon + yazı (birden fazla sayfada kullanılır) ---- */
+/* ---- Genel "hero" yükleniyor bloğu — tek ortak dairesel ilerleme bileşeni
+   (bkz. .ring-progress-*) artık Log kayıtları, ENDA parametreleri ve yazılım
+   güncelleme kontrolü/gönderimi dahil TÜM yükleniyor ekranlarında kullanılıyor. ---- */
 .hero-loading{
   flex-direction:column; gap:14px;
-}
-
-/* ---- Gradyan halka yükleniyor animasyonu (ortada ikon, altında kayan bar) ---- */
-.spinner-wrap{
-  position:relative;
-  width:64px; height:64px;
-  display:flex; align-items:center; justify-content:center;
-}
-.spinner-ring{
-  position:absolute; inset:0;
-  border-radius:50%;
-  background:conic-gradient(from 0deg, transparent 0deg, var(--accent) 90deg, #67e8f9 200deg, #f59e0b 300deg, transparent 360deg);
-  -webkit-mask:radial-gradient(farthest-side, transparent calc(100% - 6px), #000 calc(100% - 6px));
-  mask:radial-gradient(farthest-side, transparent calc(100% - 6px), #000 calc(100% - 6px));
-  animation:spin 1.1s linear infinite;
-  filter:drop-shadow(0 0 10px rgba(185,40,52,.45));
-}
-.spinner-icon{
-  position:relative;
-  width:24px; height:24px;
-  color:#f97316;
-  filter:drop-shadow(0 0 5px rgba(249,115,22,.6));
-  animation:spinnerPulse 1.6s ease-in-out infinite;
-}
-@keyframes spin{
-  to{ transform:rotate(360deg); }
-}
-@keyframes spinnerPulse{
-  0%,100%{ opacity:.7; transform:scale(.92); }
-  50%{ opacity:1; transform:scale(1); }
 }
 
 .loading-text{
   font-family:'Space Grotesk',sans-serif;
   font-size:11px; font-weight:700; letter-spacing:.15em; text-transform:uppercase;
   color:#94a3b8;
-}
-
-.loading-progress{
-  font-family:'JetBrains Mono',monospace;
-  font-size:13px; font-weight:700; color:#67e8f9;
-  margin-top:-6px;
-}
-
-.loading-bar{
-  width:140px; height:4px; border-radius:2px;
-  background:#1e293b;
-  overflow:hidden;
-  position:relative;
-}
-.loading-bar::after{
-  content:'';
-  position:absolute; top:0; left:-40%;
-  height:100%; width:40%;
-  border-radius:2px;
-  background:linear-gradient(90deg, transparent, var(--accent), #67e8f9, transparent);
-  animation:loadingBarSlide 1.3s ease-in-out infinite;
-}
-@keyframes loadingBarSlide{
-  0%{ left:-40%; }
-  100%{ left:100%; }
 }
 
 .logs-content{
@@ -474,24 +421,42 @@ body.ble-disconnected .connection-overlay{ display:flex; }
 .fw-updating{
   flex-direction:column; gap:10px;
 }
-.fw-progress-percent{
+
+/* ================= ORTAK DAİRESEL İLERLEME BİLEŞENİ =================
+   Log kayıtları, ENDA parametreleri, yazılım güncelleme kontrolü ve gönderimi —
+   hepsi bu tek yapıyı kullanır: üstte yüzde, ortada halka, halkanın içinde sayaç. */
+.ring-progress-percent{
   font-family:'Space Grotesk',sans-serif; font-size:22px; font-weight:800;
   color:#67e8f9; letter-spacing:.02em;
 }
-.fw-progress-circle{
+.ring-progress-circle{
   position:relative; width:176px; height:176px;
 }
-.fw-progress-ring{ transform:rotate(-90deg); }
-.fw-progress-ring-track{
+.ring-progress-svg{ transform:rotate(-90deg); }
+.ring-progress-track{
   fill:none; stroke:#1e293b; stroke-width:12;
 }
-.fw-progress-ring-fill{
+.ring-progress-fill{
   fill:none; stroke:var(--accent); stroke-width:12; stroke-linecap:round;
   transition:stroke-dashoffset .25s linear;
 }
-.fw-progress-bytes{
+.ring-progress-count{
   position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
   font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:700; color:#f1f5f9;
+}
+/* Belirsiz (indeterminate) durum — toplam/adım bilinmediğinde (ör. sürüm kontrolü,
+   iki paralel isteğin ne zaman biteceği belli değil) sabit kısmi bir yay sürekli döner. */
+.ring-progress-circle.indeterminate .ring-progress-svg{
+  animation:ringProgressSpin 1s linear infinite;
+}
+.ring-progress-circle.indeterminate .ring-progress-fill{
+  stroke-dasharray:490;
+  stroke-dashoffset:370;
+  transition:none;
+}
+@keyframes ringProgressSpin{
+  from{ transform:rotate(-90deg); }
+  to{ transform:rotate(270deg); }
 }
 
 /* ================= KONTROL SAYFASI ================= */
@@ -522,11 +487,19 @@ body.ble-disconnected .connection-overlay{ display:flex; }
   font-size:13px; font-weight:700; color:#f1f5f9; letter-spacing:.1em;
 }
 
+/* Anasayfadaki "BEKLEME MODU" başlığıyla aynı yapı: üstte çizgili başlık ("Hedef
+   Sıcaklık"), altında değer + tolerans + ok butonu satırı — tek kutuda birlikte. */
 .process-target-row{
-  display:flex; align-items:center; gap:10px; width:100%;
+  display:flex; flex-direction:column; gap:8px; width:100%;
   background:#151d29; border:1px solid #263140; border-radius:8px;
-  padding:9px 10px 9px 12px;
+  padding:9px 12px;
   transition:opacity .2s;
+}
+.process-target-row .process-step-header{
+  width:auto;
+}
+.process-target-value-row{
+  display:flex; align-items:center; gap:10px; width:100%;
 }
 .temp-actions-toggle{
   flex-shrink:0;
@@ -559,12 +532,8 @@ body.ble-disconnected .connection-overlay{ display:flex; }
   font-family:'Space Grotesk',sans-serif; font-size:9.5px; font-weight:700;
   letter-spacing:.04em; text-transform:uppercase;
 }
-.process-target-row .k{
-  flex:1;
-  font-family:'Space Grotesk',sans-serif; font-size:10px; font-weight:700;
-  color:#64748b; text-transform:uppercase; letter-spacing:.08em;
-}
 .process-target-value{
+  flex:1;
   font-family:'JetBrains Mono',monospace; font-size:14px; font-weight:700; color:#e2e8f0;
 }
 .process-target-tolerance{
@@ -652,6 +621,14 @@ body.ble-disconnected .connection-overlay{ display:flex; }
   font-size:12px; color:#e2e8f0; line-height:1.4;
 }
 
+.param-info-warnings{ display:flex; flex-direction:column; gap:6px; margin-top:8px; }
+.param-info-warn{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  font-size:11.5px; color:#fbbf24; line-height:1.4;
+  background:rgba(245,158,11,.1); border:.5px solid rgba(245,158,11,.3);
+  border-radius:6px; padding:8px 10px;
+}
+
 .log-info-checklist{
   font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   font-size:11.5px; color:#cbd5e1; line-height:1.5;
@@ -685,10 +662,22 @@ body.ble-disconnected .connection-overlay{ display:flex; }
 .reset-confirm-ok{ background:linear-gradient(180deg,#f87171,#dc2626); border:none; color:#1a0505; }
 .reset-confirm-cancel:active, .reset-confirm-ok:active{ transform:scale(.96); }
 
+.alert-actions{ display:flex; margin-top:4px; }
+.alert-ok-btn{
+  flex:1;
+  font-family:'Space Grotesk',sans-serif; font-size:11px; font-weight:700;
+  letter-spacing:.04em; padding:10px; border-radius:8px; cursor:pointer;
+  background:linear-gradient(180deg,var(--accent-light),var(--accent-dark)); border:none; color:#fff;
+}
+.alert-ok-btn:active{ transform:scale(.96); }
+
 /* Parametre bilgi mesajı, ENDA ayarlar overlay'inin (z-index:200) üzerinde açılmalı */
 #paramInfoOverlay{ z-index:300; }
-/* Resetleme onayı da diğer overlay'lerin üzerinde açılmalı */
+/* Resetleme onayı ve diğer onay/uyarı kutuları da (ayarlar panelinden açıldıkları
+   için) diğer overlay'lerin üzerinde görünmeli */
 #resetConfirmOverlay{ z-index:300; }
+#factoryResetConfirmOverlay{ z-index:300; }
+#alertOverlay{ z-index:300; }
 
 .control-buttons{ display:flex; flex-direction:row; gap:10px; margin-top:auto; }
 .control-buttons-left{ display:flex; flex-direction:row; gap:10px; flex:1; }
@@ -797,16 +786,21 @@ body.ble-disconnected .connection-overlay{ display:flex; }
 }
 
 /* ================= AYARLAR SAYFASI ================= */
+/* 7 sekme eşit flex/yatay kaydırma ile iyi çalışmıyordu (kaydırma fare tekerleğiyle
+   masaüstünde belli olmuyor) — bunun yerine 4 sütunluk bir ızgarayla iki satıra
+   bölünüyor (4 + 3). */
 .settings-tabs{
-  display:flex; gap:6px; margin-bottom:10px;
+  display:grid; grid-template-columns:repeat(4, 1fr); gap:6px; margin-bottom:10px;
 }
 .settings-tab{
-  flex:1; background:#1e293b; border:.5px solid #334155; color:#94a3b8;
+  display:flex; align-items:center; justify-content:center; gap:5px;
+  background:#1e293b; border:.5px solid #334155; color:#94a3b8;
   font-family:'Space Grotesk',sans-serif; font-size:11px; font-weight:700;
   letter-spacing:.04em; padding:10px 4px; border-radius:8px; cursor:pointer;
 }
+.settings-tab-icon{ width:14px; height:14px; flex-shrink:0; }
 .settings-tab.active{
-  background:#f59e0b; border-color:#f59e0b; color:#1a1205;
+  background:var(--accent); border-color:var(--accent); color:#fff;
 }
 
 .settings-panel{
@@ -826,11 +820,11 @@ body.ble-disconnected .connection-overlay{ display:flex; }
   padding:9px 10px;
 }
 .param-info-btn{
-  background:none; border:none; color:#fff; cursor:pointer;
+  background:none; border:none; color:var(--accent); cursor:pointer;
   display:flex; align-items:center; justify-content:center;
   width:18px; height:18px; padding:0; flex-shrink:0;
 }
-.param-info-btn:active{ color:#fbbf24; }
+.param-info-btn:active{ color:var(--accent-light); }
 .param-info-btn svg{ width:16px; height:16px; }
 .param-label{
   font-size:11.5px; color:#cbd5e1; flex:1; line-height:1.3;
@@ -842,20 +836,26 @@ body.ble-disconnected .connection-overlay{ display:flex; }
 .param-input, .param-select{
   font-family:'JetBrains Mono',monospace; font-size:12px; font-weight:700;
   background:#151d29; border:1px solid #334155; border-radius:6px;
-  color:#fbbf24; padding:6px 8px; width:84px; text-align:right;
-  flex-shrink:0;
+  color:#fff; padding:6px 8px; width:84px; text-align:right;
+  flex-shrink:0; transition:border-color .2s, box-shadow .2s;
 }
 .param-select{ width:auto; min-width:110px; text-align:left; }
+
+/* Bir parametre başarıyla yazılınca (bkz. SettingsUI.showWriteConfirmation) alanın
+   çerçevesi yeşile döner ve söner — eski üstüne binen ✓ ikonunun yerini aldı. */
+@keyframes paramSavedFlash{
+  0%   { border-color:#22c55e; box-shadow:0 0 0 2px rgba(34,197,94,.3); }
+  100% { border-color:#334155; box-shadow:none; }
+}
+.param-input.saved-flash, .param-select.saved-flash{
+  animation:paramSavedFlash .9s ease-out;
+}
+
+/* Canlı İzleme paneli — düzenlenemez, sadece görüntülenen değer (bkz. LiveMonitorUI) */
 .param-value-readonly{
   font-family:'JetBrains Mono',monospace; font-size:12px; font-weight:700;
-  color:#22d3ee; flex-shrink:0;
+  color:#22d3ee; text-align:right; flex-shrink:0; max-width:50%; word-break:break-word;
 }
-.param-check{
-  color:#22c55e; font-family:'Space Grotesk',sans-serif; font-size:14px; font-weight:700;
-  width:14px; flex-shrink:0; text-align:center;
-  opacity:0; transition:opacity .2s;
-}
-.param-check.show{ opacity:1; }
 
 /* Adım hedef sıcaklığının sağındaki ±tolerans rozeti */
 .param-tolerance{
@@ -885,6 +885,9 @@ body.ble-disconnected .connection-overlay{ display:flex; }
 }
 .self-tune-status.active{ color:#22d3ee; }
 .self-tune-btn{ background:linear-gradient(180deg,var(--accent-light),var(--accent-dark)); }
+
+.factory-reset-card{ align-items:stretch; gap:10px; }
+.factory-reset-btn{ padding:16px; font-size:12.5px; background:linear-gradient(180deg,#f87171,#dc2626); }
 
 /* ---- Emniyet & Sistem Girişleri (Sayfa 3) ---- */
 .io-row{
