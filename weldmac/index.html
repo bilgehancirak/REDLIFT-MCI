@@ -340,6 +340,99 @@
   </div>
 </div>
 
+<!-- ================= SELF TUNE EKRANI (C10 aktifken pager'ın/alt navigasyonun yerini alır) ================= -->
+<div class="self-tune-screen" id="selfTuneScreen">
+  <div class="self-tune-screen-header">
+    <svg class="self-tune-screen-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+    </svg>
+    <span class="self-tune-screen-title">SELF TUNE ÇALIŞIYOR</span>
+  </div>
+
+  <div class="self-tune-content" id="selfTuneContent">
+    <div class="self-tune-stage-row" id="selfTuneStageRow">
+      <div class="self-tune-stage-step" data-stage="2">
+        <span class="self-tune-stage-num">1</span>
+        <span class="self-tune-stage-label">PID Hesaplama</span>
+      </div>
+      <div class="self-tune-stage-connector"></div>
+      <div class="self-tune-stage-step" data-stage="3">
+        <span class="self-tune-stage-num">2</span>
+        <span class="self-tune-stage-label">Güç Seviyesi</span>
+      </div>
+    </div>
+    <div class="self-tune-warn-inline" id="selfTuneWarnInline" style="display:none;">
+      ⚠ Başlangıç sıcaklığı set değerinin %60'ından yüksek — sistemin soğumasını bekleyin.
+    </div>
+    <!-- C10 kullanıcı "Bitir"e basmadan kendiliğinden 0'a dönünce (bkz.
+         WeldmacApp._handleSelfTuneCoilChange) gösterilir — cihazın gerçekten
+         tamamladığını, elle durdurmadığınızı ayırt eder. -->
+    <div class="self-tune-complete-banner" id="selfTuneCompleteBanner" style="display:none;">
+      <svg class="self-tune-complete-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+        <polyline points="22 4 12 14.01 9 11.01"/>
+      </svg>
+      <div class="self-tune-complete-text">
+        <span class="self-tune-complete-title">SELF TUNE TAMAMLANDI</span>
+        <span class="self-tune-complete-sub">Yeni PID parametreleri kaydedildi</span>
+      </div>
+    </div>
+
+    <div class="self-tune-temp-card">
+      <span class="self-tune-temp-value" id="selfTuneTempValue">--.-</span>
+      <svg class="self-tune-chart" id="selfTuneChart" viewBox="0 0 300 90" preserveAspectRatio="none"></svg>
+    </div>
+
+    <div class="self-tune-power-card">
+      <div class="self-tune-power-label-row">
+        <span class="self-tune-power-label">Güç Çıkışı</span>
+        <span class="self-tune-power-value" id="selfTunePowerValue">--%</span>
+      </div>
+      <div class="self-tune-power-track">
+        <div class="self-tune-power-fill" id="selfTunePowerFill" style="width:0%;"></div>
+      </div>
+    </div>
+
+    <div class="self-tune-pid-grid">
+      <div class="self-tune-pid-tile">
+        <span class="self-tune-pid-label">Pb <em>(H4)</em></span>
+        <span class="self-tune-pid-value" data-addr="4" data-coil="false">--</span>
+      </div>
+      <div class="self-tune-pid-tile">
+        <span class="self-tune-pid-label">Ti <em>(H6)</em></span>
+        <span class="self-tune-pid-value" data-addr="6" data-coil="false">--</span>
+      </div>
+      <div class="self-tune-pid-tile">
+        <span class="self-tune-pid-label">Td <em>(H7)</em></span>
+        <span class="self-tune-pid-value" data-addr="7" data-coil="false">--</span>
+      </div>
+    </div>
+
+    <button class="ctrl-btn self-tune-finish-btn" id="selfTuneFinishBtn">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="5" y="5" width="14" height="14" rx="2"/>
+      </svg>
+      <span id="selfTuneFinishLabel">Self Tune Bitir</span>
+    </button>
+  </div>
+
+  <!-- "Self Tune Bitir"e basılınca gösterilir — ESP'nin C10 yazımını gerçekten
+       işlemesi için birkaç saniyelik pay bırakır (bkz. WeldmacApp
+       SELF_TUNE_FINISH_DELAY_SECONDS), Ayarlar panelindeki/Log'daki "Alınıyor"
+       ekranlarıyla AYNI ring-progress bileşeni kullanılıyor. -->
+  <div class="placeholder-card hero-loading" id="selfTuneFinishingLoading" style="display:none;">
+    <span class="loading-text">Self Tune Bitiriliyor</span>
+    <span class="ring-progress-percent" id="selfTuneFinishingPercent">%0</span>
+    <div class="ring-progress-circle">
+      <svg class="ring-progress-svg" width="176" height="176" viewBox="0 0 176 176">
+        <circle class="ring-progress-track" cx="88" cy="88" r="78"/>
+        <circle class="ring-progress-fill" id="selfTuneFinishingRingFill" cx="88" cy="88" r="78"/>
+      </svg>
+      <span class="ring-progress-count" id="selfTuneFinishingCount">5</span>
+    </div>
+  </div>
+</div>
+
 <!-- ================= ALT NAVİGASYON ================= -->
 <div class="bottom-nav" id="bottomNav">
   <button class="nav-tab active" data-page="0">
@@ -451,6 +544,12 @@
 
       <div class="param-card self-tune-card">
         <div class="section-header">Self Tune</div>
+        <div class="self-tune-info">
+          Self Tune, PID parametrelerini (H4, H6, H7) ve set değerindeki enerji oranını (H9) otomatik hesaplar.
+          Başladığında cihaz sisteminizin tepkisini ölçmek için çıkışı kısa aralıklarla açıp kapatarak sıcaklığı
+          <strong>bilerek dalgalandırır</strong>. Başlatınca uygulama otomatik olarak canlı izleme ekranına geçer.
+        </div>
+        <div class="self-tune-warn">⚠ Sıcaklık zaten set değerinin %60'ından yüksekse cihaz testi başlatamaz — sistemin soğuk/başlangıç durumundan başlayın.</div>
         <div class="self-tune-status" id="selfTuneStatus">Durum: --</div>
         <button class="ctrl-btn self-tune-btn" id="selfTuneBtn">Self Tune Başlat</button>
       </div>

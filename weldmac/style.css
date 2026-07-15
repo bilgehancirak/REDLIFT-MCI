@@ -103,6 +103,16 @@ body.ble-disconnected .bottom-nav{
   display:none;
 }
 
+/* Self Tune (C10) aktifken: pager ve alt navigasyon tamamen gizlenir, yerini
+   aşağıdaki tam ekran Self Tune ekranı (.self-tune-screen, .settings-overlay
+   ile aynı şekilde position:fixed+z-index) alır — kullanıcı Self Tune'u "PROSES
+   çalışmıyor" sanıp karıştırmasın diye başka hiçbir sayfaya geçemez, topbar
+   dahil her şeyin üstünde durur, sadece "Self Tune Bitir"/"Tamam" ile çıkabilir. */
+body.self-tune-mode .pager,
+body.self-tune-mode .bottom-nav{
+  display:none;
+}
+
 /* ================= BAĞLANTI SAYFASI ================= */
 .connection-overlay{
   display:none;
@@ -165,6 +175,176 @@ body.ble-disconnected .connection-overlay{ display:flex; }
   overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
 }
 .connection-known-arrow{ color:#475569; flex-shrink:0; }
+
+/* ================= SELF TUNE EKRANI ================= */
+/* Ayarlar paneli (Self Tune Başlat butonunun bulunduğu yer) .settings-overlay
+   olarak position:fixed + z-index:200 ile en üstte duruyor — bu ekran da AYNI
+   şekilde fixed+üstte olmazsa, Self Tune başlatılınca (kullanıcı hâlâ Ayarlar
+   panelindeyken) altında sessizce açılır ama görünmez, sadece Ayarlar paneli
+   elle kapatılınca ortaya çıkardı. z-index:350 ile paramInfo/resetConfirm gibi
+   diğer olası açık kutuların da (300) üstünde garanti kalır. */
+.self-tune-screen{
+  display:none;
+  position:fixed; inset:0;
+  background:var(--bg);
+  z-index:350;
+  flex-direction:column;
+  max-width:480px; margin:0 auto;
+  overflow-y:auto; padding:8px 10px 20px;
+  container-type:inline-size;
+}
+body.self-tune-mode .self-tune-screen{ display:flex; }
+/* Normal içerik (aşama/sıcaklık/güç/PID/buton) — "Bitir" sonrası geri sayım
+   sırasında gizlenip yerini #selfTuneFinishingLoading'e bırakır (bkz.
+   SelfTuneScreen.showFinishing). */
+.self-tune-content{
+  display:flex; flex-direction:column; gap:14px;
+}
+
+.self-tune-screen-header{
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  padding-top:4px;
+}
+.self-tune-screen-icon{
+  width:20px; height:20px; color:#fbbf24;
+  animation:selfTunePulse 1.4s ease-in-out infinite;
+}
+@keyframes selfTunePulse{
+  0%, 100%{ opacity:1; } 50%{ opacity:.35; }
+}
+.self-tune-screen-title{
+  font-family:'Space Grotesk',sans-serif; font-size:14px; font-weight:700;
+  letter-spacing:.08em; color:#fbbf24;
+}
+
+/* ---- Aşama göstergesi: I3 durum koduna göre (2=PID hesaplama, 3=güç seviyesi) ---- */
+.self-tune-stage-row{
+  display:flex; align-items:center; justify-content:center; gap:0;
+}
+.self-tune-stage-step{
+  display:flex; flex-direction:column; align-items:center; gap:6px;
+  opacity:.4; transition:opacity .2s;
+}
+.self-tune-stage-step.active{ opacity:1; }
+.self-tune-stage-step.done{ opacity:.7; }
+.self-tune-stage-num{
+  width:26px; height:26px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'JetBrains Mono',monospace; font-size:12px; font-weight:700;
+  background:#1e293b; border:1.5px solid #334155; color:#94a3b8;
+  transition:background .2s, border-color .2s, color .2s;
+}
+.self-tune-stage-step.active .self-tune-stage-num{
+  background:rgba(34,211,238,.15); border-color:#22d3ee; color:#22d3ee;
+  box-shadow:0 0 10px rgba(34,211,238,.4);
+}
+.self-tune-stage-step.done .self-tune-stage-num{
+  background:rgba(34,197,94,.15); border-color:#22c55e; color:#22c55e;
+}
+.self-tune-stage-label{
+  font-family:'Space Grotesk',sans-serif; font-size:9.5px; font-weight:700;
+  letter-spacing:.03em; text-transform:uppercase; color:#94a3b8; white-space:nowrap;
+}
+.self-tune-stage-connector{
+  width:36px; height:1.5px; background:#334155; margin:0 4px 20px;
+}
+
+.self-tune-warn-inline{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  font-size:11.5px; color:#fbbf24; line-height:1.4; text-align:center;
+  background:rgba(245,158,11,.1); border:.5px solid rgba(245,158,11,.3);
+  border-radius:8px; padding:9px 12px;
+}
+
+/* ---- Anlık sıcaklık + geçmiş grafiği ---- */
+.self-tune-temp-card{
+  background:linear-gradient(180deg,#1e293b,#182230);
+  border:1px solid #334155; border-radius:12px; padding:16px;
+  display:flex; flex-direction:column; align-items:center; gap:10px;
+}
+/* vw DEĞİL cqw: vw tüm tarayıcı görüntü alanına göre ölçeklenir — bu uygulama
+   max-width:480px'e sabitlense bile masaüstünde görüntü alanı daha geniş
+   olduğundan vw çok büyük hesaplanıp taşıyordu. cqw, .self-tune-screen'in
+   kendi container-type:inline-size'ına göre ölçekleniyor — .process-temp-value
+   ile birebir aynı desen (bkz. anasayfa büyük sıcaklık göstergesi). */
+.self-tune-temp-value{
+  font-family:'JetBrains Mono',monospace; font-size:16cqw; font-weight:700;
+  background:linear-gradient(180deg,#67e8f9,#0ea5e9);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  filter:drop-shadow(0 0 6px rgba(14,165,233,.5));
+  line-height:1;
+}
+.self-tune-temp-value::after{
+  content:'°C'; font-size:.4em;
+  background:none; -webkit-text-fill-color:#0ea5e9; color:#0ea5e9;
+  filter:none;
+}
+.self-tune-chart{ width:100%; height:70px; }
+
+/* ---- Güç çıkışı barı ---- */
+.self-tune-power-card{
+  background:#151d29; border:1px solid #263140; border-radius:10px; padding:12px 14px;
+  display:flex; flex-direction:column; gap:8px;
+}
+.self-tune-power-label-row{ display:flex; align-items:center; justify-content:space-between; }
+.self-tune-power-label{
+  font-family:'Space Grotesk',sans-serif; font-size:11px; font-weight:700;
+  letter-spacing:.04em; text-transform:uppercase; color:#94a3b8;
+}
+.self-tune-power-value{
+  font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:700; color:#22d3ee;
+}
+.self-tune-power-track{
+  height:8px; border-radius:6px; background:#0f172a; border:.5px solid #263140; overflow:hidden;
+}
+.self-tune-power-fill{
+  height:100%; border-radius:6px;
+  background:linear-gradient(90deg,#0ea5e9,#22d3ee);
+  transition:width .3s ease-out;
+}
+
+/* ---- PID katsayıları (H4/H6/H7) ---- */
+.self-tune-pid-grid{
+  display:grid; grid-template-columns:repeat(3, 1fr); gap:8px;
+}
+.self-tune-pid-tile{
+  display:flex; flex-direction:column; align-items:center; gap:4px;
+  background:#151d29; border:1px solid #263140; border-radius:10px; padding:10px 6px;
+}
+.self-tune-pid-label{
+  font-family:'Space Grotesk',sans-serif; font-size:10px; font-weight:700;
+  letter-spacing:.03em; color:#94a3b8;
+}
+.self-tune-pid-label em{ font-style:normal; color:#475569; }
+.self-tune-pid-value{
+  font-family:'JetBrains Mono',monospace; font-size:15px; font-weight:700; color:#e2e8f0;
+}
+
+.self-tune-finish-btn{
+  background:linear-gradient(180deg,#f87171,#dc2626); margin-top:4px;
+}
+/* Cihaz kendiliğinden tamamlayınca (bkz. .self-tune-complete-banner) "Bitir"
+   butonu yeşile dönüp "Tamam" onayına dönüşür. */
+.self-tune-finish-btn.completed{
+  background:linear-gradient(180deg,#4ade80,#16a34a);
+}
+
+/* ---- Tamamlanma bildirimi — C10 elle değil kendiliğinden 0'a dönünce ---- */
+.self-tune-complete-banner{
+  display:flex; align-items:center; gap:10px;
+  background:rgba(34,197,94,.12); border:1px solid rgba(34,197,94,.4);
+  border-radius:10px; padding:12px 14px;
+}
+.self-tune-complete-icon{ width:24px; height:24px; flex-shrink:0; color:#22c55e; }
+.self-tune-complete-text{ display:flex; flex-direction:column; gap:2px; }
+.self-tune-complete-title{
+  font-family:'Space Grotesk',sans-serif; font-size:12px; font-weight:700;
+  letter-spacing:.04em; color:#22c55e;
+}
+.self-tune-complete-sub{
+  font-family:'JetBrains Mono',monospace; font-size:10.5px; color:#86efac;
+}
+
 .page{
   flex:0 0 100%;
   width:100%;
@@ -879,6 +1059,16 @@ body.ble-disconnected .connection-overlay{ display:flex; }
 .param-card .section-header{ margin:0 0 2px; }
 
 .self-tune-card{ align-items:stretch; }
+.self-tune-info{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  font-size:11.5px; color:#cbd5e1; line-height:1.5;
+}
+.self-tune-warn{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  font-size:11.5px; color:#fbbf24; line-height:1.4;
+  background:rgba(245,158,11,.1); border:.5px solid rgba(245,158,11,.3);
+  border-radius:6px; padding:8px 10px;
+}
 .self-tune-status{
   font-family:'JetBrains Mono',monospace; font-size:12px; font-weight:700;
   color:#94a3b8; text-align:center; padding:6px;

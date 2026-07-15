@@ -1133,12 +1133,17 @@ class SettingsUI {
   _bindSelfTune() {
     const btn = document.getElementById('selfTuneBtn');
     if (!btn) return;
-    btn.addEventListener('click', () => {
-      const select = document.querySelector(`[data-addr="${SELF_TUNE_COIL_ADDR}"][data-coil="true"]`);
-      if (!select) return;
-      select.value = '1';
-      select.dispatchEvent(new Event('change', { bubbles: true }));
-    });
+    btn.addEventListener('click', () => this.writeSelfTuneCoil(1));
+  }
+
+  // C10 select'ini bulup verilen değere ayarlar ve 'change' fırlatır — PID
+  // sekmesindeki "Self Tune Başlat" butonu VE tam ekran Self Tune ekranının
+  // (bkz. SelfTuneScreen) "Self Tune Bitir" butonu bu tek yoldan yazıyor.
+  writeSelfTuneCoil(value) {
+    const select = document.querySelector(`[data-addr="${SELF_TUNE_COIL_ADDR}"][data-coil="true"]`);
+    if (!select) return;
+    select.value = String(value);
+    select.dispatchEvent(new Event('change', { bubbles: true }));
   }
 
   _updateSelfTuneStatus(value) {
@@ -1165,7 +1170,14 @@ class SettingsUI {
     }
     this.paramValueCache.set(this._cacheKey(addr, isCoil), displayValue);
     document.querySelectorAll(`[data-addr="${addr}"][data-coil="${isCoil}"]`).forEach(el => {
-      el.value = displayValue;
+      // input/select düzenlenebilir alanlar .value ile güncellenir; Self Tune
+      // ekranındaki PID katsayı kutucukları gibi salt-okunur <span> etiketler
+      // ise .textContent ile (bkz. index.html .self-tune-pid-value).
+      if (el.tagName === 'INPUT' || el.tagName === 'SELECT') {
+        el.value = displayValue;
+      } else {
+        el.textContent = displayValue;
+      }
     });
     if (!isCoil) {
       // Bu adres bir adım toleransıysa, hedef sıcaklık satırının sağındaki
@@ -1403,6 +1415,180 @@ class LiveMonitorUI {
     const m = Math.floor(totalSeconds / 60);
     const s = totalSeconds % 60;
     return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  }
+}
+
+// =====================================================================
+// SELF TUNE EKRANI — C10 aktifken pager'ın/alt navigasyonun yerini alan tam
+// ekran görünüm (bkz. body.self-tune-mode, WeldmacApp._handleSelfTuneCoilChange).
+// Anlık sıcaklık + kısa geçmiş grafiği (I0, hedef için I4 referans çizgisi),
+// güç çıkışı (I1), aşama durumu (I3) ve PID katsayılarını (H4/H6/H7, bkz.
+// applyParamValue'daki genel data-addr güncellemesi) canlı gösterir.
+// =====================================================================
+class SelfTuneScreen {
+  static MAX_HISTORY = 60; // grafikte tutulan son örnek sayısı
+
+  constructor(els, onFinish) {
+    this.els = els;
+    this._history = [];
+    this._targetTemp = null;
+    this.decimals = 1; // H28 sensör tipi öğrenilene kadar varsayılan
+    this._completed = false; // "Self Tune Tamamlandı" onayı bekleniyor mu
+    this._pendingDismiss = null;
+    this._finishingTimer = null;
+    this._finishingRing = new RingProgress(els.finishingRingFill, els.finishingPercent, els.finishingCount);
+
+    // Normal çalışırken "Bitir" C10'u 0 yazar (onFinish); tamamlanma onayı
+    // gösterilirken (bkz. showCompleted) aynı buton sadece ekranı kapatır —
+    // C10 zaten cihaz tarafından 0'a döndürülmüş oluyor, tekrar yazmaya gerek yok.
+    els.finishBtn.addEventListener('click', () => {
+      if (this._completed) {
+        const dismiss = this._pendingDismiss;
+        this._pendingDismiss = null;
+        this._completed = false;
+        this._resetFinishBtn();
+        if (dismiss) dismiss();
+      } else {
+        onFinish();
+      }
+    });
+  }
+
+  setDecimalMode(hasDecimal) {
+    this.decimals = hasDecimal ? 1 : 0;
+  }
+
+  // C10 aktifleşince (bkz. WeldmacApp._handleSelfTuneCoilChange) çağrılır —
+  // önceki çalıştırmadan kalan grafik/değerleri temizleyip sıfırdan başlar.
+  reset() {
+    this._history = [];
+    this._targetTemp = null;
+    this._completed = false;
+    this._pendingDismiss = null;
+    this._stopFinishingCountdown();
+    this.els.content.style.display = 'flex';
+    this.els.finishingLoading.style.display = 'none';
+    this.els.tempValue.textContent = '--.-';
+    this.els.powerValue.textContent = '--%';
+    this.els.powerFill.style.width = '0%';
+    this.els.warnInline.style.display = 'none';
+    this.els.completeBanner.style.display = 'none';
+    this.els.stageRow.style.display = 'flex';
+    this._resetFinishBtn();
+    this._setStageDom(0);
+    this._renderChart();
+  }
+
+  // C10 kullanıcı "Bitir"e basmadan kendiliğinden 0'a dönünce çağrılır (bkz.
+  // WeldmacApp._handleSelfTuneCoilChange) — aşama/uyarı satırlarını "Tamamlandı"
+  // bildirimiyle değiştirir, "Bitir" butonu "Tamam"a dönüşür. Kullanıcı Tamam'a
+  // basınca onDismiss çağrılır (ekranı gerçekten kapatan WeldmacApp._exitSelfTuneMode).
+  showCompleted(onDismiss) {
+    this._completed = true;
+    this._pendingDismiss = onDismiss;
+    this.els.stageRow.style.display = 'none';
+    this.els.warnInline.style.display = 'none';
+    this.els.completeBanner.style.display = 'flex';
+    this.els.finishBtn.classList.add('completed');
+    this.els.finishLabel.textContent = 'Tamam';
+  }
+
+  // Kullanıcı "Self Tune Bitir"e basınca çağrılır — C10=0 yazılmış olsa da ESP
+  // bunu henüz işlememiş olabilir (bkz. WeldmacApp._handleSelfTuneCoilChange'deki
+  // _selfTuneFinishing guard'ı). Normal içeriği (aşama/sıcaklık/güç/PID/buton)
+  // gizleyip yerine Ayarlar/Log panellerindeki "Alınıyor" ekranlarıyla AYNI
+  // ring-progress bileşenini geri sayım olarak gösterir; süre dolunca onComplete
+  // çağrılır (ekranı gerçekten kapatan WeldmacApp._exitSelfTuneMode).
+  showFinishing(seconds, onComplete) {
+    this._stopFinishingCountdown();
+    this.els.content.style.display = 'none';
+    this.els.finishingLoading.style.display = 'flex';
+
+    let remaining = seconds;
+    this._finishingRing.setPercent(0);
+    this._finishingRing.setCount(String(remaining));
+    this._finishingTimer = setInterval(() => {
+      remaining -= 1;
+      this._finishingRing.setPercent(((seconds - remaining) / seconds) * 100);
+      this._finishingRing.setCount(String(Math.max(remaining, 0)));
+      if (remaining <= 0) {
+        this._stopFinishingCountdown();
+        onComplete();
+      }
+    }, 1000);
+  }
+
+  _stopFinishingCountdown() {
+    if (this._finishingTimer) {
+      clearInterval(this._finishingTimer);
+      this._finishingTimer = null;
+    }
+  }
+
+  _resetFinishBtn() {
+    this.els.finishBtn.classList.remove('completed');
+    this.els.finishLabel.textContent = 'Self Tune Bitir';
+  }
+
+  // STATUS_CANLI_IZLEME geldikçe (Self Tune aktifken) çağrılır — raw: ham
+  // (ölçeklenmemiş, imzalı) I0/I1/I4 değerleri.
+  update({ i0, i1, i4 }) {
+    const temp = i0 / Math.pow(10, this.decimals);
+    const power = i1 / 100;
+    this._targetTemp = i4 / Math.pow(10, this.decimals);
+
+    this.els.tempValue.textContent = temp.toFixed(this.decimals);
+    this.els.powerValue.textContent = `${power.toFixed(0)}%`;
+    this.els.powerFill.style.width = `${Math.max(0, Math.min(100, power))}%`;
+
+    this._history.push(temp);
+    if (this._history.length > SelfTuneScreen.MAX_HISTORY) this._history.shift();
+    this._renderChart();
+  }
+
+  // I3 (Self tune durum kodu) geldikçe çağrılır: 1 = başlangıç sıcaklığı yüksek
+  // (engelleyici uyarı), 2 = PID hesaplanıyor, 3 = güç seviyesi hesaplanıyor.
+  setStage(i3Code) {
+    this.els.warnInline.style.display = i3Code === 1 ? 'block' : 'none';
+    this._setStageDom(i3Code);
+  }
+
+  _setStageDom(i3Code) {
+    this.els.stageRow.querySelectorAll('.self-tune-stage-step').forEach(el => {
+      const stage = Number(el.dataset.stage);
+      el.classList.toggle('active', stage === i3Code);
+      el.classList.toggle('done', i3Code === 3 && stage === 2);
+    });
+  }
+
+  _renderChart() {
+    const W = 300, H = 90;
+    if (this._history.length < 2) {
+      this.els.chart.innerHTML = '';
+      return;
+    }
+    let min = Math.min(...this._history);
+    let max = Math.max(...this._history);
+    if (this._targetTemp !== null) {
+      min = Math.min(min, this._targetTemp);
+      max = Math.max(max, this._targetTemp);
+    }
+    if (max - min < 1) { max += 0.5; min -= 0.5; }
+    const pad = (max - min) * 0.15;
+    min -= pad; max += pad;
+
+    const stepX = W / (this._history.length - 1);
+    const yFor = (t) => H - ((t - min) / (max - min)) * H;
+    const points = this._history.map((t, i) => `${(i * stepX).toFixed(1)},${yFor(t).toFixed(1)}`).join(' ');
+
+    const refLine = this._targetTemp !== null
+      ? `<line x1="0" y1="${yFor(this._targetTemp).toFixed(1)}" x2="${W}" y2="${yFor(this._targetTemp).toFixed(1)}" stroke="#475569" stroke-width="1.5" stroke-dasharray="5 4"/>`
+      : '';
+
+    this.els.chart.innerHTML = `
+      ${refLine}
+      <polyline points="${points}" fill="none" stroke="#22d3ee" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    `;
   }
 }
 
@@ -2453,6 +2639,14 @@ class WeldmacApp {
   // Adım durumu isteği yanıt vermezse tekrar deneme aralığı
   static ADIM_DURUMU_RETRY_INTERVAL_MS = 1000;
 
+  // Self Tune ekranı açıkken H4/H6/H7/H9'un güncel değerlerini görebilmek için
+  // parametrelerin sessizce yeniden istenme aralığı (bkz. _startSelfTunePidPoll)
+  static SELF_TUNE_PID_POLL_INTERVAL_MS = 5000;
+
+  // "Self Tune Bitir" sonrası, ESP'nin C10=0 yazımını gerçekten işlemesi için
+  // beklenen geri sayım süresi (bkz. _handleSelfTuneCoilChange, SelfTuneScreen.showFinishing)
+  static SELF_TUNE_FINISH_DELAY_SECONDS = 5;
+
   constructor() {
     this.lastTemps = [];
     this._sicaklikSetRetryTimer = null;
@@ -2460,6 +2654,22 @@ class WeldmacApp {
     this.tempHasDecimal = true; // H28 sensör tipi öğrenilene kadar varsayılan
     this._currentPageIndex = 0; // yeni arıza gelince anasayfadan Log'a otomatik atlamak için
     this._skipNextLogsFetch = false; // otomatik yönlendirmede gereksiz tam liste çekimini atlamak için
+    // STATUS_CANLI_IZLEME akışını birden fazla tüketici isteyebilir (Canlı İzle
+    // paneli + Self Tune ilerleme takibi) — ESP'ye sadece kimse istemediğinde
+    // DURDUR, en az bir istekli varken BAŞLA gönderilir (bkz. _wantLiveStream).
+    this._liveStreamWanters = new Set();
+    this._selfTuneActive = false;
+    // "Bitir" butonuna basılınca true olur — C10'un kullanıcı tarafından mı yoksa
+    // cihazın kendisi tarafından mı 0'a döndürüldüğünü ayırt etmek için (bkz.
+    // _handleSelfTuneCoilChange, SelfTuneScreen.showCompleted).
+    this._selfTuneStoppedByUser = false;
+    // I3'ün (Self tune durum kodu) en son bilinen değeri — C10 0'a dönünce
+    // gerçekten bir hesaplama aşamasından (2 veya 3) geçilip geçilmediğini,
+    // yani cihazın işi gerçekten tamamlayıp tamamlamadığını anlamak için.
+    this._lastSelfTuneStageCode = 0;
+    // "Bitir" sonrası geri sayım sürerken true — bu sürede gelen TÜM C10
+    // değerleri _handleSelfTuneCoilChange'in en başında yok sayılır (bkz. orada).
+    this._selfTuneFinishing = false;
 
     this.pager = new Pager(
       document.getElementById('pager'),
@@ -2513,8 +2723,31 @@ class WeldmacApp {
       document.getElementById('closeLiveMonitor'),
       document.getElementById('liveMonitorBody'),
       {
-        onOpen: () => this.ble.requestCanliIzlemeBasla(),
-        onClose: () => this.ble.requestCanliIzlemeDurdur(),
+        onOpen: () => this._wantLiveStream('monitor'),
+        onClose: () => this._unwantLiveStream('monitor'),
+      }
+    );
+
+    this.selfTuneScreen = new SelfTuneScreen(
+      {
+        content: document.getElementById('selfTuneContent'),
+        tempValue: document.getElementById('selfTuneTempValue'),
+        chart: document.getElementById('selfTuneChart'),
+        powerValue: document.getElementById('selfTunePowerValue'),
+        powerFill: document.getElementById('selfTunePowerFill'),
+        stageRow: document.getElementById('selfTuneStageRow'),
+        warnInline: document.getElementById('selfTuneWarnInline'),
+        completeBanner: document.getElementById('selfTuneCompleteBanner'),
+        finishBtn: document.getElementById('selfTuneFinishBtn'),
+        finishLabel: document.getElementById('selfTuneFinishLabel'),
+        finishingLoading: document.getElementById('selfTuneFinishingLoading'),
+        finishingRingFill: document.getElementById('selfTuneFinishingRingFill'),
+        finishingPercent: document.getElementById('selfTuneFinishingPercent'),
+        finishingCount: document.getElementById('selfTuneFinishingCount'),
+      },
+      () => {
+        this._selfTuneStoppedByUser = true;
+        this.settingsUI.writeSelfTuneCoil(0);
       }
     );
 
@@ -2643,6 +2876,13 @@ class WeldmacApp {
           if (this.lastTemps.length === 0) {
             this._requestSicaklikSetWithRetry();
           }
+          // C10'u (Self Tune) öğrenmenin tek yolu daha önce Ayarlar panelini
+          // açmaktı — kullanıcı hiç açmadan Self Tune zaten çalışıyor olabilir
+          // (önceki oturumdan kalmış, NFC/EndaLink ile başlatılmış vb.). Hangi
+          // sayfada olunursa olsun her bağlantıda (ilk bağlantı + her yeniden
+          // bağlanma) sessizce tüm parametreler istenip C10 anında öğrenilir —
+          // aktifse _handleSelfTuneCoilChange otomatik Self Tune ekranına geçirir.
+          this.ble.requestAllParams();
         } else {
           this._stopSicaklikSetRetry();
           this._stopAdimDurumuRetry();
@@ -2731,6 +2971,101 @@ class WeldmacApp {
 
     document.getElementById('factoryResetGeneralBtn').addEventListener('click', () => this.factoryResetConfirmModal.open('general'));
     document.getElementById('factoryResetProfileBtn').addEventListener('click', () => this.factoryResetConfirmModal.open('profile'));
+  }
+
+  // STATUS_CANLI_IZLEME akışını isteyen bir tüketici eklenince çağrılır (bkz.
+  // liveMonitorUI ve _handleSelfTuneCoilChange). Akış zaten en az bir istekli
+  // tarafından açıksa ESP'ye tekrar BAŞLA gönderilmez.
+  _wantLiveStream(key) {
+    const wasEmpty = this._liveStreamWanters.size === 0;
+    this._liveStreamWanters.add(key);
+    if (wasEmpty && this.ble.connected) this.ble.requestCanliIzlemeBasla();
+  }
+
+  // Bir tüketici akışı istemeyi bırakınca çağrılır — geriye başka istekli
+  // kalmadıysa ESP'ye DURDUR gönderilir (gereksiz sürekli yayın olmasın diye).
+  _unwantLiveStream(key) {
+    this._liveStreamWanters.delete(key);
+    if (this._liveStreamWanters.size === 0 && this.ble.connected) this.ble.requestCanliIzlemeDurdur();
+  }
+
+  // C10 (Self tune kontrol seçimi) her değiştiğinde çağrılır — hem ESP'den gelen
+  // gerçek değer için (_handleFrame/YANIT_PARAMETRE) hem de kullanıcının yerel
+  // yazması için (_writeParam) aynı yoldan geçer. Self Tune aktifleşince: (1)
+  // pager/alt navigasyon gizlenip tam ekran SelfTuneScreen açılır (body.self-tune-mode),
+  // (2) I0/I1/I3 takibi için canlı akış istenir, (3) H4/H6/H7/H9'un cihazın kendi
+  // hesapladığı yeni değerlerini görebilmek için periyodik parametre sorgusu başlar.
+  //
+  // Aktif olmaktan çıkarken (C10 → 0) iki farklı sebep olabilir: (a) kullanıcı
+  // "Self Tune Bitir"e bastı (_selfTuneStoppedByUser=true, bkz. SelfTuneScreen
+  // constructor'ındaki onFinish), ya da (b) cihaz işi kendiliğinden bitirip C10'u
+  // sıfırladı. (b) durumunda — ve en son görülen I3 gerçekten bir hesaplama
+  // aşamasındaysa (2 veya 3, sadece "başlangıç sıcaklığı yüksek" beklemesi (1)
+  // değil) — ekranı hemen kapatmak yerine "Self Tune Tamamlandı" onayı gösterilir.
+  //
+  // (a) durumunda da ekran HEMEN kapanmaz: bizim C10=0 yazmamız iyimser bir
+  // yerel güncelleme, ESP bunu henüz gerçekten işlememiş olabilir — bu yüzden
+  // hemen kapatırsak, ESP'nin az sonra göndereceği (henüz işlenmemiş, eski) C10=1
+  // yankısı bu fonksiyonu tekrar tetikleyip ekranı yeniden açtırır (yanıp sönme).
+  // Bunun yerine birkaç saniyelik bir geri sayım gösterilir (bkz. showFinishing)
+  // ve bu süre boyunca _selfTuneFinishing guard'ı gelen TÜM C10 değerlerini yok
+  // sayar; süre dolunca ekran gerçekten kapanır.
+  _handleSelfTuneCoilChange(value) {
+    if (this._selfTuneFinishing) return; // "Bitir" sonrası geri sayım sürerken gelen eski/gecikmeli yankılar
+    const isActive = value === 1;
+    if (isActive === this._selfTuneActive) return;
+    this._selfTuneActive = isActive;
+
+    if (isActive) {
+      this._selfTuneStoppedByUser = false;
+      this._lastSelfTuneStageCode = 0;
+      // Self Tune Başlat butonu Ayarlar panelinin (PID sekmesi) içinde — o panel
+      // .settings-overlay olarak fixed+z-index:200 ile zaten üstte duruyor.
+      // self-tune-screen z-index:350 ile üstüne çıkar ama Ayarlar paneli açık
+      // KALIRSA, Self Tune bitip bu ekran kapanınca kullanıcı beklenmedik şekilde
+      // yine Ayarlar panelinin içinde bulur kendini — o yüzden burada da kapatılır.
+      this.settingsOverlay.close();
+      document.body.classList.add('self-tune-mode');
+      this.selfTuneScreen.reset();
+      this._wantLiveStream('selftune');
+      this._startSelfTunePidPoll();
+      return;
+    }
+
+    this._unwantLiveStream('selftune');
+    this._stopSelfTunePidPoll();
+    const completedByDevice = !this._selfTuneStoppedByUser
+      && (this._lastSelfTuneStageCode === 2 || this._lastSelfTuneStageCode === 3);
+    if (completedByDevice) {
+      this.selfTuneScreen.showCompleted(() => this._exitSelfTuneMode());
+    } else {
+      this._selfTuneFinishing = true;
+      this.selfTuneScreen.showFinishing(WeldmacApp.SELF_TUNE_FINISH_DELAY_SECONDS, () => {
+        this._selfTuneFinishing = false;
+        this._exitSelfTuneMode();
+      });
+    }
+  }
+
+  _exitSelfTuneMode() {
+    document.body.classList.remove('self-tune-mode');
+  }
+
+  // H4/H6/H7/H9 gibi PID register'ları self tune sırasında cihaz tarafından
+  // otomatik hesaplanıp yazılıyor — ESP bunları kendiliğinden anons etmeyebilir,
+  // bu yüzden Self Tune ekranı açıkken güncel değerlerini görebilmek için düzenli
+  // aralıklarla tüm parametreler sessizce (Ayarlar paneli açılmadan) yeniden istenir.
+  _startSelfTunePidPoll() {
+    this._stopSelfTunePidPoll();
+    this._selfTunePidPollTimer = setInterval(() => {
+      if (this.ble.connected) this.ble.requestAllParams();
+    }, WeldmacApp.SELF_TUNE_PID_POLL_INTERVAL_MS);
+  }
+  _stopSelfTunePidPoll() {
+    if (this._selfTunePidPollTimer) {
+      clearInterval(this._selfTunePidPollTimer);
+      this._selfTunePidPollTimer = null;
+    }
   }
 
   _handleFrame(frame) {
@@ -2838,14 +3173,21 @@ class WeldmacApp {
           this.pager.goToPage(1);
         }
       } else if (frame.id === BleLink.STATUS_CANLI_IZLEME) {
-        // Sadece Canlı İzle paneli açıkken gelir (bkz. LiveMonitorUI onOpen/onClose).
+        // Sadece en az bir istekli varken gelir (bkz. _wantLiveStream) — Canlı
+        // İzle paneli açıkken ve/veya Self Tune aktifken.
         // payload (18 byte, 9 word LE, imzalı): I0,I1,I2,I3,I4,I5,I100,I101,I102
         const p = frame.payload;
         const word = (i) => (p[i] | (p[i + 1] << 8)) << 16 >> 16;
-        this.liveMonitorUI.update({
+        const raw = {
           i0: word(0), i1: word(2), i2: word(4), i3: word(6), i4: word(8),
           i5: word(10), i100: word(12), i101: word(14), i102: word(16),
-        });
+        };
+        this.liveMonitorUI.update(raw);
+        if (this._selfTuneActive) {
+          this.selfTuneScreen.update(raw);
+          this.selfTuneScreen.setStage(raw.i3);
+          this._lastSelfTuneStageCode = raw.i3; // tamamlanma tespiti için (bkz. _handleSelfTuneCoilChange)
+        }
       }
     } else if (frame.type === BleLink.TYPE_YANIT && frame.id === BleLink.YANIT_ENDA_BAGLANTI) {
       // payload: [sensör_tipi(1B), baud_rate(1B), modbus_adresi(1B)] — H28/H30/H48 register değerleri
@@ -2865,6 +3207,7 @@ class WeldmacApp {
       const value = isCoil ? valueLow : ((valueLow | (valueHigh << 8)) << 16 >> 16);
       this.settingsUI.applyParamValue(addr, isCoil, value);
       if (!isCoil && addr === 0x001C) this._applySensorType(value); // H28 — sensör tipi
+      if (isCoil && addr === SELF_TUNE_COIL_ADDR) this._handleSelfTuneCoilChange(value); // C10
 
       this._receivedParamKeys.add(`${addr}|${isCoil}`);
       this.settingsOverlay.updateProgress(this._receivedParamKeys.size, EXPECTED_PARAM_KEYS.size);
@@ -3058,6 +3401,7 @@ class WeldmacApp {
     // profil adımı değiştirip geri dönünce (veya sekme kapanıp açılınca)
     // az önce yazılan değer, ESP'den yanıt gelmese bile ekranda kalır.
     this.settingsUI.applyParamValue(addr, isCoil, rawValue);
+    if (isCoil && addr === SELF_TUNE_COIL_ADDR) this._handleSelfTuneCoilChange(rawValue); // C10
   }
 
   // H28 (Giriş/sensör tipi) ham değerini alır, "ondalıklı" mı değil mi anlar
@@ -3076,6 +3420,7 @@ class WeldmacApp {
       this.settingsUI.setTempDecimalMode(isDecimal);
       this.processScreen.setDecimalMode(isDecimal);
       this.liveMonitorUI.setDecimalMode(isDecimal);
+      this.selfTuneScreen.setDecimalMode(isDecimal);
       if (this.ble.connected) this.ble.requestSicaklikSet(); // ölçek değişti, veriyi doğru birimle tazele
     }
     return label;
@@ -3190,6 +3535,20 @@ class WeldmacApp {
     this.logInfoModal.close();
     this.resetConfirmModal.close();
     this.fwUpdateConfirmModal.close();
+
+    // Bağlantı koptuğunda ESP'nin canlı akış durumu bilinmez hale gelir —
+    // yeniden bağlanınca C10'un gerçek değeri tazelendiğinde temiz başlasın diye
+    // yerel takip sıfırlanır (bkz. _handleSelfTuneCoilChange, _wantLiveStream).
+    // "Tamamlandı" onayı bekleniyor olsa bile bağlantı koptuğunda beklenmeden
+    // hemen kapatılır.
+    this._liveStreamWanters.clear();
+    this._selfTuneActive = false;
+    this._selfTuneStoppedByUser = false;
+    this._lastSelfTuneStageCode = 0;
+    this._selfTuneFinishing = false;
+    this._stopSelfTunePidPoll();
+    this.selfTuneScreen.reset();
+    document.body.classList.remove('self-tune-mode');
 
     this.pager.goToPage(0);
     document.body.classList.add('ble-disconnected');
