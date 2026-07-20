@@ -2,7 +2,7 @@
   "cihaz": "ENDA EUP1222 + ESP",
   "aciklama": "NFC Destekli Üniversal PID Kontrol Cihazı - Modbus + ESP sanal parametre metadata tablosu",
   "kaynak": "https://enda.com/automation/process/eup1222/eup1222.pdf",
-  "surum": "5.0",
+  "surum": "6.0",
   "sema": {
     "min": "sayı | null",
     "max": "sayı | null",
