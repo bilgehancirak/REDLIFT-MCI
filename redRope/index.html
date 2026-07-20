@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>REDLIFT-ROPE | Kontrol Paneli</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-brand">
+      <div class="topbar-title">REDLIFT<span>-ROPE</span></div>
+    </div>
+    <div class="conn-info">
+      <span class="conn-label" id="connLabel">Bağlantı yok</span>
+      <span class="conn-status-led" id="connLed"></span>
+    </div>
+  </div>
+
+  <!-- Pager -->
+  <div class="pager" id="pager">
+
+    <!-- PAGE 0: Ana Ekran -->
+    <div class="page" id="page-0">
+
+      <div class="card length-hero">
+        <div class="length-target-badge" id="targetBadge">Hedef <span id="targetValue">0.00</span> mt</div>
+        <div class="length-ring-wrap">
+          <svg class="length-ring-svg" viewBox="0 0 220 220">
+            <circle class="length-ring-track" cx="110" cy="110" r="96"></circle>
+            <circle class="length-ring-fill" id="lengthRingFill" cx="110" cy="110" r="96"></circle>
+          </svg>
+          <div class="length-ring-percent-badge" id="percentBadge"><span id="percentValue">0.0</span>%</div>
+          <div class="length-ring-center">
+            <div class="length-ring-value"><span id="lengthValue">0.00</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="caliper">
+          <div class="caliper-readout" id="traverseFlag" style="left:96%;">
+            <span id="traversePosValue">0</span><span class="unit">mm</span>
+          </div>
+          <div class="caliper-needle" id="traverseNeedle" style="left:96%;"></div>
+          <div class="caliper-scale">
+            <div class="caliper-fill" id="traverseFill" style="width:0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="gauge-grid">
+        <div class="card gauge-card">
+          <div class="gauge-ring-wrap">
+            <svg class="gauge-ring-svg" viewBox="0 0 140 140">
+              <circle class="gauge-ring-track" cx="70" cy="70" r="58"></circle>
+              <circle class="gauge-ring-fill rpm-fill" id="rpmRingFill" cx="70" cy="70" r="58"></circle>
+            </svg>
+            <div class="gauge-ring-center">
+              <div class="gauge-value"><span id="rpmValue">0.0</span></div>
+              <div class="gauge-unit">rpm</div>
+            </div>
+          </div>
+        </div>
+        <div class="card gauge-card">
+          <div class="gauge-ring-wrap">
+            <svg class="gauge-ring-svg" viewBox="0 0 140 140">
+              <circle class="gauge-ring-track" cx="70" cy="70" r="58"></circle>
+              <circle class="gauge-ring-fill torque-fill" id="torqueRingFill" cx="70" cy="70" r="58"></circle>
+            </svg>
+            <div class="gauge-ring-center">
+              <div class="gauge-value"><span id="torquePercent">0.0</span><span class="gauge-value-unit">%</span></div>
+              <div class="gauge-unit"><span id="torqueStageLabel">K1</span><span class="gauge-sub" id="torqueNmSub"></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- PAGE 1: Parametreler -->
+    <div class="page" id="page-1">
+
+      <div class="card">
+        <div class="card-title">Sarım Parametreleri</div>
+
+        <div class="param-row">
+          <div>
+            <div class="param-label">Halat Çapı</div>
+            <div class="param-hint">mm</div>
+          </div>
+          <input type="number" step="0.1" class="param-input" id="paramRopeDiameter" data-addr="1">
+        </div>
+
+        <div class="param-row">
+          <div>
+            <div class="param-label">Hedef Metraj</div>
+            <div class="param-hint">mt</div>
+          </div>
+          <input type="number" step="0.1" class="param-input" id="paramTargetLength" data-addr="2">
+        </div>
+
+        <div class="param-row">
+          <div>
+            <div class="param-label">Traverse / Makara Genişliği</div>
+            <div class="param-hint">mm</div>
+          </div>
+          <input type="number" step="1" class="param-input" id="paramTraverseWidth" data-addr="3">
+        </div>
+
+        <div class="param-row">
+          <div>
+            <div class="param-label">Enkoder Kayma Toleransı</div>
+            <div class="param-hint">mm — bu değeri aşan sapma slip alarmı üretir</div>
+          </div>
+          <input type="number" step="0.1" class="param-input" id="paramSlipTolerance" data-addr="9">
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Tork Kademesi Seç</div>
+        <div class="torque-select-grid">
+          <button class="torque-select-btn" id="stageBtn1" data-stage="1">
+            <span class="torque-select-label">K1</span>
+            <span class="torque-select-value" id="stageBtnValue1">0.0 Nm</span>
+          </button>
+          <button class="torque-select-btn" id="stageBtn2" data-stage="2">
+            <span class="torque-select-label">K2</span>
+            <span class="torque-select-value" id="stageBtnValue2">0.0 Nm</span>
+          </button>
+          <button class="torque-select-btn" id="stageBtn3" data-stage="3">
+            <span class="torque-select-label">K3</span>
+            <span class="torque-select-value" id="stageBtnValue3">0.0 Nm</span>
+          </button>
+          <button class="torque-select-btn" id="stageBtn4" data-stage="4">
+            <span class="torque-select-label">K4</span>
+            <span class="torque-select-value" id="stageBtnValue4">0.0 Nm</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- PAGE 2: Manuel Jog -->
+    <div class="page" id="page-2">
+
+      <div class="card">
+        <div class="caliper">
+          <div class="caliper-readout" id="jogFlag" style="left:96%;">
+            <span id="jogPosValue">0</span><span class="unit">mm</span>
+          </div>
+          <div class="caliper-needle" id="jogNeedle" style="left:96%;"></div>
+          <div class="caliper-scale">
+            <div class="caliper-fill" id="jogFill" style="width:0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="jog-grid">
+        <button class="jog-btn" id="jogLeft">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+          SOLA
+        </button>
+        <button class="jog-btn" id="jogRight">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+          SAĞA
+        </button>
+      </div>
+
+      <div class="jog-warning">Butona basılı tutunca traverse hareket eder, bıraktığınızda durur. Sarım devam ederken jog kullanılmamalıdır.</div>
+
+      <div class="card">
+        <div class="card-title">Traverse Kalibrasyon</div>
+        <div class="param-hint" style="margin-bottom:10px;">Yeni makara takıldığında traverse'i mekanik uca götürüp burayı sıfır noktası olarak ayarlayın.</div>
+        <button class="home-btn" id="btnTraverseHome">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/>
+          </svg>
+          Sıfır Noktasını Ayarla (Home)
+        </button>
+      </div>
+
+    </div>
+
+    <!-- PAGE 3: LOG -->
+    <div class="page" id="page-3">
+
+      <div class="alarm-tabs">
+        <button class="alarm-tab active" id="alarmTabActive" data-tab="active">Aktif</button>
+        <button class="alarm-tab" id="alarmTabHistory" data-tab="history">Geçmiş</button>
+      </div>
+
+      <div id="alarmList">
+        <div class="alarm-empty">Aktif alarm yok</div>
+      </div>
+
+      <button class="alarm-reset-btn" id="btnAlarmReset" style="display:none;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/>
+        </svg>
+        Tüm Alarmları Temizle
+      </button>
+
+    </div>
+
+    <!-- PAGE 4: Sistem -->
+    <div class="page" id="page-4">
+
+      <button class="servo-block" id="servoBlock1" data-servo="1">
+        <div class="servo-block-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="4" width="16" height="16" rx="2"></rect>
+            <rect x="9" y="9" width="6" height="6"></rect>
+            <path d="M9 2v2M15 2v2M9 20v2M15 20v2M2 9h2M2 15h2M20 9h2M20 15h2"></path>
+          </svg>
+        </div>
+        <div class="servo-block-text">
+          <div class="servo-block-title">Tambur Servo Sürücüsü</div>
+          <div class="servo-block-sub">Parametreleri görüntüle</div>
+        </div>
+        <svg class="servo-block-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+      </button>
+
+      <button class="servo-block" id="servoBlock2" data-servo="2">
+        <div class="servo-block-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="4" width="16" height="16" rx="2"></rect>
+            <rect x="9" y="9" width="6" height="6"></rect>
+            <path d="M9 2v2M15 2v2M9 20v2M15 20v2M2 9h2M2 15h2M20 9h2M20 15h2"></path>
+          </svg>
+        </div>
+        <div class="servo-block-text">
+          <div class="servo-block-title">Traverse Servo Sürücüsü</div>
+          <div class="servo-block-sub">Parametreleri görüntüle</div>
+        </div>
+        <svg class="servo-block-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+      </button>
+
+    </div>
+
+  </div>
+
+  <!-- Servo parametre listesi overlay -->
+  <div class="servo-overlay" id="servoOverlay">
+    <div class="servo-overlay-header">
+      <button class="servo-overlay-back" id="servoOverlayBack">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <div class="servo-overlay-title" id="servoOverlayTitle">Servo Parametreleri</div>
+    </div>
+    <div class="servo-overlay-body" id="servoOverlayBody"></div>
+  </div>
+
+  <!-- Bottom nav -->
+  <div class="bottom-nav" id="bottomNav">
+    <button class="nav-tab active" data-page="0">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9"/><path d="M5 10v10h14V10"/></svg>
+      Ana Ekran
+    </button>
+    <button class="nav-tab" data-page="1">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Parametreler
+    </button>
+    <button class="nav-tab" data-page="2">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9l-3 3 3 3"/><path d="M9 5l3-3 3 3"/><path d="M15 19l3 3 3-3"/><path d="M19 9l3 3-3 3"/><path d="M2 12h20"/><path d="M12 2v20"/></svg>
+      Jog
+    </button>
+    <button class="nav-tab" data-page="3">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+      LOG
+      <span class="nav-tab-badge" id="alarmBadge" style="display:none;"></span>
+    </button>
+    <button class="nav-tab" data-page="4">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"></rect><rect x="9" y="9" width="6" height="6"></rect><path d="M9 2v2M15 2v2M9 20v2M15 20v2M2 9h2M2 15h2M20 9h2M20 15h2"></path></svg>
+      Sistem
+    </button>
+  </div>
+
+  <!-- Connection overlay -->
+  <div class="connection-overlay" id="connectionOverlay">
+    <img class="landing-logo-mark" src="../assets/redlift-mark.png" alt="REDLIFT">
+    <div class="landing-logo">REDLIFT<span>-ROPE</span></div>
+    <div class="landing-subtitle">Kontrol panelini başlatmak için cihaza bağlanın</div>
+
+    <button class="overlay-connect-btn" id="btnManualConnect" style="display:none;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6.5 6.5 17.5 17.5 12 23V1l5.5 5.5L6.5 17.5"/>
+      </svg>
+      Cihaza Bağlan
+    </button>
+
+    <div class="landing-status" id="landingStatus">
+      <span class="spinner" id="overlaySpinner"></span><span id="overlayMsg">Cihaza bağlanılıyor...</span>
+      <div class="device-name" id="overlayDeviceName"></div>
+    </div>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
