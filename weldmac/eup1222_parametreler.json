@@ -27,7 +27,7 @@
       "tab": "Temel",
       "_type": "holding",
       "parametre_adi": "Ana set değeri",
-      "proje_amaci": "",
+      "proje_amaci": "Bu parametre ile sistem ortam sıcaklığına geri döner. Bu sıcaklık değerini oda sıcaklığı dışında bir sıcaklığa ayaralamayınız",
       "veri_tipi": "int",
       "min": null,
       "max": null,
