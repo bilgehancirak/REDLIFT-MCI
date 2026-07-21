@@ -2,7 +2,7 @@
   "cihaz": "ENDA EUP1222 + ESP",
   "aciklama": "NFC Destekli Üniversal PID Kontrol Cihazı - Modbus + ESP sanal parametre metadata tablosu",
   "kaynak": "https://enda.com/automation/process/eup1222/eup1222.pdf",
-  "surum": "7.0",
+  "surum": "8.0",
   "sema": {
     "min": "sayı | null",
     "max": "sayı | null",
@@ -686,7 +686,7 @@
       "tab": "Sensör",
       "_type": "holding",
       "parametre_adi": "Giriş (sensör) tipi",
-      "proje_amaci": "Cihaza bağlı giriş (sensör) tipini seçer: PT100, termokupl (J/K/L/T/S/R) veya lineer (mA/V/mV) girişler. Ölçüm aralığı ve ondalık davranışı bu seçime göre belirlenir; lineer girişlerde H45–H47 ölçekleme parametreleri devreye girer. Değer sayısal bir büyüklük değil, bir sensör TÜRÜ seçimidir.",
+      "proje_amaci": "Cihaza bağlı giriş (sensör) tipini seçer: PT100 ve J/K/L/T termokupllar hem ondalıklı hem ondalıksız (farklı çözünürlük/aralık) varyantlarıyla, S/R yüksek-sıcaklık termokupllar ve lineer (mA/V/mV) girişler. Seçilen tip ölçüm aralığını ve ondalık davranışını belirler; lineer girişlerde H45–H47 ölçekleme devreye girer. Değer sayısal bir büyüklük değil, bir sensör TÜRÜ seçimidir.",
       "veri_tipi": "int",
       "min": 0,
       "max": 17,
@@ -696,61 +696,81 @@
       "secenekler": [
         {
           "deger": 0,
-          "etiket": "PT100"
+          "etiket": "PT100 ondalıklı (-199.9…600.0 °C)"
         },
         {
           "deger": 1,
-          "etiket": "Termokupl J (Fe-CuNi)"
+          "etiket": "PT100 (-200…600 °C)"
         },
         {
           "deger": 2,
-          "etiket": "Termokupl K (NiCr-Ni)"
+          "etiket": "Termokupl J ondalıklı (-30.0…600.0 °C)"
         },
         {
           "deger": 3,
-          "etiket": "Termokupl L (Fe-CuNi)"
+          "etiket": "Termokupl J (-30…600 °C)"
         },
         {
           "deger": 4,
-          "etiket": "Termokupl T (Cu-CuNi)"
+          "etiket": "Termokupl K ondalıklı (-30.0…999.9 °C)"
         },
         {
           "deger": 5,
-          "etiket": "Termokupl S (Pt10Rh-Pt)"
+          "etiket": "Termokupl K (-30…1300 °C)"
         },
         {
           "deger": 6,
-          "etiket": "Termokupl R (Pt13Rh-Pt)"
+          "etiket": "Termokupl L ondalıklı (-30.0…600.0 °C)"
         },
         {
           "deger": 7,
-          "etiket": "0-20 mA"
+          "etiket": "Termokupl L (-30…600 °C)"
         },
         {
           "deger": 8,
-          "etiket": "4-20 mA"
+          "etiket": "Termokupl T ondalıklı (-30.0…400.0 °C)"
         },
         {
           "deger": 9,
-          "etiket": "0-10 V"
+          "etiket": "Termokupl T (-30…400 °C)"
         },
         {
           "deger": 10,
-          "etiket": "2-10 V"
+          "etiket": "Termokupl S (Pt10Rh-Pt) (-40…1700 °C)"
         },
         {
           "deger": 11,
-          "etiket": "0-25 mV"
+          "etiket": "Termokupl R (Pt13Rh-Pt) (-40…1700 °C)"
         },
         {
           "deger": 12,
-          "etiket": "0-50 mV"
+          "etiket": "0-20 mA (lineer)"
+        },
+        {
+          "deger": 13,
+          "etiket": "4-20 mA (lineer)"
+        },
+        {
+          "deger": 14,
+          "etiket": "0-10 V (lineer)"
+        },
+        {
+          "deger": 15,
+          "etiket": "2-10 V (lineer)"
+        },
+        {
+          "deger": 16,
+          "etiket": "0-25 mV (lineer)"
+        },
+        {
+          "deger": 17,
+          "etiket": "0-50 mV (lineer)"
         }
       ],
-      "gosterim": "sensör tipi seçimi (0–12 kullanımda; index sırası cihaz menüsünden teyit edilmeli)",
+      "gosterim": "sensör tipi seçimi (0–17)",
       "not1": "PT100, J/K/L/T/S/R termokupl, mA/V/mV",
       "not2": "H45–H47 ölçeklemesini etkiler",
-      "not3": "Index sırası ENDA menüsünden/datasheet'ten teyit edilmeli — sensör seti: PT100, J/K/L/T/S/R, 0-20mA, 4-20mA, 0-10V, 2-10V, 0-25mV, 0-50mV",
+      "not3": "İndex sırası cihaz menüsünden teyit edilmeli; ondalıklı varyant 1 ondalık çözünürlük verir",
       "gosterim_tipi": "seçim"
     },
     {
