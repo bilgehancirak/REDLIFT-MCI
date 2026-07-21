@@ -9,7 +9,8 @@
     "min_ref/max_ref": "başka bir parametre kodu (ör. 'H2') — sınır dinamik, o register'ın canlı değerinden çözülür",
     "birim": "metin ('%','°C/°F','sn','dk','sn/gün' ...)",
     "secenekler": "[{deger, etiket}] — bool ve enum-int için",
-    "gosterim": "insan-okur aralık/seçenek metni"
+    "gosterim": "insan-okur aralık/seçenek metni",
+    "gosterim_tipi": "'seçim' (enum/bool - değerler liste/dropdown olarak seçilir) | 'sayısal' (serbest sayı girişi)"
   },
   "sayimlar": {
     "gercek_yazilabilir": 135,
@@ -27,18 +28,19 @@
       "tab": "Temel",
       "_type": "holding",
       "parametre_adi": "Ana set değeri",
-      "proje_amaci": "Bu parametre ile sistem ortam sıcaklığına geri döner. Bu sıcaklık değerini oda sıcaklığı dışında bir sıcaklığa ayaralamayınız",
+      "proje_amaci": "Projemizde ısıtma durumu YOK iken kullanılan set (hedef) sıcaklıktır. Hangi set kaynağının aktif olacağını C7 belirler: C7=0 iken aktif set bu parametredir (H0); C7=1 (ya da D1/D2 dijital girişi) iken H1 ya da profil/adım modunda adım sıcaklığı devreye girer. Değer H2 (alt limit) – H3 (üst limit) aralığında girilir.",
       "veri_tipi": "int",
       "min": null,
       "max": null,
       "min_ref": "H2",
       "max_ref": "H3",
-      "birim": "",
+      "birim": "°C/°F",
       "secenekler": [],
-      "gosterim": "H2 – H3",
-      "not1": "C7=0 iken aktif set",
-      "not2": "",
-      "not3": ""
+      "gosterim": "H2 – H3 °C/°F",
+      "not1": "C7=0 iken aktif set (bu parametre)",
+      "not2": "C7 aktif set kaynağını seçer: 0→H0, 1→H1 / profilde adım sıcaklığı",
+      "not3": "Aralık: H2 (alt limit) – H3 (üst limit)",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H1",
@@ -48,18 +50,19 @@
       "tab": "Temel",
       "_type": "holding",
       "parametre_adi": "2. set değeri",
-      "proje_amaci": "",
+      "proje_amaci": "Projemizde ÖN ISITMA set (hedef) sıcaklığıdır. Ön ısıtma modunda makine bu sıcaklığa çıkar ve ön ısıtma tamamlanana kadar bu sıcaklıkta bekler. Cihaz mantığında C7=1 (ya da D1/D2 dijital girişi) ile H0 yerine bu set aktif olur. Değer H2 (alt limit) – H3 (üst limit) aralığında girilir.",
       "veri_tipi": "int",
       "min": null,
       "max": null,
       "min_ref": "H2",
       "max_ref": "H3",
-      "birim": "",
+      "birim": "°C/°F",
       "secenekler": [],
-      "gosterim": "H2 – H3",
+      "gosterim": "H2 – H3 °C/°F",
       "not1": "C7=1 ya da D1/D2 ile aktif",
-      "not2": "",
-      "not3": ""
+      "not2": "Ön ısıtma hedefi; sıcaklığa ulaşınca ön ısıtma bitene kadar korunur",
+      "not3": "Aralık: H2 (alt limit) – H3 (üst limit)",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H2",
@@ -69,18 +72,19 @@
       "tab": "Temel",
       "_type": "holding",
       "parametre_adi": "Set min. limiti",
-      "proje_amaci": "",
+      "proje_amaci": "Makinenin alt ayar sınırını belirler (H3 ile birlikte set aralığını tanımlar). H0/H1 ve profil adım sıcaklıkları bu alt sınırın altına ayarlanamaz. Önerilen aralık 0–200 °C arasıdır.",
       "veri_tipi": "int",
       "min": null,
       "max": null,
       "min_ref": null,
       "max_ref": null,
-      "birim": "",
+      "birim": "°C/°F",
       "secenekler": [],
-      "gosterim": "—",
+      "gosterim": "0 – 200 °C (önerilen)",
       "not1": "H0/H1 alt sınırı",
-      "not2": "",
-      "not3": ""
+      "not2": "Önerilen aralık: 0–200 °C",
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H3",
@@ -90,18 +94,19 @@
       "tab": "Temel",
       "_type": "holding",
       "parametre_adi": "Set max. limiti",
-      "proje_amaci": "",
+      "proje_amaci": "Makinenin üst ayar sınırını belirler (H2 ile birlikte set aralığını tanımlar). H0/H1 ve profil adım sıcaklıkları bu üst sınırın üstüne ayarlanamaz. Önerilen aralık 0–200 °C arasıdır.",
       "veri_tipi": "int",
       "min": null,
       "max": null,
       "min_ref": null,
       "max_ref": null,
-      "birim": "",
+      "birim": "°C/°F",
       "secenekler": [],
-      "gosterim": "—",
+      "gosterim": "0 – 200 °C (önerilen)",
       "not1": "H0/H1 üst sınırı",
-      "not2": "",
-      "not3": ""
+      "not2": "Önerilen aralık: 0–200 °C",
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H4",
@@ -111,7 +116,7 @@
       "tab": "PID",
       "_type": "holding",
       "parametre_adi": "Oransal bant (P)",
-      "proje_amaci": "",
+      "proje_amaci": "PID kontrolün oransal (P) terimidir. PID katsayıları (P-I-D) projemizde sıcaklığı set değerinde kararlı ve salınımsız tutmak, sete hızlı ulaşıp aşmayı (overshoot) önlemek için kullanılır. Oransal bant, hata (set – ölçüm) büyüklüğüne göre çıkış gücünün ne kadar sert tepki vereceğini belirler: bant küçüldükçe kontrol sertleşir (hızlı ama salınıma yatkın), büyüdükçe yumuşar (kararlı ama yavaş). H4=0 girilirse cihaz On-Off (röle aç/kapa) moduna geçer. Değer elle ayarlanabilir ya da C10 self-tune ile otomatik hesaplanır.",
       "veri_tipi": "float",
       "min": 0.0,
       "max": 100.0,
@@ -122,7 +127,8 @@
       "gosterim": "0.0 – 100.0 %",
       "not1": "0 = On-Off kontrol",
       "not2": "C10 self-tune ile hesaplanır",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H5",
@@ -132,7 +138,7 @@
       "tab": "PID",
       "_type": "holding",
       "parametre_adi": "Histerezis",
-      "proje_amaci": "",
+      "proje_amaci": "On-Off (aç/kapa) kontrolde histerezis bandıdır: set değeri etrafında çıkışın açılıp kapanacağı ölü bölgeyi (kaç derecelik boşluk bırakılacağını) belirler. Örneğin ısıtmada çıkış, ölçüm (set − H5) altına düşünce açılır, sete ulaşınca kapanır; böylece rölenin sürekli aç/kapa yapması (çırpınma) önlenir. Bant büyüdükçe sıcaklık dalgalanması artar, küçüldükçe röle daha sık anahtarlar. Projemizde On-Off modu kullanılmadığından (PID ile çalışıyoruz, H4≠0) normal işletmede devre dışıdır.",
       "veri_tipi": "int",
       "min": 1,
       "max": 50,
@@ -143,7 +149,8 @@
       "gosterim": "1 – 50 °C/°F",
       "not1": "On-Off modda geçerli (H4=0)",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H6",
@@ -153,7 +160,7 @@
       "tab": "PID",
       "_type": "holding",
       "parametre_adi": "İntegral zamanı (I)",
-      "proje_amaci": "",
+      "proje_amaci": "PID kontrolün integral (I) terimidir. Kalıcı hatayı (offset) zamanla sıfırlayarak ölçülen sıcaklığın set değerine tam oturmasını sağlar. İntegral zamanı kısaldıkça düzeltme hızlanır (salınım riski artar), uzadıkça yumuşar. Projemizde sıcaklığı set değerinde sapmasız (kalıcı hatasız) tutmak için kullanılır. Değer dakika cinsindendir; elle ayarlanabilir ya da C10 self-tune ile otomatik hesaplanır.",
       "veri_tipi": "float",
       "min": 0.0,
       "max": 100.0,
@@ -164,7 +171,8 @@
       "gosterim": "0.0 – 100.0 dk",
       "not1": "PID integral",
       "not2": "C10 ile hesaplanır",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H7",
@@ -174,7 +182,7 @@
       "tab": "PID",
       "_type": "holding",
       "parametre_adi": "Türev zamanı (D)",
-      "proje_amaci": "",
+      "proje_amaci": "PID kontrolün türev (D) terimidir. Sıcaklığın değişim hızına tepki vererek ani yükseliş/düşüşleri frenler; sete yaklaşırken overshoot (aşma) ve salınımı azaltır. Türev zamanı büyüdükçe frenleme etkisi artar, gürültülü ölçümde aşırı büyük değer kontrolü bozabilir. Projemizde sete yumuşak ve kararlı oturmak için kullanılır. Değer dakika cinsindendir; elle ayarlanabilir ya da C10 self-tune ile otomatik hesaplanır.",
       "veri_tipi": "float",
       "min": 0.0,
       "max": 25.0,
@@ -185,17 +193,18 @@
       "gosterim": "0.0 – 25.0 dk",
       "not1": "PID türev",
       "not2": "C10 ile hesaplanır",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H8",
       "register": 8,
       "hex": "0x0008",
       "sanal": false,
-      "tab": "PID",
+      "tab": "Çıkış Kontrolü",
       "_type": "holding",
       "parametre_adi": "Kontrol periyodu",
-      "proje_amaci": "",
+      "proje_amaci": "PID kontrolün hesapladığı yüzde (%) çıkış gücünü zamana yayarak çıkışı açıp kapadığı anahtarlama periyodudur. Örneğin periyot 20 sn ve güç %30 ise çıkış her 20 saniyede 6 sn açık / 14 sn kapalı olur. Periyot kısaldıkça kontrol hassaslaşır ama röle/SSR daha sık anahtarlar (ömür kısalır); uzadıkça anahtarlama azalır ama sıcaklık dalgalanması artar. Genel kural: röle çıkışta uzun (20–30+ sn), SSR çıkışta kısa (1–2 sn) seçilir. Projemizde çıkış tipine (H32) uygun periyot bu parametreyle ayarlanır.",
       "veri_tipi": "int",
       "min": 1,
       "max": 125,
@@ -206,7 +215,8 @@
       "gosterim": "1 – 125 sn",
       "not1": "Röle/SSR ömrünü etkiler",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H9",
@@ -216,7 +226,7 @@
       "tab": "PID",
       "_type": "holding",
       "parametre_adi": "Set değerinde çıkış gücü",
-      "proje_amaci": "",
+      "proje_amaci": "Sistem tam set değerindeyken (hata=0) çıkışa uygulanan temel/başlangıç güç seviyesidir (bias). Ortamın ısı kaybını dengelemek için sette dahi belirli bir çıkış gücü gerekiyorsa bu parametreyle verilir; integral teriminin işini kolaylaştırıp sette kararlılığı artırır. Isı kaybı düşük sistemlerde genelde 0 bırakılır.",
       "veri_tipi": "int",
       "min": 0,
       "max": 100,
@@ -227,7 +237,8 @@
       "gosterim": "0 – 100 %",
       "not1": "",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H10",
@@ -237,7 +248,7 @@
       "tab": "PID",
       "_type": "holding",
       "parametre_adi": "Sensör arızasında çıkış gücü",
-      "proje_amaci": "",
+      "proje_amaci": "Sensör (giriş) arızası algılandığında çıkışa uygulanacak sabit güç yüzdesidir. Sensör koptuğunda/kısa devrede kontrolün güvenli bir seviyede kalmasını sağlar. C9=0 iken bu değer kullanılır (C9=1 ise çıkış kapatılır). Güvenlik parametresidir.",
       "veri_tipi": "int",
       "min": 0,
       "max": 100,
@@ -248,7 +259,8 @@
       "gosterim": "0 – 100 %",
       "not1": "C9=0 iken kullanılır",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H11",
@@ -258,7 +270,7 @@
       "tab": "PID",
       "_type": "holding",
       "parametre_adi": "Yumuşak başlatma süresi",
-      "proje_amaci": "",
+      "proje_amaci": "Cihaz enerjilenip çalışmaya başladığında çıkış gücünün sıfırdan hedefe kademeli çıktığı yumuşak başlatma (soft-start) rampa süresidir. Ani güç darbesini ve termal şoku önler, ısıtıcı eleman ömrünü korur. 0 = rampa kapalı, çıkış anında devreye girer.",
       "veri_tipi": "int",
       "min": 0,
       "max": 250,
@@ -269,7 +281,8 @@
       "gosterim": "0 – 250 dk",
       "not1": "Başlangıç rampası",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H12",
@@ -279,7 +292,7 @@
       "tab": "Alarmlar",
       "_type": "holding",
       "parametre_adi": "Alarm1 set değeri",
-      "proje_amaci": "",
+      "proje_amaci": "Alarm1 için set (eşik) değeridir; alarmın tetiklendiği referans nokta. Davranışı H22 alarm tipine göre değişir (bağımsız/sapma/bant/histerezis...). Aralığı H13–H14 arasındadır.",
       "veri_tipi": "int",
       "min": null,
       "max": null,
@@ -290,7 +303,8 @@
       "gosterim": "H13 – H14",
       "not1": "H22 tipine göre davranır",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H13",
@@ -300,7 +314,7 @@
       "tab": "Alarmlar",
       "_type": "holding",
       "parametre_adi": "Alarm1 min. limiti",
-      "proje_amaci": "",
+      "proje_amaci": "Alarm1 set değerinin (H12) girilebileceği ALT limittir.",
       "veri_tipi": "int",
       "min": null,
       "max": null,
@@ -311,7 +325,8 @@
       "gosterim": "—",
       "not1": "",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H14",
@@ -321,7 +336,7 @@
       "tab": "Alarmlar",
       "_type": "holding",
       "parametre_adi": "Alarm1 max. limiti",
-      "proje_amaci": "",
+      "proje_amaci": "Alarm1 set değerinin (H12) girilebileceği ÜST limittir.",
       "veri_tipi": "int",
       "min": null,
       "max": null,
@@ -332,7 +347,8 @@
       "gosterim": "—",
       "not1": "",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H15",
@@ -342,7 +358,7 @@
       "tab": "Alarmlar",
       "_type": "holding",
       "parametre_adi": "Alarm1 oransal bant",
-      "proje_amaci": "",
+      "proje_amaci": "Alarm1 çıkışı oransal olarak kullanıldığında (H22 tipine bağlı) oransal bant terimidir.",
       "veri_tipi": "float",
       "min": 0.0,
       "max": 100.0,
@@ -353,7 +369,8 @@
       "gosterim": "0.0 – 100.0 %",
       "not1": "H22 tipine bağlı",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H16",
@@ -363,7 +380,7 @@
       "tab": "Alarmlar",
       "_type": "holding",
       "parametre_adi": "Alarm1 histerezis",
-      "proje_amaci": "",
+      "proje_amaci": "Alarm1 histerezis bandıdır: alarmın kalkması için gereken geri-dönüş boşluğu; sık aç/kapayı önler. H22 tipine bağlı çalışır.",
       "veri_tipi": "int",
       "min": 1,
       "max": 50,
@@ -374,7 +391,8 @@
       "gosterim": "1 – 50 °C/°F",
       "not1": "H22 tipine bağlı",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H17",
@@ -384,7 +402,7 @@
       "tab": "Alarmlar",
       "_type": "holding",
       "parametre_adi": "Alarm1 integral zamanı",
-      "proje_amaci": "",
+      "proje_amaci": "Alarm1 oransal kontrolünde integral zamanı terimidir (H22 tipine bağlı).",
       "veri_tipi": "float",
       "min": 0.0,
       "max": 100.0,
@@ -395,7 +413,8 @@
       "gosterim": "0.0 – 100.0 dk",
       "not1": "H22 tipine bağlı",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H18",
@@ -405,7 +424,7 @@
       "tab": "Alarmlar",
       "_type": "holding",
       "parametre_adi": "Alarm1 türev zamanı",
-      "proje_amaci": "",
+      "proje_amaci": "Alarm1 oransal kontrolünde türev zamanı terimidir (H22 tipine bağlı).",
       "veri_tipi": "float",
       "min": 0.0,
       "max": 25.0,
@@ -416,7 +435,8 @@
       "gosterim": "0.0 – 25.0 dk",
       "not1": "H22 tipine bağlı",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H19",
@@ -426,7 +446,7 @@
       "tab": "Alarmlar",
       "_type": "holding",
       "parametre_adi": "Alarm1 periyodu",
-      "proje_amaci": "",
+      "proje_amaci": "Alarm1 çıkışı zaman-oransal kullanıldığında anahtarlama periyodudur.",
       "veri_tipi": "int",
       "min": 1,
       "max": 250,
@@ -437,7 +457,8 @@
       "gosterim": "1 – 250 sn",
       "not1": "",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H20",
@@ -447,7 +468,7 @@
       "tab": "Alarmlar",
       "_type": "holding",
       "parametre_adi": "Alarm1 set değerinde çıkış gücü",
-      "proje_amaci": "",
+      "proje_amaci": "Alarm1 çıkışı oransal modda, proses set değerindeyken uygulanan çıkış gücü yüzdesidir.",
       "veri_tipi": "int",
       "min": 0,
       "max": 100,
@@ -458,7 +479,8 @@
       "gosterim": "0 – 100 %",
       "not1": "",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H21",
@@ -468,7 +490,7 @@
       "tab": "Alarmlar",
       "_type": "holding",
       "parametre_adi": "Alarm1 sensör arıza gücü",
-      "proje_amaci": "",
+      "proje_amaci": "Sensör arızasında Alarm1 çıkışına uygulanacak güç yüzdesidir (C3 ile birlikte güvenlik davranışını belirler).",
       "veri_tipi": "int",
       "min": 0,
       "max": 100,
@@ -479,7 +501,8 @@
       "gosterim": "0 – 100 %",
       "not1": "C3 ile birlikte",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H22",
@@ -489,7 +512,7 @@
       "tab": "Alarmlar",
       "_type": "holding",
       "parametre_adi": "Alarm1 tipi seçimi",
-      "proje_amaci": "",
+      "proje_amaci": "Alarm1'in çalışma tipini seçer: Bağımsız, Sapma, Bant, Histerezis, Bağımsız soğutma, Oransal soğutma. Bu seçim H15–H20 alarm parametrelerinin nasıl yorumlanacağını belirler. Değer bir tip SEÇİMİdir.",
       "veri_tipi": "int",
       "min": 0,
       "max": 5,
@@ -525,7 +548,8 @@
       "gosterim": "0 – 5",
       "not1": "0=Bağımsız,1=Sapma,2=Bant,3=Histerezis,4=Bağımsız soğutma,5=Oransal soğutma",
       "not2": "H15–H20'yi yönetir",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "H23",
@@ -535,7 +559,7 @@
       "tab": "Alarmlar",
       "_type": "holding",
       "parametre_adi": "Alarm2 set değeri",
-      "proje_amaci": "",
+      "proje_amaci": "Alarm2 için set (eşik) değeridir; davranışı H27 tipine göre değişir. Aralığı H24–H25 arasındadır.",
       "veri_tipi": "int",
       "min": null,
       "max": null,
@@ -546,7 +570,8 @@
       "gosterim": "H24 – H25",
       "not1": "H27 tipine göre davranır",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H24",
@@ -556,7 +581,7 @@
       "tab": "Alarmlar",
       "_type": "holding",
       "parametre_adi": "Alarm2 min. limiti",
-      "proje_amaci": "",
+      "proje_amaci": "Alarm2 set değerinin (H23) girilebileceği ALT limittir.",
       "veri_tipi": "int",
       "min": null,
       "max": null,
@@ -567,7 +592,8 @@
       "gosterim": "—",
       "not1": "",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H25",
@@ -577,7 +603,7 @@
       "tab": "Alarmlar",
       "_type": "holding",
       "parametre_adi": "Alarm2 max. limiti",
-      "proje_amaci": "",
+      "proje_amaci": "Alarm2 set değerinin (H23) girilebileceği ÜST limittir.",
       "veri_tipi": "int",
       "min": null,
       "max": null,
@@ -588,7 +614,8 @@
       "gosterim": "—",
       "not1": "",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H26",
@@ -598,7 +625,7 @@
       "tab": "Alarmlar",
       "_type": "holding",
       "parametre_adi": "Alarm2 histerezis",
-      "proje_amaci": "",
+      "proje_amaci": "Alarm2 histerezis bandıdır; H27 tipine bağlı çalışır.",
       "veri_tipi": "int",
       "min": 1,
       "max": 50,
@@ -609,7 +636,8 @@
       "gosterim": "1 – 50 °C/°F",
       "not1": "H27 tipine bağlı",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H27",
@@ -619,7 +647,7 @@
       "tab": "Alarmlar",
       "_type": "holding",
       "parametre_adi": "Alarm2 tipi seçimi",
-      "proje_amaci": "",
+      "proje_amaci": "Alarm2'nin çalışma tipini seçer: Bağımsız, Sapma, Bant, Histerezis. H23–H26'nın nasıl yorumlanacağını belirler. Değer bir tip SEÇİMİdir.",
       "veri_tipi": "int",
       "min": 0,
       "max": 3,
@@ -647,7 +675,8 @@
       "gosterim": "0 – 3",
       "not1": "0=Bağımsız,1=Sapma,2=Bant,3=Histerezis",
       "not2": "H23–H26'yı yönetir",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "H28",
@@ -657,28 +686,82 @@
       "tab": "Sensör",
       "_type": "holding",
       "parametre_adi": "Giriş (sensör) tipi",
-      "proje_amaci": "",
+      "proje_amaci": "Cihaza bağlı giriş (sensör) tipini seçer: PT100, termokupl (J/K/L/T/S/R) veya lineer (mA/V/mV) girişler. Ölçüm aralığı ve ondalık davranışı bu seçime göre belirlenir; lineer girişlerde H45–H47 ölçekleme parametreleri devreye girer. Değer sayısal bir büyüklük değil, bir sensör TÜRÜ seçimidir.",
       "veri_tipi": "int",
       "min": 0,
       "max": 17,
       "min_ref": null,
       "max_ref": null,
       "birim": "",
-      "secenekler": [],
-      "gosterim": "0 – 17",
+      "secenekler": [
+        {
+          "deger": 0,
+          "etiket": "PT100"
+        },
+        {
+          "deger": 1,
+          "etiket": "Termokupl J (Fe-CuNi)"
+        },
+        {
+          "deger": 2,
+          "etiket": "Termokupl K (NiCr-Ni)"
+        },
+        {
+          "deger": 3,
+          "etiket": "Termokupl L (Fe-CuNi)"
+        },
+        {
+          "deger": 4,
+          "etiket": "Termokupl T (Cu-CuNi)"
+        },
+        {
+          "deger": 5,
+          "etiket": "Termokupl S (Pt10Rh-Pt)"
+        },
+        {
+          "deger": 6,
+          "etiket": "Termokupl R (Pt13Rh-Pt)"
+        },
+        {
+          "deger": 7,
+          "etiket": "0-20 mA"
+        },
+        {
+          "deger": 8,
+          "etiket": "4-20 mA"
+        },
+        {
+          "deger": 9,
+          "etiket": "0-10 V"
+        },
+        {
+          "deger": 10,
+          "etiket": "2-10 V"
+        },
+        {
+          "deger": 11,
+          "etiket": "0-25 mV"
+        },
+        {
+          "deger": 12,
+          "etiket": "0-50 mV"
+        }
+      ],
+      "gosterim": "sensör tipi seçimi (0–12 kullanımda; index sırası cihaz menüsünden teyit edilmeli)",
       "not1": "PT100, J/K/L/T/S/R termokupl, mA/V/mV",
       "not2": "H45–H47 ölçeklemesini etkiler",
-      "not3": ""
+      "not3": "Index sırası ENDA menüsünden/datasheet'ten teyit edilmeli — sensör seti: PT100, J/K/L/T/S/R, 0-20mA, 4-20mA, 0-10V, 2-10V, 0-25mV, 0-50mV",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "H29",
       "register": 29,
       "hex": "0x001D",
       "sanal": false,
-      "tab": "Temel",
+      "tab": "Çıkış Kontrolü",
       "_type": "holding",
       "parametre_adi": "Isıtma arıza kontrol süresi",
-      "proje_amaci": "",
+      "proje_amaci": "Isıtma arızası denetim süresidir: bu süre boyunca çıkış tam güçteyken ölçülen sıcaklık anlamlı biçimde yükselmiyorsa cihaz ısıtma arızası (rezistans/eleman kopuk, SSR arızalı vb.) olduğuna karar verir ve D5 arıza bayrağını set eder. 0 = arıza denetimi kapalı.",
       "veri_tipi": "int",
       "min": 0,
       "max": 1000,
@@ -689,7 +772,8 @@
       "gosterim": "0 – 1000 sn",
       "not1": "0 = kapalı",
       "not2": "D5 arıza bayrağını besler",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H30",
@@ -699,7 +783,7 @@
       "tab": "Haberleşme",
       "_type": "holding",
       "parametre_adi": "Modbus baud hızı",
-      "proje_amaci": "",
+      "proje_amaci": "Modbus RTU (RS485) haberleşme hızını (baud) seçer. Ağdaki tüm cihazlar ve master ile aynı olmalıdır. Değer bir hız SEÇİMİdir.",
       "veri_tipi": "int",
       "min": 0,
       "max": 6,
@@ -739,7 +823,8 @@
       "gosterim": "0 – 6",
       "not1": "0=2400,1=4800,2=9600,3=19200,4=38400,5=57200,6=115200 bps",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "H31",
@@ -749,7 +834,7 @@
       "tab": "Sensör",
       "_type": "holding",
       "parametre_adi": "Dijital filtre katsayısı",
-      "proje_amaci": "",
+      "proje_amaci": "Ölçüm sinyaline uygulanan dijital filtre katsayısıdır. Değer büyüdükçe okuma daha çok yumuşatılır (gürültü azalır ama tepki yavaşlar), küçüldükçe daha hızlı ama gürültüye açık olur. 1 = filtre kapalı.",
       "veri_tipi": "int",
       "min": 1,
       "max": 200,
@@ -760,17 +845,18 @@
       "gosterim": "1 – 200",
       "not1": "1 = filtre kapalı",
       "not2": "Ölçüm gürültüsünü etkiler",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H32",
       "register": 32,
       "hex": "0x0020",
       "sanal": false,
-      "tab": "Temel",
+      "tab": "Çıkış Kontrolü",
       "_type": "holding",
       "parametre_adi": "Kontrol çıkışı tipi",
-      "proje_amaci": "",
+      "proje_amaci": "Ana kontrol çıkışının donanım tipini seçer: Röle, SSR, 0-20mA veya 4-20mA analog. Röle/SSR seçiminde H8 kontrol periyodu (zaman-oransal) devreye girer; analog seçimlerde H33/H34 çıkış ölçeklemesi kullanılır. Retransmisyon (H42) için bu parametrenin Röle (0) olması gerekir.",
       "veri_tipi": "int",
       "min": 0,
       "max": 3,
@@ -798,17 +884,18 @@
       "gosterim": "0 – 3",
       "not1": "0=Röle,1=SSR,2=0-20mA,3=4-20mA",
       "not2": "H42 retransmisyon için 0 gerekir",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "H33",
       "register": 33,
       "hex": "0x0021",
       "sanal": false,
-      "tab": "Temel",
+      "tab": "Çıkış Kontrolü",
       "_type": "holding",
       "parametre_adi": "Analog çıkış minimum %",
-      "proje_amaci": "",
+      "proje_amaci": "Analog kontrol çıkışının (H32=2/3) alt ucudur: %0 kontrol gücüne karşılık gelen çıkış yüzdesi. Aktüatörün minimum çalışma noktasını sınırlamak için kullanılır.",
       "veri_tipi": "int",
       "min": 0,
       "max": 100,
@@ -819,17 +906,18 @@
       "gosterim": "0 – 100 %",
       "not1": "H32=2/3 iken",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H34",
       "register": 34,
       "hex": "0x0022",
       "sanal": false,
-      "tab": "Temel",
+      "tab": "Çıkış Kontrolü",
       "_type": "holding",
       "parametre_adi": "Analog çıkış maksimum %",
-      "proje_amaci": "",
+      "proje_amaci": "Analog kontrol çıkışının (H32=2/3) üst ucudur: %100 kontrol gücüne karşılık gelen çıkış yüzdesi. Aktüatörün maksimum çalışma noktasını sınırlamak için kullanılır.",
       "veri_tipi": "int",
       "min": 0,
       "max": 100,
@@ -840,7 +928,8 @@
       "gosterim": "0 – 100 %",
       "not1": "H32=2/3 iken",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H35",
@@ -850,7 +939,7 @@
       "tab": "Sensör",
       "_type": "holding",
       "parametre_adi": "Giriş ofseti (kalibrasyon)",
-      "proje_amaci": "",
+      "proje_amaci": "Ölçülen değere eklenen kalibrasyon ofsetidir (giriş kaydırma). Sensör ile gerçek sıcaklık arasındaki sabit farkı düzeltmek için kullanılır; okunan değere doğrudan eklenir/çıkarılır (örn. sensör 2° düşük okuyorsa +2 girilir).",
       "veri_tipi": "int",
       "min": -100,
       "max": 100,
@@ -861,28 +950,47 @@
       "gosterim": "-100 – 100",
       "not1": "Ölçüm değerine eklenir",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H36",
       "register": 36,
       "hex": "0x0024",
       "sanal": false,
-      "tab": "Temel",
+      "tab": "Durum / Sistem",
       "_type": "holding",
       "parametre_adi": "Fonksiyon kontrol komutu",
-      "proje_amaci": "",
+      "proje_amaci": "Cihaza komut gönderilen özel fonksiyon register'ıdır; sayısal ayar değil, komut kodu yazılır. Reset ve self-tune gibi işlemleri tetikler. Değer bir komut/SEÇİM olarak ele alınmalıdır.",
       "veri_tipi": "int",
       "min": null,
       "max": null,
       "min_ref": null,
       "max_ref": null,
       "birim": "",
-      "secenekler": [],
-      "gosterim": "—",
+      "secenekler": [
+        {
+          "deger": 23040,
+          "etiket": "Self-tune durdur"
+        },
+        {
+          "deger": 23041,
+          "etiket": "Self-tune başlat"
+        },
+        {
+          "deger": 23042,
+          "etiket": "Fabrika reset (H0–H51 / C0–C10)"
+        },
+        {
+          "deger": 23043,
+          "etiket": "Profil reset (H100–H137 / C100–C138)"
+        }
+      ],
+      "gosterim": "komut kodu seçimi",
       "not1": "23040=self-tune dur, 23041=başlat",
       "not2": "23042=H0-H51/C0-C10 reset",
-      "not3": "23043=H100-H137/C100-C138 reset"
+      "not3": "23043=H100-H137/C100-C138 reset",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "H39",
@@ -892,7 +1000,7 @@
       "tab": "PID",
       "_type": "holding",
       "parametre_adi": "Manuel kontrol çıkış %",
-      "proje_amaci": "",
+      "proje_amaci": "Manuel kontrol modunda (C8=1) çıkışa doğrudan uygulanan sabit güç yüzdesidir. PID devre dışıyken operatörün çıkışı elle sürmesini sağlar.",
       "veri_tipi": "int",
       "min": 0,
       "max": 100,
@@ -903,17 +1011,18 @@
       "gosterim": "0 – 100 %",
       "not1": "C8=1 (manuel) iken kullanılır",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H40",
       "register": 40,
       "hex": "0x0028",
       "sanal": false,
-      "tab": "Temel",
+      "tab": "Dijital G/Ç",
       "_type": "holding",
       "parametre_adi": "D1 dijital giriş fonksiyonu",
-      "proje_amaci": "",
+      "proje_amaci": "D1 dijital girişinin fonksiyonunu seçer: kapalı / set H0-H1 değiştir / oto-manuel / termostat-gösterge / profil başlat-dur / hold. Değer bir fonksiyon SEÇİMİdir.",
       "veri_tipi": "int",
       "min": 0,
       "max": 5,
@@ -949,38 +1058,65 @@
       "gosterim": "0 – 5",
       "not1": "0=kapalı,1=set H0/H1,2=oto/manuel,3=termostat/gösterge,4=profil başlat/dur,5=hold",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "H41",
       "register": 41,
       "hex": "0x0029",
       "sanal": false,
-      "tab": "Temel",
+      "tab": "Dijital G/Ç",
       "_type": "holding",
       "parametre_adi": "D2 dijital giriş fonksiyonu",
-      "proje_amaci": "",
+      "proje_amaci": "D2 dijital girişinin fonksiyonunu seçer; H40 ile aynı seçenek kümesini kullanır. Değer bir fonksiyon SEÇİMİdir.",
       "veri_tipi": "int",
       "min": 0,
       "max": 5,
       "min_ref": null,
       "max_ref": null,
       "birim": "",
-      "secenekler": [],
+      "secenekler": [
+        {
+          "deger": 0,
+          "etiket": "kapalı"
+        },
+        {
+          "deger": 1,
+          "etiket": "set H0/H1"
+        },
+        {
+          "deger": 2,
+          "etiket": "oto/manuel"
+        },
+        {
+          "deger": 3,
+          "etiket": "termostat/gösterge"
+        },
+        {
+          "deger": 4,
+          "etiket": "profil başlat/dur"
+        },
+        {
+          "deger": 5,
+          "etiket": "hold"
+        }
+      ],
       "gosterim": "0 – 5",
       "not1": "H40 ile aynı seçenekler",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "H42",
       "register": 42,
       "hex": "0x002A",
       "sanal": false,
-      "tab": "Temel",
+      "tab": "Çıkış Kontrolü",
       "_type": "holding",
       "parametre_adi": "Retransmisyon çıkış tipi",
-      "proje_amaci": "",
+      "proje_amaci": "İkincil analog çıkışın (retransmisyon) tipini seçer: kapalı, 0-20mA veya 4-20mA. Ölçülen prosesi bir kaydediciye/PLC'ye analog olarak aktarmak için kullanılır. Çalışması için ana çıkış Röle (H32=0) olmalıdır; ölçek H43/H44 ile verilir.",
       "veri_tipi": "int",
       "min": 0,
       "max": 2,
@@ -1004,17 +1140,18 @@
       "gosterim": "0 – 2",
       "not1": "0=kapalı,1=0-20mA,2=4-20mA",
       "not2": "H32=0 gerekir",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "H43",
       "register": 43,
       "hex": "0x002B",
       "sanal": false,
-      "tab": "Temel",
+      "tab": "Çıkış Kontrolü",
       "_type": "holding",
       "parametre_adi": "Retransmisyon alt skala",
-      "proje_amaci": "",
+      "proje_amaci": "Retransmisyon analog çıkışının ALT skala değeridir: çıkışın minimumuna (0/4mA) karşılık gelen proses değeri.",
       "veri_tipi": "int",
       "min": null,
       "max": null,
@@ -1025,17 +1162,18 @@
       "gosterim": "—",
       "not1": "",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H44",
       "register": 44,
       "hex": "0x002C",
       "sanal": false,
-      "tab": "Temel",
+      "tab": "Çıkış Kontrolü",
       "_type": "holding",
       "parametre_adi": "Retransmisyon üst skala",
-      "proje_amaci": "",
+      "proje_amaci": "Retransmisyon analog çıkışının ÜST skala değeridir: çıkışın maksimumuna (20mA) karşılık gelen proses değeri.",
       "veri_tipi": "int",
       "min": null,
       "max": null,
@@ -1046,7 +1184,8 @@
       "gosterim": "—",
       "not1": "",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H45",
@@ -1056,7 +1195,7 @@
       "tab": "Sensör",
       "_type": "holding",
       "parametre_adi": "Ondalık nokta (mA/V)",
-      "proje_amaci": "",
+      "proje_amaci": "Lineer (mA/V/mV) girişlerde göstergedeki ondalık nokta konumunu seçer (yok / 0.0 / 0.00 / 0.000). Yalnızca H28 lineer bir giriş tipindeyken anlamlıdır; termokupl/PT100 girişlerde cihaz kendi ondalığını kullanır.",
       "veri_tipi": "int",
       "min": 0,
       "max": 3,
@@ -1084,7 +1223,8 @@
       "gosterim": "0 – 3",
       "not1": "0=yok,1=0.0,2=0.00,3=0.000",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "H46",
@@ -1094,7 +1234,7 @@
       "tab": "Sensör",
       "_type": "holding",
       "parametre_adi": "Kullanıcı alt skala (mA/V)",
-      "proje_amaci": "",
+      "proje_amaci": "Lineer girişte kullanıcı ölçekleme ALT sınırıdır: giriş sinyalinin minimumuna (örn. 4mA / 0V) karşılık gelecek gösterge değeri. H28 lineer girişlerde H47 ile birlikte ölçeklemeyi tanımlar.",
       "veri_tipi": "int",
       "min": null,
       "max": null,
@@ -1105,7 +1245,8 @@
       "gosterim": "—",
       "not1": "H28 lineer girişlerde",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H47",
@@ -1115,7 +1256,7 @@
       "tab": "Sensör",
       "_type": "holding",
       "parametre_adi": "Kullanıcı üst skala (mA/V)",
-      "proje_amaci": "",
+      "proje_amaci": "Lineer girişte kullanıcı ölçekleme ÜST sınırıdır: giriş sinyalinin maksimumuna (örn. 20mA / 10V) karşılık gelecek gösterge değeri. H28 lineer girişlerde H46 ile birlikte ölçeklemeyi tanımlar.",
       "veri_tipi": "int",
       "min": null,
       "max": null,
@@ -1126,7 +1267,8 @@
       "gosterim": "—",
       "not1": "H28 lineer girişlerde",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H48",
@@ -1136,7 +1278,7 @@
       "tab": "Haberleşme",
       "_type": "holding",
       "parametre_adi": "Modbus cihaz (slave) adresi",
-      "proje_amaci": "",
+      "proje_amaci": "Cihazın Modbus (RS485) slave adresidir (1–247). Aynı hat üzerindeki her cihaz benzersiz bir adres almalıdır.",
       "veri_tipi": "int",
       "min": 1,
       "max": 247,
@@ -1147,7 +1289,8 @@
       "gosterim": "1 – 247",
       "not1": "RS485 hat adresi",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H52",
@@ -1157,7 +1300,7 @@
       "tab": "Haberleşme",
       "_type": "holding",
       "parametre_adi": "RS485 kopma zaman aşımı",
-      "proje_amaci": "",
+      "proje_amaci": "RS485 haberleşme kopması zaman aşımı süresidir: C11=1 iken master'dan bu süre boyunca geçerli mesaj gelmezse cihaz haberleşme koptu sayar ve çıkışları güvenli konuma (kapalı) alır. Güvenlik parametresidir.",
       "veri_tipi": "int",
       "min": 2,
       "max": 9999,
@@ -1168,17 +1311,18 @@
       "gosterim": "2 – 9999 sn",
       "not1": "C11=1 iken aktif",
       "not2": "Süre dolunca çıkışları kapatır",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H100",
       "register": 100,
       "hex": "0x0064",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "holding",
       "parametre_adi": "Profil zaman tabanı",
-      "proje_amaci": "",
+      "proje_amaci": "Profil/adım sürelerinin zaman tabanını seçer: saniye ya da gün. Adım süreleri (H104, H106...) bu tabana göre yorumlanır. Değer bir SEÇİMdir.",
       "veri_tipi": "int",
       "min": 0,
       "max": 1,
@@ -1198,17 +1342,18 @@
       "gosterim": "0 – 1",
       "not1": "0=saniye, 1=gün",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "H101",
       "register": 101,
       "hex": "0x0065",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "holding",
       "parametre_adi": "Maksimum adım sayısı",
-      "proje_amaci": "",
+      "proje_amaci": "Profil programında kullanılacak maksimum adım sayısıdır (0–16). 0 = profil yok (timer/termostat modu). H103–H135 adım parametrelerinin kaçının aktif olduğunu belirler.",
       "veri_tipi": "int",
       "min": 0,
       "max": 16,
@@ -1219,17 +1364,18 @@
       "gosterim": "0 – 16",
       "not1": "0 = timer/termostat modu",
       "not2": "H103–H135'i etkiler",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H102",
       "register": 102,
       "hex": "0x0066",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "holding",
       "parametre_adi": "Adım sonu sıcaklık toleransı",
-      "proje_amaci": "",
+      "proje_amaci": "Adım sonu sıcaklık toleransıdır: cihazın bir adımı \"tamamlandı\" sayıp bir sonrakine geçmeden önce ölçümün set değerine ne kadar yaklaşması gerektiğini (izin verilen sapma) belirler. Sanal H102STP1..16 bu register'a aktif adıma göre canlı yazar. Aralık 0–H3.",
       "veri_tipi": "int",
       "min": 0,
       "max": null,
@@ -1240,17 +1386,18 @@
       "gosterim": "0 – H3",
       "not1": "Adım ilerlemeden önce izin verilen sapma",
       "not2": "Sanal H102STP1..16 bu register'a canlı yazar",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H103",
       "register": 103,
       "hex": "0x0067",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "holding",
       "parametre_adi": "Adım 1 hedef sıcaklığı",
-      "proje_amaci": "",
+      "proje_amaci": "Adım 1 hedef sıcaklığıdır: profil (C132=1) modunda 1. adımda ulaşılacak set değeri. Aralığı H2–H3 arasındadır.",
       "veri_tipi": "int",
       "min": null,
       "max": null,
@@ -1261,17 +1408,18 @@
       "gosterim": "H2 – H3",
       "not1": "C132=1 (profil) modunda",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H104",
       "register": 104,
       "hex": "0x0068",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "holding",
       "parametre_adi": "Adım 1 süresi",
-      "proje_amaci": "",
+      "proje_amaci": "Adım 1 süresidir: 1. adımın H100 zaman tabanına (saniye/gün) göre bekleme/rampa süresi.",
       "veri_tipi": "int",
       "min": 0,
       "max": 9999,
@@ -1282,17 +1430,18 @@
       "gosterim": "0 – 9999 sn/gün",
       "not1": "H100 zaman tabanına göre",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H105",
       "register": 105,
       "hex": "0x0069",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "holding",
       "parametre_adi": "Adım 2 hedef sıcaklığı",
-      "proje_amaci": "",
+      "proje_amaci": "Adım 2 hedef sıcaklığıdır: profil (C132=1) modunda 2. adımda ulaşılacak set değeri. Aralığı H2–H3 arasındadır.",
       "veri_tipi": "int",
       "min": null,
       "max": null,
@@ -1303,17 +1452,18 @@
       "gosterim": "H2 – H3",
       "not1": "C132=1 (profil) modunda",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H106",
       "register": 106,
       "hex": "0x006A",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "holding",
       "parametre_adi": "Adım 2 süresi",
-      "proje_amaci": "",
+      "proje_amaci": "Adım 2 süresidir: 2. adımın H100 zaman tabanına (saniye/gün) göre bekleme/rampa süresi.",
       "veri_tipi": "int",
       "min": 0,
       "max": 9999,
@@ -1324,17 +1474,18 @@
       "gosterim": "0 – 9999 sn/gün",
       "not1": "H100 zaman tabanına göre",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H107",
       "register": 107,
       "hex": "0x006B",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "holding",
       "parametre_adi": "Adım 3 hedef sıcaklığı",
-      "proje_amaci": "",
+      "proje_amaci": "Adım 3 hedef sıcaklığıdır: profil (C132=1) modunda 3. adımda ulaşılacak set değeri. Aralığı H2–H3 arasındadır.",
       "veri_tipi": "int",
       "min": null,
       "max": null,
@@ -1345,17 +1496,18 @@
       "gosterim": "H2 – H3",
       "not1": "C132=1 (profil) modunda",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H108",
       "register": 108,
       "hex": "0x006C",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "holding",
       "parametre_adi": "Adım 3 süresi",
-      "proje_amaci": "",
+      "proje_amaci": "Adım 3 süresidir: 3. adımın H100 zaman tabanına (saniye/gün) göre bekleme/rampa süresi.",
       "veri_tipi": "int",
       "min": 0,
       "max": 9999,
@@ -1366,17 +1518,18 @@
       "gosterim": "0 – 9999 sn/gün",
       "not1": "H100 zaman tabanına göre",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H109",
       "register": 109,
       "hex": "0x006D",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "holding",
       "parametre_adi": "Adım 4 hedef sıcaklığı",
-      "proje_amaci": "",
+      "proje_amaci": "Adım 4 hedef sıcaklığıdır: profil (C132=1) modunda 4. adımda ulaşılacak set değeri. Aralığı H2–H3 arasındadır.",
       "veri_tipi": "int",
       "min": null,
       "max": null,
@@ -1387,17 +1540,18 @@
       "gosterim": "H2 – H3",
       "not1": "C132=1 (profil) modunda",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H110",
       "register": 110,
       "hex": "0x006E",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "holding",
       "parametre_adi": "Adım 4 süresi",
-      "proje_amaci": "",
+      "proje_amaci": "Adım 4 süresidir: 4. adımın H100 zaman tabanına (saniye/gün) göre bekleme/rampa süresi.",
       "veri_tipi": "int",
       "min": 0,
       "max": 9999,
@@ -1408,17 +1562,18 @@
       "gosterim": "0 – 9999 sn/gün",
       "not1": "H100 zaman tabanına göre",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H111",
       "register": 111,
       "hex": "0x006F",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "holding",
       "parametre_adi": "Adım 5 hedef sıcaklığı",
-      "proje_amaci": "",
+      "proje_amaci": "Adım 5 hedef sıcaklığıdır: profil (C132=1) modunda 5. adımda ulaşılacak set değeri. Aralığı H2–H3 arasındadır.",
       "veri_tipi": "int",
       "min": null,
       "max": null,
@@ -1429,17 +1584,18 @@
       "gosterim": "H2 – H3",
       "not1": "C132=1 (profil) modunda",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H112",
       "register": 112,
       "hex": "0x0070",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "holding",
       "parametre_adi": "Adım 5 süresi",
-      "proje_amaci": "",
+      "proje_amaci": "Adım 5 süresidir: 5. adımın H100 zaman tabanına (saniye/gün) göre bekleme/rampa süresi.",
       "veri_tipi": "int",
       "min": 0,
       "max": 9999,
@@ -1450,17 +1606,18 @@
       "gosterim": "0 – 9999 sn/gün",
       "not1": "H100 zaman tabanına göre",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H113",
       "register": 113,
       "hex": "0x0071",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "holding",
       "parametre_adi": "Adım 6 hedef sıcaklığı",
-      "proje_amaci": "",
+      "proje_amaci": "Adım 6 hedef sıcaklığıdır: profil (C132=1) modunda 6. adımda ulaşılacak set değeri. Aralığı H2–H3 arasındadır.",
       "veri_tipi": "int",
       "min": null,
       "max": null,
@@ -1471,17 +1628,18 @@
       "gosterim": "H2 – H3",
       "not1": "C132=1 (profil) modunda",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H114",
       "register": 114,
       "hex": "0x0072",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "holding",
       "parametre_adi": "Adım 6 süresi",
-      "proje_amaci": "",
+      "proje_amaci": "Adım 6 süresidir: 6. adımın H100 zaman tabanına (saniye/gün) göre bekleme/rampa süresi.",
       "veri_tipi": "int",
       "min": 0,
       "max": 9999,
@@ -1492,17 +1650,18 @@
       "gosterim": "0 – 9999 sn/gün",
       "not1": "H100 zaman tabanına göre",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H115",
       "register": 115,
       "hex": "0x0073",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "holding",
       "parametre_adi": "Adım 7 hedef sıcaklığı",
-      "proje_amaci": "",
+      "proje_amaci": "Adım 7 hedef sıcaklığıdır: profil (C132=1) modunda 7. adımda ulaşılacak set değeri. Aralığı H2–H3 arasındadır.",
       "veri_tipi": "int",
       "min": null,
       "max": null,
@@ -1513,17 +1672,18 @@
       "gosterim": "H2 – H3",
       "not1": "C132=1 (profil) modunda",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H116",
       "register": 116,
       "hex": "0x0074",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "holding",
       "parametre_adi": "Adım 7 süresi",
-      "proje_amaci": "",
+      "proje_amaci": "Adım 7 süresidir: 7. adımın H100 zaman tabanına (saniye/gün) göre bekleme/rampa süresi.",
       "veri_tipi": "int",
       "min": 0,
       "max": 9999,
@@ -1534,17 +1694,18 @@
       "gosterim": "0 – 9999 sn/gün",
       "not1": "H100 zaman tabanına göre",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H117",
       "register": 117,
       "hex": "0x0075",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "holding",
       "parametre_adi": "Adım 8 hedef sıcaklığı",
-      "proje_amaci": "",
+      "proje_amaci": "Adım 8 hedef sıcaklığıdır: profil (C132=1) modunda 8. adımda ulaşılacak set değeri. Aralığı H2–H3 arasındadır.",
       "veri_tipi": "int",
       "min": null,
       "max": null,
@@ -1555,17 +1716,18 @@
       "gosterim": "H2 – H3",
       "not1": "C132=1 (profil) modunda",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H118",
       "register": 118,
       "hex": "0x0076",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "holding",
       "parametre_adi": "Adım 8 süresi",
-      "proje_amaci": "",
+      "proje_amaci": "Adım 8 süresidir: 8. adımın H100 zaman tabanına (saniye/gün) göre bekleme/rampa süresi.",
       "veri_tipi": "int",
       "min": 0,
       "max": 9999,
@@ -1576,17 +1738,18 @@
       "gosterim": "0 – 9999 sn/gün",
       "not1": "H100 zaman tabanına göre",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H119",
       "register": 119,
       "hex": "0x0077",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "holding",
       "parametre_adi": "Adım 9 hedef sıcaklığı",
-      "proje_amaci": "",
+      "proje_amaci": "Adım 9 hedef sıcaklığıdır: profil (C132=1) modunda 9. adımda ulaşılacak set değeri. Aralığı H2–H3 arasındadır.",
       "veri_tipi": "int",
       "min": null,
       "max": null,
@@ -1597,17 +1760,18 @@
       "gosterim": "H2 – H3",
       "not1": "C132=1 (profil) modunda",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H120",
       "register": 120,
       "hex": "0x0078",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "holding",
       "parametre_adi": "Adım 9 süresi",
-      "proje_amaci": "",
+      "proje_amaci": "Adım 9 süresidir: 9. adımın H100 zaman tabanına (saniye/gün) göre bekleme/rampa süresi.",
       "veri_tipi": "int",
       "min": 0,
       "max": 9999,
@@ -1618,17 +1782,18 @@
       "gosterim": "0 – 9999 sn/gün",
       "not1": "H100 zaman tabanına göre",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H121",
       "register": 121,
       "hex": "0x0079",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "holding",
       "parametre_adi": "Adım 10 hedef sıcaklığı",
-      "proje_amaci": "",
+      "proje_amaci": "Adım 10 hedef sıcaklığıdır: profil (C132=1) modunda 10. adımda ulaşılacak set değeri. Aralığı H2–H3 arasındadır.",
       "veri_tipi": "int",
       "min": null,
       "max": null,
@@ -1639,17 +1804,18 @@
       "gosterim": "H2 – H3",
       "not1": "C132=1 (profil) modunda",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H122",
       "register": 122,
       "hex": "0x007A",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "holding",
       "parametre_adi": "Adım 10 süresi",
-      "proje_amaci": "",
+      "proje_amaci": "Adım 10 süresidir: 10. adımın H100 zaman tabanına (saniye/gün) göre bekleme/rampa süresi.",
       "veri_tipi": "int",
       "min": 0,
       "max": 9999,
@@ -1660,17 +1826,18 @@
       "gosterim": "0 – 9999 sn/gün",
       "not1": "H100 zaman tabanına göre",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H123",
       "register": 123,
       "hex": "0x007B",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "holding",
       "parametre_adi": "Adım 11 hedef sıcaklığı",
-      "proje_amaci": "",
+      "proje_amaci": "Adım 11 hedef sıcaklığıdır: profil (C132=1) modunda 11. adımda ulaşılacak set değeri. Aralığı H2–H3 arasındadır.",
       "veri_tipi": "int",
       "min": null,
       "max": null,
@@ -1681,17 +1848,18 @@
       "gosterim": "H2 – H3",
       "not1": "C132=1 (profil) modunda",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H124",
       "register": 124,
       "hex": "0x007C",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "holding",
       "parametre_adi": "Adım 11 süresi",
-      "proje_amaci": "",
+      "proje_amaci": "Adım 11 süresidir: 11. adımın H100 zaman tabanına (saniye/gün) göre bekleme/rampa süresi.",
       "veri_tipi": "int",
       "min": 0,
       "max": 9999,
@@ -1702,17 +1870,18 @@
       "gosterim": "0 – 9999 sn/gün",
       "not1": "H100 zaman tabanına göre",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H125",
       "register": 125,
       "hex": "0x007D",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "holding",
       "parametre_adi": "Adım 12 hedef sıcaklığı",
-      "proje_amaci": "",
+      "proje_amaci": "Adım 12 hedef sıcaklığıdır: profil (C132=1) modunda 12. adımda ulaşılacak set değeri. Aralığı H2–H3 arasındadır.",
       "veri_tipi": "int",
       "min": null,
       "max": null,
@@ -1723,17 +1892,18 @@
       "gosterim": "H2 – H3",
       "not1": "C132=1 (profil) modunda",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H126",
       "register": 126,
       "hex": "0x007E",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "holding",
       "parametre_adi": "Adım 12 süresi",
-      "proje_amaci": "",
+      "proje_amaci": "Adım 12 süresidir: 12. adımın H100 zaman tabanına (saniye/gün) göre bekleme/rampa süresi.",
       "veri_tipi": "int",
       "min": 0,
       "max": 9999,
@@ -1744,17 +1914,18 @@
       "gosterim": "0 – 9999 sn/gün",
       "not1": "H100 zaman tabanına göre",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H127",
       "register": 127,
       "hex": "0x007F",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "holding",
       "parametre_adi": "Adım 13 hedef sıcaklığı",
-      "proje_amaci": "",
+      "proje_amaci": "Adım 13 hedef sıcaklığıdır: profil (C132=1) modunda 13. adımda ulaşılacak set değeri. Aralığı H2–H3 arasındadır.",
       "veri_tipi": "int",
       "min": null,
       "max": null,
@@ -1765,17 +1936,18 @@
       "gosterim": "H2 – H3",
       "not1": "C132=1 (profil) modunda",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H128",
       "register": 128,
       "hex": "0x0080",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "holding",
       "parametre_adi": "Adım 13 süresi",
-      "proje_amaci": "",
+      "proje_amaci": "Adım 13 süresidir: 13. adımın H100 zaman tabanına (saniye/gün) göre bekleme/rampa süresi.",
       "veri_tipi": "int",
       "min": 0,
       "max": 9999,
@@ -1786,17 +1958,18 @@
       "gosterim": "0 – 9999 sn/gün",
       "not1": "H100 zaman tabanına göre",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H129",
       "register": 129,
       "hex": "0x0081",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "holding",
       "parametre_adi": "Adım 14 hedef sıcaklığı",
-      "proje_amaci": "",
+      "proje_amaci": "Adım 14 hedef sıcaklığıdır: profil (C132=1) modunda 14. adımda ulaşılacak set değeri. Aralığı H2–H3 arasındadır.",
       "veri_tipi": "int",
       "min": null,
       "max": null,
@@ -1807,17 +1980,18 @@
       "gosterim": "H2 – H3",
       "not1": "C132=1 (profil) modunda",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H130",
       "register": 130,
       "hex": "0x0082",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "holding",
       "parametre_adi": "Adım 14 süresi",
-      "proje_amaci": "",
+      "proje_amaci": "Adım 14 süresidir: 14. adımın H100 zaman tabanına (saniye/gün) göre bekleme/rampa süresi.",
       "veri_tipi": "int",
       "min": 0,
       "max": 9999,
@@ -1828,17 +2002,18 @@
       "gosterim": "0 – 9999 sn/gün",
       "not1": "H100 zaman tabanına göre",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H131",
       "register": 131,
       "hex": "0x0083",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "holding",
       "parametre_adi": "Adım 15 hedef sıcaklığı",
-      "proje_amaci": "",
+      "proje_amaci": "Adım 15 hedef sıcaklığıdır: profil (C132=1) modunda 15. adımda ulaşılacak set değeri. Aralığı H2–H3 arasındadır.",
       "veri_tipi": "int",
       "min": null,
       "max": null,
@@ -1849,17 +2024,18 @@
       "gosterim": "H2 – H3",
       "not1": "C132=1 (profil) modunda",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H132",
       "register": 132,
       "hex": "0x0084",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "holding",
       "parametre_adi": "Adım 15 süresi",
-      "proje_amaci": "",
+      "proje_amaci": "Adım 15 süresidir: 15. adımın H100 zaman tabanına (saniye/gün) göre bekleme/rampa süresi.",
       "veri_tipi": "int",
       "min": 0,
       "max": 9999,
@@ -1870,17 +2046,18 @@
       "gosterim": "0 – 9999 sn/gün",
       "not1": "H100 zaman tabanına göre",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H133",
       "register": 133,
       "hex": "0x0085",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "holding",
       "parametre_adi": "Adım 16 hedef sıcaklığı",
-      "proje_amaci": "",
+      "proje_amaci": "Adım 16 hedef sıcaklığıdır: profil (C132=1) modunda 16. adımda ulaşılacak set değeri. Aralığı H2–H3 arasındadır.",
       "veri_tipi": "int",
       "min": null,
       "max": null,
@@ -1891,17 +2068,18 @@
       "gosterim": "H2 – H3",
       "not1": "C132=1 (profil) modunda",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H134",
       "register": 134,
       "hex": "0x0086",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "holding",
       "parametre_adi": "Adım 16 süresi",
-      "proje_amaci": "",
+      "proje_amaci": "Adım 16 süresidir: 16. adımın H100 zaman tabanına (saniye/gün) göre bekleme/rampa süresi.",
       "veri_tipi": "int",
       "min": 0,
       "max": 9999,
@@ -1912,17 +2090,18 @@
       "gosterim": "0 – 9999 sn/gün",
       "not1": "H100 zaman tabanına göre",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H135",
       "register": 135,
       "hex": "0x0087",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "holding",
       "parametre_adi": "Termostat modu adım süresi",
-      "proje_amaci": "",
+      "proje_amaci": "Termostat (timer) modunda adım süresidir; profil kapalıyken (H101=0) tek adımlı zamanlayıcının süresini belirler.",
       "veri_tipi": "int",
       "min": 0,
       "max": 9999,
@@ -1933,7 +2112,8 @@
       "gosterim": "0 – 9999 sn/gün",
       "not1": "Termostat (timer) modunda süre",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "C0",
@@ -1943,7 +2123,7 @@
       "tab": "Alarmlar",
       "_type": "coil",
       "parametre_adi": "Alarm2 yön seçimi",
-      "proje_amaci": "",
+      "proje_amaci": "Alarm2'nin yön seçimi: set değerinin altında mı yoksa üstünde mi aktif olacağını belirler. Değer bir SEÇİMdir.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -1963,7 +2143,8 @@
       "gosterim": "0=set altında aktif, 1=set üstünde aktif",
       "not1": "",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "C1",
@@ -1973,7 +2154,7 @@
       "tab": "Alarmlar",
       "_type": "coil",
       "parametre_adi": "Alarm2 sensör arıza konumu",
-      "proje_amaci": "",
+      "proje_amaci": "Sensör arızası durumunda Alarm2 çıkışının alacağı konum (OFF/ON). Güvenlik ayarı.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -1993,7 +2174,8 @@
       "gosterim": "0=OFF, 1=ON",
       "not1": "Sensör arızasında",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "C2",
@@ -2003,7 +2185,7 @@
       "tab": "Alarmlar",
       "_type": "coil",
       "parametre_adi": "Alarm1 yön seçimi",
-      "proje_amaci": "",
+      "proje_amaci": "Alarm1'in yön seçimi: set değerinin altında mı yoksa üstünde mi aktif olacağını belirler. Değer bir SEÇİMdir.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -2023,7 +2205,8 @@
       "gosterim": "0=set altında aktif, 1=set üstünde aktif",
       "not1": "",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "C3",
@@ -2033,7 +2216,7 @@
       "tab": "Alarmlar",
       "_type": "coil",
       "parametre_adi": "Alarm1 sensör arıza konumu",
-      "proje_amaci": "",
+      "proje_amaci": "Sensör arızası durumunda Alarm1 çıkışının alacağı konum (OFF/ON). Güvenlik ayarı.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -2053,17 +2236,18 @@
       "gosterim": "0=OFF, 1=ON",
       "not1": "Sensör arızasında",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "C4",
       "register": 4,
       "hex": "0x0004",
       "sanal": false,
-      "tab": "Temel",
+      "tab": "Çıkış Kontrolü",
       "_type": "coil",
       "parametre_adi": "Kontrol çıkışı modu",
-      "proje_amaci": "",
+      "proje_amaci": "Kontrol çıkışının etki yönü/modu: ısıtma mı soğutma mı. Isıtmada ölçüm setin altındayken güç artar; soğutmada tersi. Değer bir SEÇİMdir.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -2083,7 +2267,8 @@
       "gosterim": "0=ısıtma, 1=soğutma",
       "not1": "",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "C5",
@@ -2093,7 +2278,7 @@
       "tab": "Temel",
       "_type": "coil",
       "parametre_adi": "Sıcaklık birimi",
-      "proje_amaci": "",
+      "proje_amaci": "Sıcaklık birimi seçimi: °C / °F. Tüm gösterge ve set değerleri bu birime göre yorumlanır. Değer bir SEÇİMdir.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -2113,17 +2298,18 @@
       "gosterim": "0=°C, 1=°F",
       "not1": "",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "C6",
       "register": 6,
       "hex": "0x0006",
       "sanal": false,
-      "tab": "Temel",
+      "tab": "Çıkış Kontrolü",
       "_type": "coil",
       "parametre_adi": "Kontrol çıkışı etkin/pasif",
-      "proje_amaci": "",
+      "proje_amaci": "Ana kontrol çıkışını topluca etkin/pasif yapar. Pasifken (0) çıkış sürülmez; devreye alma/durdurma için kullanılır.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -2143,7 +2329,8 @@
       "gosterim": "0=yalnız gösterge, 1=kontrol aktif",
       "not1": "",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "C7",
@@ -2153,7 +2340,7 @@
       "tab": "Temel",
       "_type": "coil",
       "parametre_adi": "Set değeri seçimi",
-      "proje_amaci": "",
+      "proje_amaci": "Aktif set değeri kaynağını seçer: H0 (ana set, ısıtma yokken) mı yoksa H1 (2./ön ısıtma set) mi. H0/H1 açıklamalarında belirtildiği gibi seti bu belirler. Değer bir SEÇİMdir.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -2173,7 +2360,8 @@
       "gosterim": "0=H0, 1=H1",
       "not1": "",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "C8",
@@ -2183,7 +2371,7 @@
       "tab": "PID",
       "_type": "coil",
       "parametre_adi": "Manuel kontrol modu",
-      "proje_amaci": "",
+      "proje_amaci": "Manuel kontrol modu: 1 iken PID devre dışı kalır ve çıkış H39'daki manuel yüzdeyle sürülür; 0 iken otomatik (PID) kontrol. Değer bir SEÇİMdir.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -2203,7 +2391,8 @@
       "gosterim": "0=otomatik, 1=manuel",
       "not1": "Manuelde H39 % kullanılır",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "C9",
@@ -2213,7 +2402,7 @@
       "tab": "PID",
       "_type": "coil",
       "parametre_adi": "Sensör arıza çıkış modu",
-      "proje_amaci": "",
+      "proje_amaci": "Sensör arızasında çıkış davranışını seçer: 0 iken H10'daki sabit güç uygulanır, 1 iken çıkış kapatılır. Güvenlik seçimidir.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -2233,7 +2422,8 @@
       "gosterim": "0=H10 %'sini kullan, 1=son oransal değeri koru",
       "not1": "",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "C10",
@@ -2243,7 +2433,7 @@
       "tab": "PID",
       "_type": "coil",
       "parametre_adi": "Self-tune (otomatik ayar)",
-      "proje_amaci": "",
+      "proje_amaci": "Self-tune (otomatik PID ayarı): 1 yapıldığında cihaz P/I/D katsayılarını (H4/H6/H7) otomatik hesaplar. İşlem durumunu I3 register'ı gösterir.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -2263,7 +2453,8 @@
       "gosterim": "0=dur, 1=başlat",
       "not1": "H4–H7'yi otomatik hesaplar",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "C11",
@@ -2273,7 +2464,7 @@
       "tab": "Haberleşme",
       "_type": "coil",
       "parametre_adi": "RS485 kopma algılama",
-      "proje_amaci": "",
+      "proje_amaci": "RS485 haberleşme kopması algılamasını açar/kapatır. 1 iken H52 zaman aşımı işletilir ve kopma anında çıkışlar güvene alınır.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -2293,17 +2484,18 @@
       "gosterim": "0=kapalı, 1=açık",
       "not1": "H52 zaman aşımını etkinleştirir",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "C100",
       "register": 100,
       "hex": "0x0064",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "coil",
       "parametre_adi": "Adım 1 için A1 rölesi",
-      "proje_amaci": "",
+      "proje_amaci": "Profilin 1. adımında A1 rölesinin konumunu (çekili/bırakılmış) belirler. Her adımda A1 çıkışını ayrı programlamak için kullanılır. Değer bir SEÇİMdir.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -2323,17 +2515,18 @@
       "gosterim": "0=OFF, 1=ON",
       "not1": "C137=1 iken adım başına A1",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "C101",
       "register": 101,
       "hex": "0x0065",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "coil",
       "parametre_adi": "Adım 2 için A1 rölesi",
-      "proje_amaci": "",
+      "proje_amaci": "Profilin 2. adımında A1 rölesinin konumunu (çekili/bırakılmış) belirler. Her adımda A1 çıkışını ayrı programlamak için kullanılır. Değer bir SEÇİMdir.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -2353,17 +2546,18 @@
       "gosterim": "0=OFF, 1=ON",
       "not1": "C137=1 iken adım başına A1",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "C102",
       "register": 102,
       "hex": "0x0066",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "coil",
       "parametre_adi": "Adım 3 için A1 rölesi",
-      "proje_amaci": "",
+      "proje_amaci": "Profilin 3. adımında A1 rölesinin konumunu (çekili/bırakılmış) belirler. Her adımda A1 çıkışını ayrı programlamak için kullanılır. Değer bir SEÇİMdir.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -2383,17 +2577,18 @@
       "gosterim": "0=OFF, 1=ON",
       "not1": "C137=1 iken adım başına A1",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "C103",
       "register": 103,
       "hex": "0x0067",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "coil",
       "parametre_adi": "Adım 4 için A1 rölesi",
-      "proje_amaci": "",
+      "proje_amaci": "Profilin 4. adımında A1 rölesinin konumunu (çekili/bırakılmış) belirler. Her adımda A1 çıkışını ayrı programlamak için kullanılır. Değer bir SEÇİMdir.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -2413,17 +2608,18 @@
       "gosterim": "0=OFF, 1=ON",
       "not1": "C137=1 iken adım başına A1",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "C104",
       "register": 104,
       "hex": "0x0068",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "coil",
       "parametre_adi": "Adım 5 için A1 rölesi",
-      "proje_amaci": "",
+      "proje_amaci": "Profilin 5. adımında A1 rölesinin konumunu (çekili/bırakılmış) belirler. Her adımda A1 çıkışını ayrı programlamak için kullanılır. Değer bir SEÇİMdir.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -2443,17 +2639,18 @@
       "gosterim": "0=OFF, 1=ON",
       "not1": "C137=1 iken adım başına A1",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "C105",
       "register": 105,
       "hex": "0x0069",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "coil",
       "parametre_adi": "Adım 6 için A1 rölesi",
-      "proje_amaci": "",
+      "proje_amaci": "Profilin 6. adımında A1 rölesinin konumunu (çekili/bırakılmış) belirler. Her adımda A1 çıkışını ayrı programlamak için kullanılır. Değer bir SEÇİMdir.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -2473,17 +2670,18 @@
       "gosterim": "0=OFF, 1=ON",
       "not1": "C137=1 iken adım başına A1",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "C106",
       "register": 106,
       "hex": "0x006A",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "coil",
       "parametre_adi": "Adım 7 için A1 rölesi",
-      "proje_amaci": "",
+      "proje_amaci": "Profilin 7. adımında A1 rölesinin konumunu (çekili/bırakılmış) belirler. Her adımda A1 çıkışını ayrı programlamak için kullanılır. Değer bir SEÇİMdir.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -2503,17 +2701,18 @@
       "gosterim": "0=OFF, 1=ON",
       "not1": "C137=1 iken adım başına A1",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "C107",
       "register": 107,
       "hex": "0x006B",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "coil",
       "parametre_adi": "Adım 8 için A1 rölesi",
-      "proje_amaci": "",
+      "proje_amaci": "Profilin 8. adımında A1 rölesinin konumunu (çekili/bırakılmış) belirler. Her adımda A1 çıkışını ayrı programlamak için kullanılır. Değer bir SEÇİMdir.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -2533,17 +2732,18 @@
       "gosterim": "0=OFF, 1=ON",
       "not1": "C137=1 iken adım başına A1",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "C108",
       "register": 108,
       "hex": "0x006C",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "coil",
       "parametre_adi": "Adım 9 için A1 rölesi",
-      "proje_amaci": "",
+      "proje_amaci": "Profilin 9. adımında A1 rölesinin konumunu (çekili/bırakılmış) belirler. Her adımda A1 çıkışını ayrı programlamak için kullanılır. Değer bir SEÇİMdir.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -2563,17 +2763,18 @@
       "gosterim": "0=OFF, 1=ON",
       "not1": "C137=1 iken adım başına A1",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "C109",
       "register": 109,
       "hex": "0x006D",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "coil",
       "parametre_adi": "Adım 10 için A1 rölesi",
-      "proje_amaci": "",
+      "proje_amaci": "Profilin 10. adımında A1 rölesinin konumunu (çekili/bırakılmış) belirler. Her adımda A1 çıkışını ayrı programlamak için kullanılır. Değer bir SEÇİMdir.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -2593,17 +2794,18 @@
       "gosterim": "0=OFF, 1=ON",
       "not1": "C137=1 iken adım başına A1",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "C110",
       "register": 110,
       "hex": "0x006E",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "coil",
       "parametre_adi": "Adım 11 için A1 rölesi",
-      "proje_amaci": "",
+      "proje_amaci": "Profilin 11. adımında A1 rölesinin konumunu (çekili/bırakılmış) belirler. Her adımda A1 çıkışını ayrı programlamak için kullanılır. Değer bir SEÇİMdir.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -2623,17 +2825,18 @@
       "gosterim": "0=OFF, 1=ON",
       "not1": "C137=1 iken adım başına A1",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "C111",
       "register": 111,
       "hex": "0x006F",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "coil",
       "parametre_adi": "Adım 12 için A1 rölesi",
-      "proje_amaci": "",
+      "proje_amaci": "Profilin 12. adımında A1 rölesinin konumunu (çekili/bırakılmış) belirler. Her adımda A1 çıkışını ayrı programlamak için kullanılır. Değer bir SEÇİMdir.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -2653,17 +2856,18 @@
       "gosterim": "0=OFF, 1=ON",
       "not1": "C137=1 iken adım başına A1",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "C112",
       "register": 112,
       "hex": "0x0070",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "coil",
       "parametre_adi": "Adım 13 için A1 rölesi",
-      "proje_amaci": "",
+      "proje_amaci": "Profilin 13. adımında A1 rölesinin konumunu (çekili/bırakılmış) belirler. Her adımda A1 çıkışını ayrı programlamak için kullanılır. Değer bir SEÇİMdir.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -2683,17 +2887,18 @@
       "gosterim": "0=OFF, 1=ON",
       "not1": "C137=1 iken adım başına A1",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "C113",
       "register": 113,
       "hex": "0x0071",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "coil",
       "parametre_adi": "Adım 14 için A1 rölesi",
-      "proje_amaci": "",
+      "proje_amaci": "Profilin 14. adımında A1 rölesinin konumunu (çekili/bırakılmış) belirler. Her adımda A1 çıkışını ayrı programlamak için kullanılır. Değer bir SEÇİMdir.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -2713,17 +2918,18 @@
       "gosterim": "0=OFF, 1=ON",
       "not1": "C137=1 iken adım başına A1",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "C114",
       "register": 114,
       "hex": "0x0072",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "coil",
       "parametre_adi": "Adım 15 için A1 rölesi",
-      "proje_amaci": "",
+      "proje_amaci": "Profilin 15. adımında A1 rölesinin konumunu (çekili/bırakılmış) belirler. Her adımda A1 çıkışını ayrı programlamak için kullanılır. Değer bir SEÇİMdir.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -2743,17 +2949,18 @@
       "gosterim": "0=OFF, 1=ON",
       "not1": "C137=1 iken adım başına A1",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "C115",
       "register": 115,
       "hex": "0x0073",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "coil",
       "parametre_adi": "Adım 16 için A1 rölesi",
-      "proje_amaci": "",
+      "proje_amaci": "Profilin 16. adımında A1 rölesinin konumunu (çekili/bırakılmış) belirler. Her adımda A1 çıkışını ayrı programlamak için kullanılır. Değer bir SEÇİMdir.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -2773,17 +2980,18 @@
       "gosterim": "0=OFF, 1=ON",
       "not1": "C137=1 iken adım başına A1",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "C116",
       "register": 116,
       "hex": "0x0074",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "coil",
       "parametre_adi": "Adım 1 için C/A2 rölesi",
-      "proje_amaci": "",
+      "proje_amaci": "Profilin 1. adımında C/A2 rölesinin konumunu (çekili/bırakılmış) belirler. Her adımda A2 çıkışını ayrı programlamak için kullanılır. Değer bir SEÇİMdir.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -2803,17 +3011,18 @@
       "gosterim": "0=OFF, 1=ON",
       "not1": "C138=1 iken adım başına C/A2",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "C117",
       "register": 117,
       "hex": "0x0075",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "coil",
       "parametre_adi": "Adım 2 için C/A2 rölesi",
-      "proje_amaci": "",
+      "proje_amaci": "Profilin 2. adımında C/A2 rölesinin konumunu (çekili/bırakılmış) belirler. Her adımda A2 çıkışını ayrı programlamak için kullanılır. Değer bir SEÇİMdir.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -2833,17 +3042,18 @@
       "gosterim": "0=OFF, 1=ON",
       "not1": "C138=1 iken adım başına C/A2",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "C118",
       "register": 118,
       "hex": "0x0076",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "coil",
       "parametre_adi": "Adım 3 için C/A2 rölesi",
-      "proje_amaci": "",
+      "proje_amaci": "Profilin 3. adımında C/A2 rölesinin konumunu (çekili/bırakılmış) belirler. Her adımda A2 çıkışını ayrı programlamak için kullanılır. Değer bir SEÇİMdir.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -2863,17 +3073,18 @@
       "gosterim": "0=OFF, 1=ON",
       "not1": "C138=1 iken adım başına C/A2",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "C119",
       "register": 119,
       "hex": "0x0077",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "coil",
       "parametre_adi": "Adım 4 için C/A2 rölesi",
-      "proje_amaci": "",
+      "proje_amaci": "Profilin 4. adımında C/A2 rölesinin konumunu (çekili/bırakılmış) belirler. Her adımda A2 çıkışını ayrı programlamak için kullanılır. Değer bir SEÇİMdir.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -2893,17 +3104,18 @@
       "gosterim": "0=OFF, 1=ON",
       "not1": "C138=1 iken adım başına C/A2",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "C120",
       "register": 120,
       "hex": "0x0078",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "coil",
       "parametre_adi": "Adım 5 için C/A2 rölesi",
-      "proje_amaci": "",
+      "proje_amaci": "Profilin 5. adımında C/A2 rölesinin konumunu (çekili/bırakılmış) belirler. Her adımda A2 çıkışını ayrı programlamak için kullanılır. Değer bir SEÇİMdir.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -2923,17 +3135,18 @@
       "gosterim": "0=OFF, 1=ON",
       "not1": "C138=1 iken adım başına C/A2",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "C121",
       "register": 121,
       "hex": "0x0079",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "coil",
       "parametre_adi": "Adım 6 için C/A2 rölesi",
-      "proje_amaci": "",
+      "proje_amaci": "Profilin 6. adımında C/A2 rölesinin konumunu (çekili/bırakılmış) belirler. Her adımda A2 çıkışını ayrı programlamak için kullanılır. Değer bir SEÇİMdir.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -2953,17 +3166,18 @@
       "gosterim": "0=OFF, 1=ON",
       "not1": "C138=1 iken adım başına C/A2",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "C122",
       "register": 122,
       "hex": "0x007A",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "coil",
       "parametre_adi": "Adım 7 için C/A2 rölesi",
-      "proje_amaci": "",
+      "proje_amaci": "Profilin 7. adımında C/A2 rölesinin konumunu (çekili/bırakılmış) belirler. Her adımda A2 çıkışını ayrı programlamak için kullanılır. Değer bir SEÇİMdir.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -2983,17 +3197,18 @@
       "gosterim": "0=OFF, 1=ON",
       "not1": "C138=1 iken adım başına C/A2",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "C123",
       "register": 123,
       "hex": "0x007B",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "coil",
       "parametre_adi": "Adım 8 için C/A2 rölesi",
-      "proje_amaci": "",
+      "proje_amaci": "Profilin 8. adımında C/A2 rölesinin konumunu (çekili/bırakılmış) belirler. Her adımda A2 çıkışını ayrı programlamak için kullanılır. Değer bir SEÇİMdir.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -3013,17 +3228,18 @@
       "gosterim": "0=OFF, 1=ON",
       "not1": "C138=1 iken adım başına C/A2",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "C124",
       "register": 124,
       "hex": "0x007C",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "coil",
       "parametre_adi": "Adım 9 için C/A2 rölesi",
-      "proje_amaci": "",
+      "proje_amaci": "Profilin 9. adımında C/A2 rölesinin konumunu (çekili/bırakılmış) belirler. Her adımda A2 çıkışını ayrı programlamak için kullanılır. Değer bir SEÇİMdir.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -3043,17 +3259,18 @@
       "gosterim": "0=OFF, 1=ON",
       "not1": "C138=1 iken adım başına C/A2",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "C125",
       "register": 125,
       "hex": "0x007D",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "coil",
       "parametre_adi": "Adım 10 için C/A2 rölesi",
-      "proje_amaci": "",
+      "proje_amaci": "Profilin 10. adımında C/A2 rölesinin konumunu (çekili/bırakılmış) belirler. Her adımda A2 çıkışını ayrı programlamak için kullanılır. Değer bir SEÇİMdir.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -3073,17 +3290,18 @@
       "gosterim": "0=OFF, 1=ON",
       "not1": "C138=1 iken adım başına C/A2",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "C126",
       "register": 126,
       "hex": "0x007E",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "coil",
       "parametre_adi": "Adım 11 için C/A2 rölesi",
-      "proje_amaci": "",
+      "proje_amaci": "Profilin 11. adımında C/A2 rölesinin konumunu (çekili/bırakılmış) belirler. Her adımda A2 çıkışını ayrı programlamak için kullanılır. Değer bir SEÇİMdir.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -3103,17 +3321,18 @@
       "gosterim": "0=OFF, 1=ON",
       "not1": "C138=1 iken adım başına C/A2",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "C127",
       "register": 127,
       "hex": "0x007F",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "coil",
       "parametre_adi": "Adım 12 için C/A2 rölesi",
-      "proje_amaci": "",
+      "proje_amaci": "Profilin 12. adımında C/A2 rölesinin konumunu (çekili/bırakılmış) belirler. Her adımda A2 çıkışını ayrı programlamak için kullanılır. Değer bir SEÇİMdir.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -3133,17 +3352,18 @@
       "gosterim": "0=OFF, 1=ON",
       "not1": "C138=1 iken adım başına C/A2",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "C128",
       "register": 128,
       "hex": "0x0080",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "coil",
       "parametre_adi": "Adım 13 için C/A2 rölesi",
-      "proje_amaci": "",
+      "proje_amaci": "Profilin 13. adımında C/A2 rölesinin konumunu (çekili/bırakılmış) belirler. Her adımda A2 çıkışını ayrı programlamak için kullanılır. Değer bir SEÇİMdir.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -3163,17 +3383,18 @@
       "gosterim": "0=OFF, 1=ON",
       "not1": "C138=1 iken adım başına C/A2",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "C129",
       "register": 129,
       "hex": "0x0081",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "coil",
       "parametre_adi": "Adım 14 için C/A2 rölesi",
-      "proje_amaci": "",
+      "proje_amaci": "Profilin 14. adımında C/A2 rölesinin konumunu (çekili/bırakılmış) belirler. Her adımda A2 çıkışını ayrı programlamak için kullanılır. Değer bir SEÇİMdir.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -3193,17 +3414,18 @@
       "gosterim": "0=OFF, 1=ON",
       "not1": "C138=1 iken adım başına C/A2",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "C130",
       "register": 130,
       "hex": "0x0082",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "coil",
       "parametre_adi": "Adım 15 için C/A2 rölesi",
-      "proje_amaci": "",
+      "proje_amaci": "Profilin 15. adımında C/A2 rölesinin konumunu (çekili/bırakılmış) belirler. Her adımda A2 çıkışını ayrı programlamak için kullanılır. Değer bir SEÇİMdir.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -3223,17 +3445,18 @@
       "gosterim": "0=OFF, 1=ON",
       "not1": "C138=1 iken adım başına C/A2",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "C131",
       "register": 131,
       "hex": "0x0083",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "coil",
       "parametre_adi": "Adım 16 için C/A2 rölesi",
-      "proje_amaci": "",
+      "proje_amaci": "Profilin 16. adımında C/A2 rölesinin konumunu (çekili/bırakılmış) belirler. Her adımda A2 çıkışını ayrı programlamak için kullanılır. Değer bir SEÇİMdir.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -3253,17 +3476,18 @@
       "gosterim": "0=OFF, 1=ON",
       "not1": "C138=1 iken adım başına C/A2",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "C132",
       "register": 132,
       "hex": "0x0084",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "coil",
       "parametre_adi": "Mod seçimi",
-      "proje_amaci": "",
+      "proje_amaci": "Çalışma modunu seçer: termostat/timer mı yoksa profil (çok adımlı program) mı. 1=profil. Adım parametrelerini bu seçim etkinleştirir. Değer bir SEÇİMdir.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -3283,17 +3507,18 @@
       "gosterim": "0=termostat, 1=profil kontrol",
       "not1": "H103–H135 ve C100–C131'i etkinleştirir",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "C133",
       "register": 133,
       "hex": "0x0085",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "coil",
       "parametre_adi": "Profil çalıştırma",
-      "proje_amaci": "",
+      "proje_amaci": "Profil programını çalıştırır/durdurur (başlat/dur).",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -3313,17 +3538,18 @@
       "gosterim": "0=dur / adım 1 reset, 1=başlat",
       "not1": "",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "C134",
       "register": 134,
       "hex": "0x0086",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "coil",
       "parametre_adi": "Profil bekletme (hold)",
-      "proje_amaci": "",
+      "proje_amaci": "Profili bekletir (hold): süre sayımını dondurur, mevcut sıcaklığı korur.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -3343,17 +3569,18 @@
       "gosterim": "0=çalışıyor, 1=duraklat",
       "not1": "",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "C135",
       "register": 135,
       "hex": "0x0087",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "coil",
       "parametre_adi": "Profil bitiş davranışı",
-      "proje_amaci": "",
+      "proje_amaci": "Profil bitiş davranışını seçer: son adımda dur ya da başa dön/tekrarla (cihaz tanımına göre). Değer bir SEÇİMdir.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -3373,17 +3600,18 @@
       "gosterim": "0=çıkışları kapat, 1=son set değerinde devam",
       "not1": "",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "C136",
       "register": 136,
       "hex": "0x0088",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "coil",
       "parametre_adi": "Enerji kesintisi kurtarma",
-      "proje_amaci": "",
+      "proje_amaci": "Enerji kesintisi kurtarma: elektrik geri geldiğinde profilin kaldığı yerden mi yoksa baştan mı devam edeceğini belirler.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -3403,17 +3631,18 @@
       "gosterim": "0=adım 1 reset, 1=kaldığı yerden devam",
       "not1": "",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "C137",
       "register": 137,
       "hex": "0x0089",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "coil",
       "parametre_adi": "A1 adım-adım kontrol",
-      "proje_amaci": "",
+      "proje_amaci": "A1 çıkışının adım-adım (her adımda ayrı programlanan) kontrolünü etkinleştirir.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -3433,17 +3662,18 @@
       "gosterim": "0=H22 tipini kullan, 1=adım başına C100–C115",
       "not1": "",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "C138",
       "register": 138,
       "hex": "0x008A",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "coil",
       "parametre_adi": "A2 adım-adım kontrol",
-      "proje_amaci": "",
+      "proje_amaci": "A2 çıkışının adım-adım kontrolünü etkinleştirir.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -3463,17 +3693,18 @@
       "gosterim": "0=H27 tipini kullan, 1=adım başına C116–C131",
       "not1": "",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "D0",
       "register": 0,
       "hex": "0x0000",
       "sanal": false,
-      "tab": "Temel",
+      "tab": "Dijital G/Ç",
       "_type": "discrete",
       "parametre_adi": "C/A2 röle çıkış durumu",
-      "proje_amaci": "",
+      "proje_amaci": "C/A2 rölesinin anlık çıkış durumudur (okunur): 0=bırakılmış, 1=çekili. İzleme amaçlıdır.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -3493,17 +3724,18 @@
       "gosterim": "0=OFF, 1=ON",
       "not1": "",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "D1",
       "register": 1,
       "hex": "0x0001",
       "sanal": false,
-      "tab": "Temel",
+      "tab": "Dijital G/Ç",
       "_type": "discrete",
       "parametre_adi": "A1 röle çıkış durumu",
-      "proje_amaci": "",
+      "proje_amaci": "A1 rölesinin anlık çıkış durumudur (okunur): 0=bırakılmış, 1=çekili.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -3523,17 +3755,18 @@
       "gosterim": "0=OFF, 1=ON",
       "not1": "",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "D2",
       "register": 2,
       "hex": "0x0002",
       "sanal": false,
-      "tab": "Temel",
+      "tab": "Dijital G/Ç",
       "_type": "discrete",
       "parametre_adi": "SSR çıkış durumu",
-      "proje_amaci": "",
+      "proje_amaci": "SSR çıkışının anlık durumudur (okunur): 0=kapalı, 1=açık.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -3553,17 +3786,18 @@
       "gosterim": "0=OFF, 1=ON",
       "not1": "H32=1 (SSR) iken",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "D3",
       "register": 3,
       "hex": "0x0003",
       "sanal": false,
-      "tab": "Temel",
+      "tab": "Dijital G/Ç",
       "_type": "discrete",
       "parametre_adi": "D1 dijital giriş durumu",
-      "proje_amaci": "",
+      "proje_amaci": "D1 dijital girişinin anlık konumudur (okunur): 0=pasif, 1=aktif.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -3583,17 +3817,18 @@
       "gosterim": "0=OFF, 1=ON",
       "not1": "H40 fonksiyonu",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "D4",
       "register": 4,
       "hex": "0x0004",
       "sanal": false,
-      "tab": "Temel",
+      "tab": "Dijital G/Ç",
       "_type": "discrete",
       "parametre_adi": "D2 dijital giriş durumu",
-      "proje_amaci": "",
+      "proje_amaci": "D2 dijital girişinin anlık konumudur (okunur): 0=pasif, 1=aktif.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -3613,17 +3848,18 @@
       "gosterim": "0=OFF, 1=ON",
       "not1": "H41 fonksiyonu",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "D5",
       "register": 5,
       "hex": "0x0005",
       "sanal": false,
-      "tab": "Temel",
+      "tab": "Dijital G/Ç",
       "_type": "discrete",
       "parametre_adi": "Isıtma arıza durumu",
-      "proje_amaci": "",
+      "proje_amaci": "Isıtma arıza durum bayrağıdır (okunur): H29 denetimi ısıtma arızası tespit ettiğinde 1 olur.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -3643,17 +3879,18 @@
       "gosterim": "0=OK, 1=arıza",
       "not1": "H29 süresine bağlı",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "D100",
       "register": 100,
       "hex": "0x0064",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "discrete",
       "parametre_adi": "Profil: sabit sıcaklık adımı",
-      "proje_amaci": "",
+      "proje_amaci": "Profil durum bayrağı (okunur): aktif adım sabit sıcaklık (dwell/bekleme) adımı mı.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -3673,17 +3910,18 @@
       "gosterim": "0=hayır, 1=evet",
       "not1": "",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "D101",
       "register": 101,
       "hex": "0x0065",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "discrete",
       "parametre_adi": "Profil: ısıtma adımı",
-      "proje_amaci": "",
+      "proje_amaci": "Profil durum bayrağı (okunur): aktif adım ısıtma (yükselen rampa) adımı mı.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -3703,17 +3941,18 @@
       "gosterim": "0=hayır, 1=evet",
       "not1": "",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "D102",
       "register": 102,
       "hex": "0x0066",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "discrete",
       "parametre_adi": "Profil: soğutma adımı",
-      "proje_amaci": "",
+      "proje_amaci": "Profil durum bayrağı (okunur): aktif adım soğutma (düşen rampa) adımı mı.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -3733,17 +3972,18 @@
       "gosterim": "0=hayır, 1=evet",
       "not1": "",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "D103",
       "register": 103,
       "hex": "0x0067",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "discrete",
       "parametre_adi": "Profil: tamamlandı",
-      "proje_amaci": "",
+      "proje_amaci": "Profil durum bayrağı (okunur): profil tamamlandı mı.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -3763,17 +4003,18 @@
       "gosterim": "0=hayır, 1=evet",
       "not1": "",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "D104",
       "register": 104,
       "hex": "0x0068",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "discrete",
       "parametre_adi": "Adım zamanlayıcı: süre doldu",
-      "proje_amaci": "",
+      "proje_amaci": "Adım zamanlayıcı bayrağı (okunur): aktif adımın süresi doldu mu.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -3793,17 +4034,18 @@
       "gosterim": "0=hayır, 1=evet",
       "not1": "",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "D105",
       "register": 105,
       "hex": "0x0069",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "discrete",
       "parametre_adi": "Adım zamanlayıcı: çalışıyor",
-      "proje_amaci": "",
+      "proje_amaci": "Adım zamanlayıcı bayrağı (okunur): adım hedefe ulaşıp dwell (bekleme) timer'ı çalışıyor mu. STPKRT tetikleyicisi bu bayrağı izler.",
       "veri_tipi": "bool",
       "min": 0,
       "max": 1,
@@ -3823,17 +4065,18 @@
       "gosterim": "0=hayır, 1=evet",
       "not1": "Dwell timer; STPKRT tetikleyicisi bunu izler",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "I0",
       "register": 0,
       "hex": "0x0000",
       "sanal": false,
-      "tab": "Temel",
+      "tab": "Durum / Sistem",
       "_type": "input",
       "parametre_adi": "Ölçülen sıcaklık (proses değeri)",
-      "proje_amaci": "",
+      "proje_amaci": "Ölçülen anlık proses değeridir (okunur): sensörden gelen güncel sıcaklık/proses ölçümü.",
       "veri_tipi": "int",
       "min": null,
       "max": null,
@@ -3844,17 +4087,18 @@
       "gosterim": "—",
       "not1": "Anlık sensör okuması",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "I1",
       "register": 1,
       "hex": "0x0001",
       "sanal": false,
-      "tab": "Temel",
+      "tab": "Durum / Sistem",
       "_type": "input",
       "parametre_adi": "Analog çıkış yüzdesi",
-      "proje_amaci": "",
+      "proje_amaci": "Anlık kontrol/analog çıkış yüzdesidir (okunur): kontrolün o an uyguladığı güç (ölçekli).",
       "veri_tipi": "int",
       "min": 0,
       "max": 10000,
@@ -3865,7 +4109,8 @@
       "gosterim": "0 – 10000",
       "not1": "Değer ×100 (10000 = %100)",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "I2",
@@ -3875,7 +4120,7 @@
       "tab": "Sensör",
       "_type": "input",
       "parametre_adi": "Sensör hata kodu",
-      "proje_amaci": "",
+      "proje_amaci": "Sensör hata kodudur (okunur): sensör bağlantısı/tipiyle ilgili arıza durumunu kodlar. SEÇİM olarak çözülür.",
       "veri_tipi": "int",
       "min": 0,
       "max": 5,
@@ -3911,7 +4156,8 @@
       "gosterim": "0 – 5",
       "not1": "0=OK,1=kısa devre,2=alt skala,3=üst skala,4=açık devre,5=kalibrasyon",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "I3",
@@ -3921,7 +4167,7 @@
       "tab": "PID",
       "_type": "input",
       "parametre_adi": "Self-tune durum kodu",
-      "proje_amaci": "",
+      "proje_amaci": "Self-tune (C10) işleminin durum kodudur (okunur): boşta/çalışıyor/tamamlandı/hata. SEÇİM olarak çözülür.",
       "veri_tipi": "int",
       "min": 0,
       "max": 3,
@@ -3949,17 +4195,18 @@
       "gosterim": "0 – 3",
       "not1": "0=OK,1=başlangıç sıcaklığı yüksek,2=PID hesaplanıyor,3=güç hesaplanıyor",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "I4",
       "register": 4,
       "hex": "0x0004",
       "sanal": false,
-      "tab": "Temel",
+      "tab": "Durum / Sistem",
       "_type": "input",
       "parametre_adi": "Aktif set değeri",
-      "proje_amaci": "",
+      "proje_amaci": "O an aktif olan set değeridir (okunur): C7/profil/dijital giriş seçimine göre yürürlükteki hedef.",
       "veri_tipi": "int",
       "min": null,
       "max": null,
@@ -3970,7 +4217,8 @@
       "gosterim": "—",
       "not1": "Seçili H0 veya H1",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "I5",
@@ -3980,7 +4228,7 @@
       "tab": "Sensör",
       "_type": "input",
       "parametre_adi": "Aktif ondalık nokta",
-      "proje_amaci": "",
+      "proje_amaci": "O an aktif ondalık nokta konumudur (okunur): göstergenin geçerli ondalık formatı. SEÇİM olarak çözülür.",
       "veri_tipi": "int",
       "min": 0,
       "max": 3,
@@ -4008,17 +4256,18 @@
       "gosterim": "0 – 3",
       "not1": "0=yok,1=0.0,2=0.00,3=0.000",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "I100",
       "register": 100,
       "hex": "0x0064",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "input",
       "parametre_adi": "Aktif profil adım numarası",
-      "proje_amaci": "",
+      "proje_amaci": "Aktif profil adım numarasıdır (okunur, 0–16).",
       "veri_tipi": "int",
       "min": 0,
       "max": 16,
@@ -4029,17 +4278,18 @@
       "gosterim": "0 – 16",
       "not1": "",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "I101",
       "register": 101,
       "hex": "0x0065",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "input",
       "parametre_adi": "Aktif adım kalan süresi",
-      "proje_amaci": "",
+      "proje_amaci": "Aktif adımın kalan süresidir (okunur).",
       "veri_tipi": "int",
       "min": null,
       "max": null,
@@ -4050,17 +4300,18 @@
       "gosterim": "—",
       "not1": "Geri sayım değeri",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "I102",
       "register": 102,
       "hex": "0x0066",
       "sanal": false,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "input",
       "parametre_adi": "Aktif adım hedef sıcaklığı",
-      "proje_amaci": "",
+      "proje_amaci": "Aktif adımın hedef sıcaklığıdır (okunur).",
       "veri_tipi": "int",
       "min": null,
       "max": null,
@@ -4071,14 +4322,15 @@
       "gosterim": "—",
       "not1": "Mevcut adım set değeri",
       "not2": "",
-      "not3": ""
+      "not3": "",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H102STP1",
       "register": 256,
       "hex": "0x0100",
       "sanal": true,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "holding",
       "parametre_adi": "Adım Sonu Sıcaklık Farkı Toleransı",
       "proje_amaci": "EUP1222'de H102 TEK register, adım başına ayrı değer yok. ESP aktif adıma göre bu NVS değerini canlı olarak gerçek H102'ye yazar (program.cpp _applyStepTolerance) — kullanıcı her adımın kendi toleransını ayrı ayarlayabilsin diye eklendi.",
@@ -4092,14 +4344,15 @@
       "gosterim": "EUP1222 H102'nin kabul ettiği ham aralık — firmware sınır kontrolü yapmıyor, doğrudan cihaza yazılıyor (kesin aralık için ENDA Modbus dokümanına bakılmalı)",
       "not1": "NVS: g_weldSettings.tolSteps[] (nvs_manager.h)",
       "not2": "STPKRT1 ile birlikte çalışır — H102'ye NE ZAMAN yazılacağını o belirler",
-      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Holding adr=0x0100 → nvs_set_tol_step()"
+      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Holding adr=0x0100 → nvs_set_tol_step()",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H102STP2",
       "register": 257,
       "hex": "0x0101",
       "sanal": true,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "holding",
       "parametre_adi": "Adım Sonu Sıcaklık Farkı Toleransı",
       "proje_amaci": "EUP1222'de H102 TEK register, adım başına ayrı değer yok. ESP aktif adıma göre bu NVS değerini canlı olarak gerçek H102'ye yazar (program.cpp _applyStepTolerance) — kullanıcı her adımın kendi toleransını ayrı ayarlayabilsin diye eklendi.",
@@ -4113,14 +4366,15 @@
       "gosterim": "EUP1222 H102'nin kabul ettiği ham aralık — firmware sınır kontrolü yapmıyor, doğrudan cihaza yazılıyor (kesin aralık için ENDA Modbus dokümanına bakılmalı)",
       "not1": "NVS: g_weldSettings.tolSteps[] (nvs_manager.h)",
       "not2": "STPKRT2 ile birlikte çalışır — H102'ye NE ZAMAN yazılacağını o belirler",
-      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Holding adr=0x0101 → nvs_set_tol_step()"
+      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Holding adr=0x0101 → nvs_set_tol_step()",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H102STP3",
       "register": 258,
       "hex": "0x0102",
       "sanal": true,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "holding",
       "parametre_adi": "Adım Sonu Sıcaklık Farkı Toleransı",
       "proje_amaci": "EUP1222'de H102 TEK register, adım başına ayrı değer yok. ESP aktif adıma göre bu NVS değerini canlı olarak gerçek H102'ye yazar (program.cpp _applyStepTolerance) — kullanıcı her adımın kendi toleransını ayrı ayarlayabilsin diye eklendi.",
@@ -4134,14 +4388,15 @@
       "gosterim": "EUP1222 H102'nin kabul ettiği ham aralık — firmware sınır kontrolü yapmıyor, doğrudan cihaza yazılıyor (kesin aralık için ENDA Modbus dokümanına bakılmalı)",
       "not1": "NVS: g_weldSettings.tolSteps[] (nvs_manager.h)",
       "not2": "STPKRT3 ile birlikte çalışır — H102'ye NE ZAMAN yazılacağını o belirler",
-      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Holding adr=0x0102 → nvs_set_tol_step()"
+      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Holding adr=0x0102 → nvs_set_tol_step()",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H102STP4",
       "register": 259,
       "hex": "0x0103",
       "sanal": true,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "holding",
       "parametre_adi": "Adım Sonu Sıcaklık Farkı Toleransı",
       "proje_amaci": "EUP1222'de H102 TEK register, adım başına ayrı değer yok. ESP aktif adıma göre bu NVS değerini canlı olarak gerçek H102'ye yazar (program.cpp _applyStepTolerance) — kullanıcı her adımın kendi toleransını ayrı ayarlayabilsin diye eklendi.",
@@ -4155,14 +4410,15 @@
       "gosterim": "EUP1222 H102'nin kabul ettiği ham aralık — firmware sınır kontrolü yapmıyor, doğrudan cihaza yazılıyor (kesin aralık için ENDA Modbus dokümanına bakılmalı)",
       "not1": "NVS: g_weldSettings.tolSteps[] (nvs_manager.h)",
       "not2": "STPKRT4 ile birlikte çalışır — H102'ye NE ZAMAN yazılacağını o belirler",
-      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Holding adr=0x0103 → nvs_set_tol_step()"
+      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Holding adr=0x0103 → nvs_set_tol_step()",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H102STP5",
       "register": 260,
       "hex": "0x0104",
       "sanal": true,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "holding",
       "parametre_adi": "Adım Sonu Sıcaklık Farkı Toleransı",
       "proje_amaci": "EUP1222'de H102 TEK register, adım başına ayrı değer yok. ESP aktif adıma göre bu NVS değerini canlı olarak gerçek H102'ye yazar (program.cpp _applyStepTolerance) — kullanıcı her adımın kendi toleransını ayrı ayarlayabilsin diye eklendi.",
@@ -4176,14 +4432,15 @@
       "gosterim": "EUP1222 H102'nin kabul ettiği ham aralık — firmware sınır kontrolü yapmıyor, doğrudan cihaza yazılıyor (kesin aralık için ENDA Modbus dokümanına bakılmalı)",
       "not1": "NVS: g_weldSettings.tolSteps[] (nvs_manager.h)",
       "not2": "STPKRT5 ile birlikte çalışır — H102'ye NE ZAMAN yazılacağını o belirler",
-      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Holding adr=0x0104 → nvs_set_tol_step()"
+      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Holding adr=0x0104 → nvs_set_tol_step()",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H102STP6",
       "register": 261,
       "hex": "0x0105",
       "sanal": true,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "holding",
       "parametre_adi": "Adım Sonu Sıcaklık Farkı Toleransı",
       "proje_amaci": "EUP1222'de H102 TEK register, adım başına ayrı değer yok. ESP aktif adıma göre bu NVS değerini canlı olarak gerçek H102'ye yazar (program.cpp _applyStepTolerance) — kullanıcı her adımın kendi toleransını ayrı ayarlayabilsin diye eklendi.",
@@ -4197,14 +4454,15 @@
       "gosterim": "EUP1222 H102'nin kabul ettiği ham aralık — firmware sınır kontrolü yapmıyor, doğrudan cihaza yazılıyor (kesin aralık için ENDA Modbus dokümanına bakılmalı)",
       "not1": "NVS: g_weldSettings.tolSteps[] (nvs_manager.h)",
       "not2": "STPKRT6 ile birlikte çalışır — H102'ye NE ZAMAN yazılacağını o belirler",
-      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Holding adr=0x0105 → nvs_set_tol_step()"
+      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Holding adr=0x0105 → nvs_set_tol_step()",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H102STP7",
       "register": 262,
       "hex": "0x0106",
       "sanal": true,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "holding",
       "parametre_adi": "Adım Sonu Sıcaklık Farkı Toleransı",
       "proje_amaci": "EUP1222'de H102 TEK register, adım başına ayrı değer yok. ESP aktif adıma göre bu NVS değerini canlı olarak gerçek H102'ye yazar (program.cpp _applyStepTolerance) — kullanıcı her adımın kendi toleransını ayrı ayarlayabilsin diye eklendi.",
@@ -4218,14 +4476,15 @@
       "gosterim": "EUP1222 H102'nin kabul ettiği ham aralık — firmware sınır kontrolü yapmıyor, doğrudan cihaza yazılıyor (kesin aralık için ENDA Modbus dokümanına bakılmalı)",
       "not1": "NVS: g_weldSettings.tolSteps[] (nvs_manager.h)",
       "not2": "STPKRT7 ile birlikte çalışır — H102'ye NE ZAMAN yazılacağını o belirler",
-      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Holding adr=0x0106 → nvs_set_tol_step()"
+      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Holding adr=0x0106 → nvs_set_tol_step()",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H102STP8",
       "register": 263,
       "hex": "0x0107",
       "sanal": true,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "holding",
       "parametre_adi": "Adım Sonu Sıcaklık Farkı Toleransı",
       "proje_amaci": "EUP1222'de H102 TEK register, adım başına ayrı değer yok. ESP aktif adıma göre bu NVS değerini canlı olarak gerçek H102'ye yazar (program.cpp _applyStepTolerance) — kullanıcı her adımın kendi toleransını ayrı ayarlayabilsin diye eklendi.",
@@ -4239,14 +4498,15 @@
       "gosterim": "EUP1222 H102'nin kabul ettiği ham aralık — firmware sınır kontrolü yapmıyor, doğrudan cihaza yazılıyor (kesin aralık için ENDA Modbus dokümanına bakılmalı)",
       "not1": "NVS: g_weldSettings.tolSteps[] (nvs_manager.h)",
       "not2": "STPKRT8 ile birlikte çalışır — H102'ye NE ZAMAN yazılacağını o belirler",
-      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Holding adr=0x0107 → nvs_set_tol_step()"
+      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Holding adr=0x0107 → nvs_set_tol_step()",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H102STP9",
       "register": 264,
       "hex": "0x0108",
       "sanal": true,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "holding",
       "parametre_adi": "Adım Sonu Sıcaklık Farkı Toleransı",
       "proje_amaci": "EUP1222'de H102 TEK register, adım başına ayrı değer yok. ESP aktif adıma göre bu NVS değerini canlı olarak gerçek H102'ye yazar (program.cpp _applyStepTolerance) — kullanıcı her adımın kendi toleransını ayrı ayarlayabilsin diye eklendi.",
@@ -4260,14 +4520,15 @@
       "gosterim": "EUP1222 H102'nin kabul ettiği ham aralık — firmware sınır kontrolü yapmıyor, doğrudan cihaza yazılıyor (kesin aralık için ENDA Modbus dokümanına bakılmalı)",
       "not1": "NVS: g_weldSettings.tolSteps[] (nvs_manager.h)",
       "not2": "STPKRT9 ile birlikte çalışır — H102'ye NE ZAMAN yazılacağını o belirler",
-      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Holding adr=0x0108 → nvs_set_tol_step()"
+      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Holding adr=0x0108 → nvs_set_tol_step()",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H102STP10",
       "register": 265,
       "hex": "0x0109",
       "sanal": true,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "holding",
       "parametre_adi": "Adım Sonu Sıcaklık Farkı Toleransı",
       "proje_amaci": "EUP1222'de H102 TEK register, adım başına ayrı değer yok. ESP aktif adıma göre bu NVS değerini canlı olarak gerçek H102'ye yazar (program.cpp _applyStepTolerance) — kullanıcı her adımın kendi toleransını ayrı ayarlayabilsin diye eklendi.",
@@ -4281,14 +4542,15 @@
       "gosterim": "EUP1222 H102'nin kabul ettiği ham aralık — firmware sınır kontrolü yapmıyor, doğrudan cihaza yazılıyor (kesin aralık için ENDA Modbus dokümanına bakılmalı)",
       "not1": "NVS: g_weldSettings.tolSteps[] (nvs_manager.h)",
       "not2": "STPKRT10 ile birlikte çalışır — H102'ye NE ZAMAN yazılacağını o belirler",
-      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Holding adr=0x0109 → nvs_set_tol_step()"
+      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Holding adr=0x0109 → nvs_set_tol_step()",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H102STP11",
       "register": 266,
       "hex": "0x010A",
       "sanal": true,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "holding",
       "parametre_adi": "Adım Sonu Sıcaklık Farkı Toleransı",
       "proje_amaci": "EUP1222'de H102 TEK register, adım başına ayrı değer yok. ESP aktif adıma göre bu NVS değerini canlı olarak gerçek H102'ye yazar (program.cpp _applyStepTolerance) — kullanıcı her adımın kendi toleransını ayrı ayarlayabilsin diye eklendi.",
@@ -4302,14 +4564,15 @@
       "gosterim": "EUP1222 H102'nin kabul ettiği ham aralık — firmware sınır kontrolü yapmıyor, doğrudan cihaza yazılıyor (kesin aralık için ENDA Modbus dokümanına bakılmalı)",
       "not1": "NVS: g_weldSettings.tolSteps[] (nvs_manager.h)",
       "not2": "STPKRT11 ile birlikte çalışır — H102'ye NE ZAMAN yazılacağını o belirler",
-      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Holding adr=0x010A → nvs_set_tol_step()"
+      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Holding adr=0x010A → nvs_set_tol_step()",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H102STP12",
       "register": 267,
       "hex": "0x010B",
       "sanal": true,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "holding",
       "parametre_adi": "Adım Sonu Sıcaklık Farkı Toleransı",
       "proje_amaci": "EUP1222'de H102 TEK register, adım başına ayrı değer yok. ESP aktif adıma göre bu NVS değerini canlı olarak gerçek H102'ye yazar (program.cpp _applyStepTolerance) — kullanıcı her adımın kendi toleransını ayrı ayarlayabilsin diye eklendi.",
@@ -4323,14 +4586,15 @@
       "gosterim": "EUP1222 H102'nin kabul ettiği ham aralık — firmware sınır kontrolü yapmıyor, doğrudan cihaza yazılıyor (kesin aralık için ENDA Modbus dokümanına bakılmalı)",
       "not1": "NVS: g_weldSettings.tolSteps[] (nvs_manager.h)",
       "not2": "STPKRT12 ile birlikte çalışır — H102'ye NE ZAMAN yazılacağını o belirler",
-      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Holding adr=0x010B → nvs_set_tol_step()"
+      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Holding adr=0x010B → nvs_set_tol_step()",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H102STP13",
       "register": 268,
       "hex": "0x010C",
       "sanal": true,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "holding",
       "parametre_adi": "Adım Sonu Sıcaklık Farkı Toleransı",
       "proje_amaci": "EUP1222'de H102 TEK register, adım başına ayrı değer yok. ESP aktif adıma göre bu NVS değerini canlı olarak gerçek H102'ye yazar (program.cpp _applyStepTolerance) — kullanıcı her adımın kendi toleransını ayrı ayarlayabilsin diye eklendi.",
@@ -4344,14 +4608,15 @@
       "gosterim": "EUP1222 H102'nin kabul ettiği ham aralık — firmware sınır kontrolü yapmıyor, doğrudan cihaza yazılıyor (kesin aralık için ENDA Modbus dokümanına bakılmalı)",
       "not1": "NVS: g_weldSettings.tolSteps[] (nvs_manager.h)",
       "not2": "STPKRT13 ile birlikte çalışır — H102'ye NE ZAMAN yazılacağını o belirler",
-      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Holding adr=0x010C → nvs_set_tol_step()"
+      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Holding adr=0x010C → nvs_set_tol_step()",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H102STP14",
       "register": 269,
       "hex": "0x010D",
       "sanal": true,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "holding",
       "parametre_adi": "Adım Sonu Sıcaklık Farkı Toleransı",
       "proje_amaci": "EUP1222'de H102 TEK register, adım başına ayrı değer yok. ESP aktif adıma göre bu NVS değerini canlı olarak gerçek H102'ye yazar (program.cpp _applyStepTolerance) — kullanıcı her adımın kendi toleransını ayrı ayarlayabilsin diye eklendi.",
@@ -4365,14 +4630,15 @@
       "gosterim": "EUP1222 H102'nin kabul ettiği ham aralık — firmware sınır kontrolü yapmıyor, doğrudan cihaza yazılıyor (kesin aralık için ENDA Modbus dokümanına bakılmalı)",
       "not1": "NVS: g_weldSettings.tolSteps[] (nvs_manager.h)",
       "not2": "STPKRT14 ile birlikte çalışır — H102'ye NE ZAMAN yazılacağını o belirler",
-      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Holding adr=0x010D → nvs_set_tol_step()"
+      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Holding adr=0x010D → nvs_set_tol_step()",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H102STP15",
       "register": 270,
       "hex": "0x010E",
       "sanal": true,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "holding",
       "parametre_adi": "Adım Sonu Sıcaklık Farkı Toleransı",
       "proje_amaci": "EUP1222'de H102 TEK register, adım başına ayrı değer yok. ESP aktif adıma göre bu NVS değerini canlı olarak gerçek H102'ye yazar (program.cpp _applyStepTolerance) — kullanıcı her adımın kendi toleransını ayrı ayarlayabilsin diye eklendi.",
@@ -4386,14 +4652,15 @@
       "gosterim": "EUP1222 H102'nin kabul ettiği ham aralık — firmware sınır kontrolü yapmıyor, doğrudan cihaza yazılıyor (kesin aralık için ENDA Modbus dokümanına bakılmalı)",
       "not1": "NVS: g_weldSettings.tolSteps[] (nvs_manager.h)",
       "not2": "STPKRT15 ile birlikte çalışır — H102'ye NE ZAMAN yazılacağını o belirler",
-      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Holding adr=0x010E → nvs_set_tol_step()"
+      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Holding adr=0x010E → nvs_set_tol_step()",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "H102STP16",
       "register": 271,
       "hex": "0x010F",
       "sanal": true,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "holding",
       "parametre_adi": "Adım Sonu Sıcaklık Farkı Toleransı",
       "proje_amaci": "EUP1222'de H102 TEK register, adım başına ayrı değer yok. ESP aktif adıma göre bu NVS değerini canlı olarak gerçek H102'ye yazar (program.cpp _applyStepTolerance) — kullanıcı her adımın kendi toleransını ayrı ayarlayabilsin diye eklendi.",
@@ -4407,14 +4674,15 @@
       "gosterim": "EUP1222 H102'nin kabul ettiği ham aralık — firmware sınır kontrolü yapmıyor, doğrudan cihaza yazılıyor (kesin aralık için ENDA Modbus dokümanına bakılmalı)",
       "not1": "NVS: g_weldSettings.tolSteps[] (nvs_manager.h)",
       "not2": "STPKRT16 ile birlikte çalışır — H102'ye NE ZAMAN yazılacağını o belirler",
-      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Holding adr=0x010F → nvs_set_tol_step()"
+      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Holding adr=0x010F → nvs_set_tol_step()",
+      "gosterim_tipi": "sayısal"
     },
     {
       "parametre": "STPKRT1",
       "register": 256,
       "hex": "0x0100",
       "sanal": true,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "coil",
       "parametre_adi": "Adım Geçiş Kriteri (tolerans yazma tetikleyicisi)",
       "proje_amaci": "Yukarıdaki H102STP1 değerinin gerçek H102'ye NE ZAMAN yazılacağını belirler — adım değişir değişmez mi, yoksa cihaz gerçekten hedefe ulaşıp dwell timer'ı (D105) başlatınca mı.",
@@ -4437,14 +4705,15 @@
       "gosterim": "0 = Adım Bitince Değiştir (WELD_TOL_TRIGGER_ON_STEP_CHANGE) · 1 = Set Değerine Ulaşınca Değiştir (WELD_TOL_TRIGGER_ON_TEMP_REACHED, D105 false→true geçişini bekler)",
       "not1": "NVS: g_weldSettings.tolTriggerMode[]",
       "not2": "Coil olduğu için deger'in sadece alt byte'ı kullanılır",
-      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Coil adr=0x0100 → nvs_set_tol_trigger_mode()"
+      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Coil adr=0x0100 → nvs_set_tol_trigger_mode()",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "STPKRT2",
       "register": 257,
       "hex": "0x0101",
       "sanal": true,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "coil",
       "parametre_adi": "Adım Geçiş Kriteri (tolerans yazma tetikleyicisi)",
       "proje_amaci": "Yukarıdaki H102STP2 değerinin gerçek H102'ye NE ZAMAN yazılacağını belirler — adım değişir değişmez mi, yoksa cihaz gerçekten hedefe ulaşıp dwell timer'ı (D105) başlatınca mı.",
@@ -4467,14 +4736,15 @@
       "gosterim": "0 = Adım Bitince Değiştir (WELD_TOL_TRIGGER_ON_STEP_CHANGE) · 1 = Set Değerine Ulaşınca Değiştir (WELD_TOL_TRIGGER_ON_TEMP_REACHED, D105 false→true geçişini bekler)",
       "not1": "NVS: g_weldSettings.tolTriggerMode[]",
       "not2": "Coil olduğu için deger'in sadece alt byte'ı kullanılır",
-      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Coil adr=0x0101 → nvs_set_tol_trigger_mode()"
+      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Coil adr=0x0101 → nvs_set_tol_trigger_mode()",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "STPKRT3",
       "register": 258,
       "hex": "0x0102",
       "sanal": true,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "coil",
       "parametre_adi": "Adım Geçiş Kriteri (tolerans yazma tetikleyicisi)",
       "proje_amaci": "Yukarıdaki H102STP3 değerinin gerçek H102'ye NE ZAMAN yazılacağını belirler — adım değişir değişmez mi, yoksa cihaz gerçekten hedefe ulaşıp dwell timer'ı (D105) başlatınca mı.",
@@ -4497,14 +4767,15 @@
       "gosterim": "0 = Adım Bitince Değiştir (WELD_TOL_TRIGGER_ON_STEP_CHANGE) · 1 = Set Değerine Ulaşınca Değiştir (WELD_TOL_TRIGGER_ON_TEMP_REACHED, D105 false→true geçişini bekler)",
       "not1": "NVS: g_weldSettings.tolTriggerMode[]",
       "not2": "Coil olduğu için deger'in sadece alt byte'ı kullanılır",
-      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Coil adr=0x0102 → nvs_set_tol_trigger_mode()"
+      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Coil adr=0x0102 → nvs_set_tol_trigger_mode()",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "STPKRT4",
       "register": 259,
       "hex": "0x0103",
       "sanal": true,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "coil",
       "parametre_adi": "Adım Geçiş Kriteri (tolerans yazma tetikleyicisi)",
       "proje_amaci": "Yukarıdaki H102STP4 değerinin gerçek H102'ye NE ZAMAN yazılacağını belirler — adım değişir değişmez mi, yoksa cihaz gerçekten hedefe ulaşıp dwell timer'ı (D105) başlatınca mı.",
@@ -4527,14 +4798,15 @@
       "gosterim": "0 = Adım Bitince Değiştir (WELD_TOL_TRIGGER_ON_STEP_CHANGE) · 1 = Set Değerine Ulaşınca Değiştir (WELD_TOL_TRIGGER_ON_TEMP_REACHED, D105 false→true geçişini bekler)",
       "not1": "NVS: g_weldSettings.tolTriggerMode[]",
       "not2": "Coil olduğu için deger'in sadece alt byte'ı kullanılır",
-      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Coil adr=0x0103 → nvs_set_tol_trigger_mode()"
+      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Coil adr=0x0103 → nvs_set_tol_trigger_mode()",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "STPKRT5",
       "register": 260,
       "hex": "0x0104",
       "sanal": true,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "coil",
       "parametre_adi": "Adım Geçiş Kriteri (tolerans yazma tetikleyicisi)",
       "proje_amaci": "Yukarıdaki H102STP5 değerinin gerçek H102'ye NE ZAMAN yazılacağını belirler — adım değişir değişmez mi, yoksa cihaz gerçekten hedefe ulaşıp dwell timer'ı (D105) başlatınca mı.",
@@ -4557,14 +4829,15 @@
       "gosterim": "0 = Adım Bitince Değiştir (WELD_TOL_TRIGGER_ON_STEP_CHANGE) · 1 = Set Değerine Ulaşınca Değiştir (WELD_TOL_TRIGGER_ON_TEMP_REACHED, D105 false→true geçişini bekler)",
       "not1": "NVS: g_weldSettings.tolTriggerMode[]",
       "not2": "Coil olduğu için deger'in sadece alt byte'ı kullanılır",
-      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Coil adr=0x0104 → nvs_set_tol_trigger_mode()"
+      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Coil adr=0x0104 → nvs_set_tol_trigger_mode()",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "STPKRT6",
       "register": 261,
       "hex": "0x0105",
       "sanal": true,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "coil",
       "parametre_adi": "Adım Geçiş Kriteri (tolerans yazma tetikleyicisi)",
       "proje_amaci": "Yukarıdaki H102STP6 değerinin gerçek H102'ye NE ZAMAN yazılacağını belirler — adım değişir değişmez mi, yoksa cihaz gerçekten hedefe ulaşıp dwell timer'ı (D105) başlatınca mı.",
@@ -4587,14 +4860,15 @@
       "gosterim": "0 = Adım Bitince Değiştir (WELD_TOL_TRIGGER_ON_STEP_CHANGE) · 1 = Set Değerine Ulaşınca Değiştir (WELD_TOL_TRIGGER_ON_TEMP_REACHED, D105 false→true geçişini bekler)",
       "not1": "NVS: g_weldSettings.tolTriggerMode[]",
       "not2": "Coil olduğu için deger'in sadece alt byte'ı kullanılır",
-      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Coil adr=0x0105 → nvs_set_tol_trigger_mode()"
+      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Coil adr=0x0105 → nvs_set_tol_trigger_mode()",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "STPKRT7",
       "register": 262,
       "hex": "0x0106",
       "sanal": true,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "coil",
       "parametre_adi": "Adım Geçiş Kriteri (tolerans yazma tetikleyicisi)",
       "proje_amaci": "Yukarıdaki H102STP7 değerinin gerçek H102'ye NE ZAMAN yazılacağını belirler — adım değişir değişmez mi, yoksa cihaz gerçekten hedefe ulaşıp dwell timer'ı (D105) başlatınca mı.",
@@ -4617,14 +4891,15 @@
       "gosterim": "0 = Adım Bitince Değiştir (WELD_TOL_TRIGGER_ON_STEP_CHANGE) · 1 = Set Değerine Ulaşınca Değiştir (WELD_TOL_TRIGGER_ON_TEMP_REACHED, D105 false→true geçişini bekler)",
       "not1": "NVS: g_weldSettings.tolTriggerMode[]",
       "not2": "Coil olduğu için deger'in sadece alt byte'ı kullanılır",
-      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Coil adr=0x0106 → nvs_set_tol_trigger_mode()"
+      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Coil adr=0x0106 → nvs_set_tol_trigger_mode()",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "STPKRT8",
       "register": 263,
       "hex": "0x0107",
       "sanal": true,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "coil",
       "parametre_adi": "Adım Geçiş Kriteri (tolerans yazma tetikleyicisi)",
       "proje_amaci": "Yukarıdaki H102STP8 değerinin gerçek H102'ye NE ZAMAN yazılacağını belirler — adım değişir değişmez mi, yoksa cihaz gerçekten hedefe ulaşıp dwell timer'ı (D105) başlatınca mı.",
@@ -4647,14 +4922,15 @@
       "gosterim": "0 = Adım Bitince Değiştir (WELD_TOL_TRIGGER_ON_STEP_CHANGE) · 1 = Set Değerine Ulaşınca Değiştir (WELD_TOL_TRIGGER_ON_TEMP_REACHED, D105 false→true geçişini bekler)",
       "not1": "NVS: g_weldSettings.tolTriggerMode[]",
       "not2": "Coil olduğu için deger'in sadece alt byte'ı kullanılır",
-      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Coil adr=0x0107 → nvs_set_tol_trigger_mode()"
+      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Coil adr=0x0107 → nvs_set_tol_trigger_mode()",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "STPKRT9",
       "register": 264,
       "hex": "0x0108",
       "sanal": true,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "coil",
       "parametre_adi": "Adım Geçiş Kriteri (tolerans yazma tetikleyicisi)",
       "proje_amaci": "Yukarıdaki H102STP9 değerinin gerçek H102'ye NE ZAMAN yazılacağını belirler — adım değişir değişmez mi, yoksa cihaz gerçekten hedefe ulaşıp dwell timer'ı (D105) başlatınca mı.",
@@ -4677,14 +4953,15 @@
       "gosterim": "0 = Adım Bitince Değiştir (WELD_TOL_TRIGGER_ON_STEP_CHANGE) · 1 = Set Değerine Ulaşınca Değiştir (WELD_TOL_TRIGGER_ON_TEMP_REACHED, D105 false→true geçişini bekler)",
       "not1": "NVS: g_weldSettings.tolTriggerMode[]",
       "not2": "Coil olduğu için deger'in sadece alt byte'ı kullanılır",
-      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Coil adr=0x0108 → nvs_set_tol_trigger_mode()"
+      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Coil adr=0x0108 → nvs_set_tol_trigger_mode()",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "STPKRT10",
       "register": 265,
       "hex": "0x0109",
       "sanal": true,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "coil",
       "parametre_adi": "Adım Geçiş Kriteri (tolerans yazma tetikleyicisi)",
       "proje_amaci": "Yukarıdaki H102STP10 değerinin gerçek H102'ye NE ZAMAN yazılacağını belirler — adım değişir değişmez mi, yoksa cihaz gerçekten hedefe ulaşıp dwell timer'ı (D105) başlatınca mı.",
@@ -4707,14 +4984,15 @@
       "gosterim": "0 = Adım Bitince Değiştir (WELD_TOL_TRIGGER_ON_STEP_CHANGE) · 1 = Set Değerine Ulaşınca Değiştir (WELD_TOL_TRIGGER_ON_TEMP_REACHED, D105 false→true geçişini bekler)",
       "not1": "NVS: g_weldSettings.tolTriggerMode[]",
       "not2": "Coil olduğu için deger'in sadece alt byte'ı kullanılır",
-      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Coil adr=0x0109 → nvs_set_tol_trigger_mode()"
+      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Coil adr=0x0109 → nvs_set_tol_trigger_mode()",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "STPKRT11",
       "register": 266,
       "hex": "0x010A",
       "sanal": true,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "coil",
       "parametre_adi": "Adım Geçiş Kriteri (tolerans yazma tetikleyicisi)",
       "proje_amaci": "Yukarıdaki H102STP11 değerinin gerçek H102'ye NE ZAMAN yazılacağını belirler — adım değişir değişmez mi, yoksa cihaz gerçekten hedefe ulaşıp dwell timer'ı (D105) başlatınca mı.",
@@ -4737,14 +5015,15 @@
       "gosterim": "0 = Adım Bitince Değiştir (WELD_TOL_TRIGGER_ON_STEP_CHANGE) · 1 = Set Değerine Ulaşınca Değiştir (WELD_TOL_TRIGGER_ON_TEMP_REACHED, D105 false→true geçişini bekler)",
       "not1": "NVS: g_weldSettings.tolTriggerMode[]",
       "not2": "Coil olduğu için deger'in sadece alt byte'ı kullanılır",
-      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Coil adr=0x010A → nvs_set_tol_trigger_mode()"
+      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Coil adr=0x010A → nvs_set_tol_trigger_mode()",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "STPKRT12",
       "register": 267,
       "hex": "0x010B",
       "sanal": true,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "coil",
       "parametre_adi": "Adım Geçiş Kriteri (tolerans yazma tetikleyicisi)",
       "proje_amaci": "Yukarıdaki H102STP12 değerinin gerçek H102'ye NE ZAMAN yazılacağını belirler — adım değişir değişmez mi, yoksa cihaz gerçekten hedefe ulaşıp dwell timer'ı (D105) başlatınca mı.",
@@ -4767,14 +5046,15 @@
       "gosterim": "0 = Adım Bitince Değiştir (WELD_TOL_TRIGGER_ON_STEP_CHANGE) · 1 = Set Değerine Ulaşınca Değiştir (WELD_TOL_TRIGGER_ON_TEMP_REACHED, D105 false→true geçişini bekler)",
       "not1": "NVS: g_weldSettings.tolTriggerMode[]",
       "not2": "Coil olduğu için deger'in sadece alt byte'ı kullanılır",
-      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Coil adr=0x010B → nvs_set_tol_trigger_mode()"
+      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Coil adr=0x010B → nvs_set_tol_trigger_mode()",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "STPKRT13",
       "register": 268,
       "hex": "0x010C",
       "sanal": true,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "coil",
       "parametre_adi": "Adım Geçiş Kriteri (tolerans yazma tetikleyicisi)",
       "proje_amaci": "Yukarıdaki H102STP13 değerinin gerçek H102'ye NE ZAMAN yazılacağını belirler — adım değişir değişmez mi, yoksa cihaz gerçekten hedefe ulaşıp dwell timer'ı (D105) başlatınca mı.",
@@ -4797,14 +5077,15 @@
       "gosterim": "0 = Adım Bitince Değiştir (WELD_TOL_TRIGGER_ON_STEP_CHANGE) · 1 = Set Değerine Ulaşınca Değiştir (WELD_TOL_TRIGGER_ON_TEMP_REACHED, D105 false→true geçişini bekler)",
       "not1": "NVS: g_weldSettings.tolTriggerMode[]",
       "not2": "Coil olduğu için deger'in sadece alt byte'ı kullanılır",
-      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Coil adr=0x010C → nvs_set_tol_trigger_mode()"
+      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Coil adr=0x010C → nvs_set_tol_trigger_mode()",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "STPKRT14",
       "register": 269,
       "hex": "0x010D",
       "sanal": true,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "coil",
       "parametre_adi": "Adım Geçiş Kriteri (tolerans yazma tetikleyicisi)",
       "proje_amaci": "Yukarıdaki H102STP14 değerinin gerçek H102'ye NE ZAMAN yazılacağını belirler — adım değişir değişmez mi, yoksa cihaz gerçekten hedefe ulaşıp dwell timer'ı (D105) başlatınca mı.",
@@ -4827,14 +5108,15 @@
       "gosterim": "0 = Adım Bitince Değiştir (WELD_TOL_TRIGGER_ON_STEP_CHANGE) · 1 = Set Değerine Ulaşınca Değiştir (WELD_TOL_TRIGGER_ON_TEMP_REACHED, D105 false→true geçişini bekler)",
       "not1": "NVS: g_weldSettings.tolTriggerMode[]",
       "not2": "Coil olduğu için deger'in sadece alt byte'ı kullanılır",
-      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Coil adr=0x010D → nvs_set_tol_trigger_mode()"
+      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Coil adr=0x010D → nvs_set_tol_trigger_mode()",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "STPKRT15",
       "register": 270,
       "hex": "0x010E",
       "sanal": true,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "coil",
       "parametre_adi": "Adım Geçiş Kriteri (tolerans yazma tetikleyicisi)",
       "proje_amaci": "Yukarıdaki H102STP15 değerinin gerçek H102'ye NE ZAMAN yazılacağını belirler — adım değişir değişmez mi, yoksa cihaz gerçekten hedefe ulaşıp dwell timer'ı (D105) başlatınca mı.",
@@ -4857,14 +5139,15 @@
       "gosterim": "0 = Adım Bitince Değiştir (WELD_TOL_TRIGGER_ON_STEP_CHANGE) · 1 = Set Değerine Ulaşınca Değiştir (WELD_TOL_TRIGGER_ON_TEMP_REACHED, D105 false→true geçişini bekler)",
       "not1": "NVS: g_weldSettings.tolTriggerMode[]",
       "not2": "Coil olduğu için deger'in sadece alt byte'ı kullanılır",
-      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Coil adr=0x010E → nvs_set_tol_trigger_mode()"
+      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Coil adr=0x010E → nvs_set_tol_trigger_mode()",
+      "gosterim_tipi": "seçim"
     },
     {
       "parametre": "STPKRT16",
       "register": 271,
       "hex": "0x010F",
       "sanal": true,
-      "tab": "Adımlar",
+      "tab": "Profil / Adımlar",
       "_type": "coil",
       "parametre_adi": "Adım Geçiş Kriteri (tolerans yazma tetikleyicisi)",
       "proje_amaci": "Yukarıdaki H102STP16 değerinin gerçek H102'ye NE ZAMAN yazılacağını belirler — adım değişir değişmez mi, yoksa cihaz gerçekten hedefe ulaşıp dwell timer'ı (D105) başlatınca mı.",
@@ -4887,7 +5170,8 @@
       "gosterim": "0 = Adım Bitince Değiştir (WELD_TOL_TRIGGER_ON_STEP_CHANGE) · 1 = Set Değerine Ulaşınca Değiştir (WELD_TOL_TRIGGER_ON_TEMP_REACHED, D105 false→true geçişini bekler)",
       "not1": "NVS: g_weldSettings.tolTriggerMode[]",
       "not2": "Coil olduğu için deger'in sadece alt byte'ı kullanılır",
-      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Coil adr=0x010F → nvs_set_tol_trigger_mode()"
+      "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Coil adr=0x010F → nvs_set_tol_trigger_mode()",
+      "gosterim_tipi": "seçim"
     }
   ],
   "sekmeler": {
