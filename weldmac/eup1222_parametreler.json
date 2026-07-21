@@ -2,7 +2,7 @@
   "cihaz": "ENDA EUP1222 + ESP",
   "aciklama": "NFC Destekli Üniversal PID Kontrol Cihazı - Modbus + ESP sanal parametre metadata tablosu",
   "kaynak": "https://enda.com/automation/process/eup1222/eup1222.pdf",
-  "surum": "10.0",
+  "surum": "12.1",
   "sema": {
     "min": "sayı | null",
     "max": "sayı | null",
@@ -4717,14 +4717,14 @@
       "secenekler": [
         {
           "deger": 0,
-          "etiket": "Adım Bitince Değiştir (WELD_TOL_TRIGGER_ON_STEP_CHANGE)"
+          "etiket": "Adım Bitince Değiştir"
         },
         {
           "deger": 1,
-          "etiket": "Set Değerine Ulaşınca Değiştir (WELD_TOL_TRIGGER_ON_TEMP_REACHED, D105 false→true geçişini bekler)"
+          "etiket": "Set Değerine Ulaşınca Değiştir"
         }
       ],
-      "gosterim": "0 = Adım Bitince Değiştir (WELD_TOL_TRIGGER_ON_STEP_CHANGE) · 1 = Set Değerine Ulaşınca Değiştir (WELD_TOL_TRIGGER_ON_TEMP_REACHED, D105 false→true geçişini bekler)",
+      "gosterim": "0 = Adım Bitince Değiştir · 1 = Set Değerine Ulaşınca Değiştir",
       "not1": "NVS: g_weldSettings.tolTriggerMode[]",
       "not2": "Coil olduğu için deger'in sadece alt byte'ı kullanılır",
       "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Coil adr=0x0100 → nvs_set_tol_trigger_mode()",
@@ -4748,14 +4748,14 @@
       "secenekler": [
         {
           "deger": 0,
-          "etiket": "Adım Bitince Değiştir (WELD_TOL_TRIGGER_ON_STEP_CHANGE)"
+          "etiket": "Adım Bitince Değiştir"
         },
         {
           "deger": 1,
-          "etiket": "Set Değerine Ulaşınca Değiştir (WELD_TOL_TRIGGER_ON_TEMP_REACHED, D105 false→true geçişini bekler)"
+          "etiket": "Set Değerine Ulaşınca Değiştir"
         }
       ],
-      "gosterim": "0 = Adım Bitince Değiştir (WELD_TOL_TRIGGER_ON_STEP_CHANGE) · 1 = Set Değerine Ulaşınca Değiştir (WELD_TOL_TRIGGER_ON_TEMP_REACHED, D105 false→true geçişini bekler)",
+      "gosterim": "0 = Adım Bitince Değiştir · 1 = Set Değerine Ulaşınca Değiştir",
       "not1": "NVS: g_weldSettings.tolTriggerMode[]",
       "not2": "Coil olduğu için deger'in sadece alt byte'ı kullanılır",
       "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Coil adr=0x0101 → nvs_set_tol_trigger_mode()",
@@ -4779,14 +4779,14 @@
       "secenekler": [
         {
           "deger": 0,
-          "etiket": "Adım Bitince Değiştir (WELD_TOL_TRIGGER_ON_STEP_CHANGE)"
+          "etiket": "Adım Bitince Değiştir"
         },
         {
           "deger": 1,
-          "etiket": "Set Değerine Ulaşınca Değiştir (WELD_TOL_TRIGGER_ON_TEMP_REACHED, D105 false→true geçişini bekler)"
+          "etiket": "Set Değerine Ulaşınca Değiştir"
         }
       ],
-      "gosterim": "0 = Adım Bitince Değiştir (WELD_TOL_TRIGGER_ON_STEP_CHANGE) · 1 = Set Değerine Ulaşınca Değiştir (WELD_TOL_TRIGGER_ON_TEMP_REACHED, D105 false→true geçişini bekler)",
+      "gosterim": "0 = Adım Bitince Değiştir · 1 = Set Değerine Ulaşınca Değiştir",
       "not1": "NVS: g_weldSettings.tolTriggerMode[]",
       "not2": "Coil olduğu için deger'in sadece alt byte'ı kullanılır",
       "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Coil adr=0x0102 → nvs_set_tol_trigger_mode()",
@@ -4810,14 +4810,14 @@
       "secenekler": [
         {
           "deger": 0,
-          "etiket": "Adım Bitince Değiştir (WELD_TOL_TRIGGER_ON_STEP_CHANGE)"
+          "etiket": "Adım Bitince Değiştir"
         },
         {
           "deger": 1,
-          "etiket": "Set Değerine Ulaşınca Değiştir (WELD_TOL_TRIGGER_ON_TEMP_REACHED, D105 false→true geçişini bekler)"
+          "etiket": "Set Değerine Ulaşınca Değiştir"
         }
       ],
-      "gosterim": "0 = Adım Bitince Değiştir (WELD_TOL_TRIGGER_ON_STEP_CHANGE) · 1 = Set Değerine Ulaşınca Değiştir (WELD_TOL_TRIGGER_ON_TEMP_REACHED, D105 false→true geçişini bekler)",
+      "gosterim": "0 = Adım Bitince Değiştir · 1 = Set Değerine Ulaşınca Değiştir",
       "not1": "NVS: g_weldSettings.tolTriggerMode[]",
       "not2": "Coil olduğu için deger'in sadece alt byte'ı kullanılır",
       "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Coil adr=0x0103 → nvs_set_tol_trigger_mode()",
@@ -4841,14 +4841,14 @@
       "secenekler": [
         {
           "deger": 0,
-          "etiket": "Adım Bitince Değiştir (WELD_TOL_TRIGGER_ON_STEP_CHANGE)"
+          "etiket": "Adım Bitince Değiştir"
         },
         {
           "deger": 1,
-          "etiket": "Set Değerine Ulaşınca Değiştir (WELD_TOL_TRIGGER_ON_TEMP_REACHED, D105 false→true geçişini bekler)"
+          "etiket": "Set Değerine Ulaşınca Değiştir"
         }
       ],
-      "gosterim": "0 = Adım Bitince Değiştir (WELD_TOL_TRIGGER_ON_STEP_CHANGE) · 1 = Set Değerine Ulaşınca Değiştir (WELD_TOL_TRIGGER_ON_TEMP_REACHED, D105 false→true geçişini bekler)",
+      "gosterim": "0 = Adım Bitince Değiştir · 1 = Set Değerine Ulaşınca Değiştir",
       "not1": "NVS: g_weldSettings.tolTriggerMode[]",
       "not2": "Coil olduğu için deger'in sadece alt byte'ı kullanılır",
       "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Coil adr=0x0104 → nvs_set_tol_trigger_mode()",
@@ -4872,14 +4872,14 @@
       "secenekler": [
         {
           "deger": 0,
-          "etiket": "Adım Bitince Değiştir (WELD_TOL_TRIGGER_ON_STEP_CHANGE)"
+          "etiket": "Adım Bitince Değiştir"
         },
         {
           "deger": 1,
-          "etiket": "Set Değerine Ulaşınca Değiştir (WELD_TOL_TRIGGER_ON_TEMP_REACHED, D105 false→true geçişini bekler)"
+          "etiket": "Set Değerine Ulaşınca Değiştir"
         }
       ],
-      "gosterim": "0 = Adım Bitince Değiştir (WELD_TOL_TRIGGER_ON_STEP_CHANGE) · 1 = Set Değerine Ulaşınca Değiştir (WELD_TOL_TRIGGER_ON_TEMP_REACHED, D105 false→true geçişini bekler)",
+      "gosterim": "0 = Adım Bitince Değiştir · 1 = Set Değerine Ulaşınca Değiştir",
       "not1": "NVS: g_weldSettings.tolTriggerMode[]",
       "not2": "Coil olduğu için deger'in sadece alt byte'ı kullanılır",
       "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Coil adr=0x0105 → nvs_set_tol_trigger_mode()",
@@ -4903,14 +4903,14 @@
       "secenekler": [
         {
           "deger": 0,
-          "etiket": "Adım Bitince Değiştir (WELD_TOL_TRIGGER_ON_STEP_CHANGE)"
+          "etiket": "Adım Bitince Değiştir"
         },
         {
           "deger": 1,
-          "etiket": "Set Değerine Ulaşınca Değiştir (WELD_TOL_TRIGGER_ON_TEMP_REACHED, D105 false→true geçişini bekler)"
+          "etiket": "Set Değerine Ulaşınca Değiştir"
         }
       ],
-      "gosterim": "0 = Adım Bitince Değiştir (WELD_TOL_TRIGGER_ON_STEP_CHANGE) · 1 = Set Değerine Ulaşınca Değiştir (WELD_TOL_TRIGGER_ON_TEMP_REACHED, D105 false→true geçişini bekler)",
+      "gosterim": "0 = Adım Bitince Değiştir · 1 = Set Değerine Ulaşınca Değiştir",
       "not1": "NVS: g_weldSettings.tolTriggerMode[]",
       "not2": "Coil olduğu için deger'in sadece alt byte'ı kullanılır",
       "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Coil adr=0x0106 → nvs_set_tol_trigger_mode()",
@@ -4934,14 +4934,14 @@
       "secenekler": [
         {
           "deger": 0,
-          "etiket": "Adım Bitince Değiştir (WELD_TOL_TRIGGER_ON_STEP_CHANGE)"
+          "etiket": "Adım Bitince Değiştir"
         },
         {
           "deger": 1,
-          "etiket": "Set Değerine Ulaşınca Değiştir (WELD_TOL_TRIGGER_ON_TEMP_REACHED, D105 false→true geçişini bekler)"
+          "etiket": "Set Değerine Ulaşınca Değiştir"
         }
       ],
-      "gosterim": "0 = Adım Bitince Değiştir (WELD_TOL_TRIGGER_ON_STEP_CHANGE) · 1 = Set Değerine Ulaşınca Değiştir (WELD_TOL_TRIGGER_ON_TEMP_REACHED, D105 false→true geçişini bekler)",
+      "gosterim": "0 = Adım Bitince Değiştir · 1 = Set Değerine Ulaşınca Değiştir",
       "not1": "NVS: g_weldSettings.tolTriggerMode[]",
       "not2": "Coil olduğu için deger'in sadece alt byte'ı kullanılır",
       "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Coil adr=0x0107 → nvs_set_tol_trigger_mode()",
@@ -4965,14 +4965,14 @@
       "secenekler": [
         {
           "deger": 0,
-          "etiket": "Adım Bitince Değiştir (WELD_TOL_TRIGGER_ON_STEP_CHANGE)"
+          "etiket": "Adım Bitince Değiştir"
         },
         {
           "deger": 1,
-          "etiket": "Set Değerine Ulaşınca Değiştir (WELD_TOL_TRIGGER_ON_TEMP_REACHED, D105 false→true geçişini bekler)"
+          "etiket": "Set Değerine Ulaşınca Değiştir"
         }
       ],
-      "gosterim": "0 = Adım Bitince Değiştir (WELD_TOL_TRIGGER_ON_STEP_CHANGE) · 1 = Set Değerine Ulaşınca Değiştir (WELD_TOL_TRIGGER_ON_TEMP_REACHED, D105 false→true geçişini bekler)",
+      "gosterim": "0 = Adım Bitince Değiştir · 1 = Set Değerine Ulaşınca Değiştir",
       "not1": "NVS: g_weldSettings.tolTriggerMode[]",
       "not2": "Coil olduğu için deger'in sadece alt byte'ı kullanılır",
       "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Coil adr=0x0108 → nvs_set_tol_trigger_mode()",
@@ -4996,14 +4996,14 @@
       "secenekler": [
         {
           "deger": 0,
-          "etiket": "Adım Bitince Değiştir (WELD_TOL_TRIGGER_ON_STEP_CHANGE)"
+          "etiket": "Adım Bitince Değiştir"
         },
         {
           "deger": 1,
-          "etiket": "Set Değerine Ulaşınca Değiştir (WELD_TOL_TRIGGER_ON_TEMP_REACHED, D105 false→true geçişini bekler)"
+          "etiket": "Set Değerine Ulaşınca Değiştir"
         }
       ],
-      "gosterim": "0 = Adım Bitince Değiştir (WELD_TOL_TRIGGER_ON_STEP_CHANGE) · 1 = Set Değerine Ulaşınca Değiştir (WELD_TOL_TRIGGER_ON_TEMP_REACHED, D105 false→true geçişini bekler)",
+      "gosterim": "0 = Adım Bitince Değiştir · 1 = Set Değerine Ulaşınca Değiştir",
       "not1": "NVS: g_weldSettings.tolTriggerMode[]",
       "not2": "Coil olduğu için deger'in sadece alt byte'ı kullanılır",
       "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Coil adr=0x0109 → nvs_set_tol_trigger_mode()",
@@ -5027,14 +5027,14 @@
       "secenekler": [
         {
           "deger": 0,
-          "etiket": "Adım Bitince Değiştir (WELD_TOL_TRIGGER_ON_STEP_CHANGE)"
+          "etiket": "Adım Bitince Değiştir"
         },
         {
           "deger": 1,
-          "etiket": "Set Değerine Ulaşınca Değiştir (WELD_TOL_TRIGGER_ON_TEMP_REACHED, D105 false→true geçişini bekler)"
+          "etiket": "Set Değerine Ulaşınca Değiştir"
         }
       ],
-      "gosterim": "0 = Adım Bitince Değiştir (WELD_TOL_TRIGGER_ON_STEP_CHANGE) · 1 = Set Değerine Ulaşınca Değiştir (WELD_TOL_TRIGGER_ON_TEMP_REACHED, D105 false→true geçişini bekler)",
+      "gosterim": "0 = Adım Bitince Değiştir · 1 = Set Değerine Ulaşınca Değiştir",
       "not1": "NVS: g_weldSettings.tolTriggerMode[]",
       "not2": "Coil olduğu için deger'in sadece alt byte'ı kullanılır",
       "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Coil adr=0x010A → nvs_set_tol_trigger_mode()",
@@ -5058,14 +5058,14 @@
       "secenekler": [
         {
           "deger": 0,
-          "etiket": "Adım Bitince Değiştir (WELD_TOL_TRIGGER_ON_STEP_CHANGE)"
+          "etiket": "Adım Bitince Değiştir"
         },
         {
           "deger": 1,
-          "etiket": "Set Değerine Ulaşınca Değiştir (WELD_TOL_TRIGGER_ON_TEMP_REACHED, D105 false→true geçişini bekler)"
+          "etiket": "Set Değerine Ulaşınca Değiştir"
         }
       ],
-      "gosterim": "0 = Adım Bitince Değiştir (WELD_TOL_TRIGGER_ON_STEP_CHANGE) · 1 = Set Değerine Ulaşınca Değiştir (WELD_TOL_TRIGGER_ON_TEMP_REACHED, D105 false→true geçişini bekler)",
+      "gosterim": "0 = Adım Bitince Değiştir · 1 = Set Değerine Ulaşınca Değiştir",
       "not1": "NVS: g_weldSettings.tolTriggerMode[]",
       "not2": "Coil olduğu için deger'in sadece alt byte'ı kullanılır",
       "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Coil adr=0x010B → nvs_set_tol_trigger_mode()",
@@ -5089,14 +5089,14 @@
       "secenekler": [
         {
           "deger": 0,
-          "etiket": "Adım Bitince Değiştir (WELD_TOL_TRIGGER_ON_STEP_CHANGE)"
+          "etiket": "Adım Bitince Değiştir"
         },
         {
           "deger": 1,
-          "etiket": "Set Değerine Ulaşınca Değiştir (WELD_TOL_TRIGGER_ON_TEMP_REACHED, D105 false→true geçişini bekler)"
+          "etiket": "Set Değerine Ulaşınca Değiştir"
         }
       ],
-      "gosterim": "0 = Adım Bitince Değiştir (WELD_TOL_TRIGGER_ON_STEP_CHANGE) · 1 = Set Değerine Ulaşınca Değiştir (WELD_TOL_TRIGGER_ON_TEMP_REACHED, D105 false→true geçişini bekler)",
+      "gosterim": "0 = Adım Bitince Değiştir · 1 = Set Değerine Ulaşınca Değiştir",
       "not1": "NVS: g_weldSettings.tolTriggerMode[]",
       "not2": "Coil olduğu için deger'in sadece alt byte'ı kullanılır",
       "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Coil adr=0x010C → nvs_set_tol_trigger_mode()",
@@ -5120,14 +5120,14 @@
       "secenekler": [
         {
           "deger": 0,
-          "etiket": "Adım Bitince Değiştir (WELD_TOL_TRIGGER_ON_STEP_CHANGE)"
+          "etiket": "Adım Bitince Değiştir"
         },
         {
           "deger": 1,
-          "etiket": "Set Değerine Ulaşınca Değiştir (WELD_TOL_TRIGGER_ON_TEMP_REACHED, D105 false→true geçişini bekler)"
+          "etiket": "Set Değerine Ulaşınca Değiştir"
         }
       ],
-      "gosterim": "0 = Adım Bitince Değiştir (WELD_TOL_TRIGGER_ON_STEP_CHANGE) · 1 = Set Değerine Ulaşınca Değiştir (WELD_TOL_TRIGGER_ON_TEMP_REACHED, D105 false→true geçişini bekler)",
+      "gosterim": "0 = Adım Bitince Değiştir · 1 = Set Değerine Ulaşınca Değiştir",
       "not1": "NVS: g_weldSettings.tolTriggerMode[]",
       "not2": "Coil olduğu için deger'in sadece alt byte'ı kullanılır",
       "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Coil adr=0x010D → nvs_set_tol_trigger_mode()",
@@ -5151,14 +5151,14 @@
       "secenekler": [
         {
           "deger": 0,
-          "etiket": "Adım Bitince Değiştir (WELD_TOL_TRIGGER_ON_STEP_CHANGE)"
+          "etiket": "Adım Bitince Değiştir"
         },
         {
           "deger": 1,
-          "etiket": "Set Değerine Ulaşınca Değiştir (WELD_TOL_TRIGGER_ON_TEMP_REACHED, D105 false→true geçişini bekler)"
+          "etiket": "Set Değerine Ulaşınca Değiştir"
         }
       ],
-      "gosterim": "0 = Adım Bitince Değiştir (WELD_TOL_TRIGGER_ON_STEP_CHANGE) · 1 = Set Değerine Ulaşınca Değiştir (WELD_TOL_TRIGGER_ON_TEMP_REACHED, D105 false→true geçişini bekler)",
+      "gosterim": "0 = Adım Bitince Değiştir · 1 = Set Değerine Ulaşınca Değiştir",
       "not1": "NVS: g_weldSettings.tolTriggerMode[]",
       "not2": "Coil olduğu için deger'in sadece alt byte'ı kullanılır",
       "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Coil adr=0x010E → nvs_set_tol_trigger_mode()",
@@ -5182,14 +5182,14 @@
       "secenekler": [
         {
           "deger": 0,
-          "etiket": "Adım Bitince Değiştir (WELD_TOL_TRIGGER_ON_STEP_CHANGE)"
+          "etiket": "Adım Bitince Değiştir"
         },
         {
           "deger": 1,
-          "etiket": "Set Değerine Ulaşınca Değiştir (WELD_TOL_TRIGGER_ON_TEMP_REACHED, D105 false→true geçişini bekler)"
+          "etiket": "Set Değerine Ulaşınca Değiştir"
         }
       ],
-      "gosterim": "0 = Adım Bitince Değiştir (WELD_TOL_TRIGGER_ON_STEP_CHANGE) · 1 = Set Değerine Ulaşınca Değiştir (WELD_TOL_TRIGGER_ON_TEMP_REACHED, D105 false→true geçişini bekler)",
+      "gosterim": "0 = Adım Bitince Değiştir · 1 = Set Değerine Ulaşınca Değiştir",
       "not1": "NVS: g_weldSettings.tolTriggerMode[]",
       "not2": "Coil olduğu için deger'in sadece alt byte'ı kullanılır",
       "not3": "Yazma: CMD_YAZ_PARAMETRE regTip=Coil adr=0x010F → nvs_set_tol_trigger_mode()",
